@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gurgulator — ferment your audio</title>
+  <style>
+    :root{
+      --bg:#0c0f0c; --ink:#d7dfd7; --muted:#a8b3a8; --slime:#9cc650; --jar:#121512; --line:#202620;
+      --accent:#b8d66b;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0; background:radial-gradient(1200px_800px at 70% 15%, rgba(156,198,80,.12), transparent 60%), linear-gradient(180deg,#0c0f0c 0%,#0a0d0a 100%); color:var(--ink); font-family:system-ui, -apple-system, Segoe UI, Roboto, Arial}
+    .wrap{display:grid; grid-template-columns: 1fr 420px; gap:20px; padding:20px; max-width:1280px; margin:0 auto}
+    header{grid-column:1 / -1; text-align:center; padding:12px 0 2px}
+    h1{margin:.2rem 0 .4rem; font-size:clamp(26px,4.4vw,42px); letter-spacing:.02em}
+    .sub{color:var(--muted)}
+
+    .jar{position:relative; background:linear-gradient(180deg, rgba(25,32,25,.7), rgba(14,18,14,.7)); border:1px solid var(--line); border-radius:18px; overflow:hidden; min-height:520px; display:grid; place-items:center}
+    #viz{width:100%; height:100%}
+    .drop{position:absolute; inset:0; display:grid; place-items:center; pointer-events:none;}
+    .drop .hint{pointer-events:none; background:rgba(0,0,0,.35); border:1px dashed #334033; color:#dce8dc; padding:10px 14px; border-radius:10px}
+
+    .panel{background:linear-gradient(180deg, rgba(31,36,31,.6), rgba(22,26,22,.5)); border:1px solid var(--line); border-radius:14px; padding:14px}
+    .panel h2{margin:0 0 6px; font-size:14px; text-transform:uppercase; letter-spacing:.14em; color:#e8f0e8}
+    .controls{display:grid; gap:10px}
+    .row{display:grid; grid-template-columns: 1fr auto; gap:8px; align-items:center}
+    .row label{font-size:13px; color:#cdd7cd}
+    .row input[type="range"]{width:100%}
+    .btns{display:flex; flex-wrap:wrap; gap:8px; margin-top:8px}
+    button,.filebtn{appearance:none; border:1px solid var(--line); background:#141914; color:var(--ink); padding:8px 10px; border-radius:10px; cursor:pointer; font-weight:600}
+    button:hover,.filebtn:hover{border-color:#3a463a; background:#192019}
+    .file{display:none}
+
+    .status{margin-top:10px; font-size:13px; color:#bcd3bc}
+    .note{margin-top:8px; font-size:12px; color:#9fb79f}
+
+    .badge{display:inline-block; padding:3px 7px; border-radius:999px; background:rgba(156,198,80,.18); color:#dff0df; border:1px solid rgba(156,198,80,.35); font-size:12px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>Gurgulator <span class="badge">early prototype</span></h1>
+      <div class="sub">drop a sound, press <em>Start Fermenting</em>, and record the ooze</div>
+    </header>
+
+    <div class="jar" id="jar">
+      <canvas id="viz"></canvas>
+      <div class="drop"><div class="hint">Drop audio here (wav/mp3/aiff)</div></div>
+    </div>
+
+    <aside class="panel">
+      <h2>Controls</h2>
+      <div class="controls">
+        <div class="row"><label>Ferment Intensity</label><input id="intensity" type="range" min="0" max="1" step="0.01" value="0.6"></div>
+        <div class="row"><label>Bubble Rate (grains/sec)</label><input id="rate" type="range" min="2" max="40" step="1" value="16"></div>
+        <div class="row"><label>Grain Size (ms)</label><input id="grain" type="range" min="30" max="500" step="5" value="160"></div>
+        <div class="row"><label>Overlap (%)</label><input id="overlap" type="range" min="0" max="100" step="1" value="55"></div>
+        <div class="row"><label>Stretch Range (0.5×–3×)</label><input id="stretch" type="range" min="0" max="1" step="0.01" value="0.6"></div>
+        <div class="row"><label>Pitch Range (± semitones)</label><input id="pitch" type="range" min="0" max="12" step="0.1" value="7"></div>
+        <div class="row"><label>Reverse Probability</label><input id="reverseProb" type="range" min="0" max="0.4" step="0.01" value="0.15"></div>
+
+        <div class="row"><label>Formant Tilt (peaking EQ)</label><input id="formant" type="range" min="0" max="1" step="0.01" value="0.35"></div>
+        <div class="row"><label>Gurgle Burp Density</label><input id="burp" type="range" min="0" max="1" step="0.01" value="0.5"></div>
+        <div class="row"><label>Bubble Pop Rate</label><input id="pop" type="range" min="0" max="1" step="0.01" value="0.15"></div>
+
+        <div class="row"><label>Wet Convolver (goo IR)</label><input id="wet" type="range" min="0" max="1" step="0.01" value="0.25"></div>
+        <div class="row"><label>Gurgle Filter (band‑sweep)</label><input id="filter" type="range" min="0" max="1" step="0.01" value="0.5"></div>
+
+        <div class="btns">
+          <label class="filebtn" for="file">Load Audio</label>
+          <input class="file" id="file" type="file" accept="audio/*">
+          <button id="start">Start Fermenting</button>
+          <button id="stop">Stop</button>
+          <button id="freeze">Freeze/Thaw</button>
+          <button id="rec">● Record</button>
+          <a id="download" style="display:none"></a>
+        </div>
+        <div class="status" id="status">No audio loaded.</div>
+        <div class="note">Granular scheduler + stochastic pitch/time, wandering band‑pass, peaking EQ tilt, goo convolver, bubble pops, and live recording.</div>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+  // --- Audio plumbing ---
+  const fileInput = document.getElementById('file');
+  const startBtn = document.getElementById('start');
+  const stopBtn  = document.getElementById('stop');
+  const freezeBtn= document.getElementById('freeze');
+  const recBtn   = document.getElementById('rec');
+  const dlLink   = document.getElementById('download');
+  const statusEl = document.getElementById('status');
+  const jar = document.getElementById('jar');
+
+  const ui = {
+    intensity: document.getElementById('intensity'),
+    rate:      document.getElementById('rate'),
+    grain:     document.getElementById('grain'),
+    overlap:   document.getElementById('overlap'),
+    stretch:   document.getElementById('stretch'),
+    pitch:     document.getElementById('pitch'),
+    reverse:   document.getElementById('reverseProb'),
+    formant:   document.getElementById('formant'),
+    burp:      document.getElementById('burp'),
+    pop:       document.getElementById('pop'),
+    wet:       document.getElementById('wet'),
+    filter:    document.getElementById('filter'),
+  };
+
+  let ctx, masterGain, convolver, wetGain, dryGain, bpFilter, formantEQ, dest, mediaRecorder;
+  let buffer = null;
+  let running = false;
+  let lookaheadTimer = null;
+  let pointer = 0; // read head in seconds
+  let sampleDuration = 0;
+  let frozen = false; let frozenHead = 0;
+
+  // visualize
+  const canv = document.getElementById('viz');
+  const g = canv.getContext('2d');
+  function resizeViz(){ const r = jar.getBoundingClientRect(); canv.width=r.width; canv.height=Math.max(520, r.height); }
+  window.addEventListener('resize', resizeViz); resizeViz();
+
+  const bubbles = [];
+  function spawnBubble(x, y, r, hue){ bubbles.push({x,y,r,alpha:0.9, v:(0.6+Math.random()*1.2), hue}); }
+  function drawViz(){
+    g.clearRect(0,0,canv.width,canv.height);
+    g.fillStyle = 'rgba(20,25,20,0.9)'; g.fillRect(0,0,canv.width,canv.height);
+    for(let i=bubbles.length-1;i>=0;i--){
+      const b = bubbles[i];
+      b.y -= b.v; b.r *= 0.998; b.alpha *= 0.985;
+      if(b.alpha<0.02 || b.r<3){ bubbles.splice(i,1); continue; }
+      g.beginPath();
+      const grad = g.createRadialGradient(b.x, b.y, b.r*0.2, b.x, b.y, b.r);
+      grad.addColorStop(0, `hsla(${b.hue},70%,70%,${0.35*b.alpha})`);
+      grad.addColorStop(1, `hsla(${b.hue},50%,40%,${0.08*b.alpha})`);
+      g.fillStyle = grad; g.arc(b.x,b.y,b.r,0,Math.PI*2); g.fill();
+      g.strokeStyle = `hsla(${b.hue},60%,60%,${0.25*b.alpha})`; g.lineWidth = 1.2; g.stroke();
+    }
+    requestAnimationFrame(drawViz);
+  }
+  requestAnimationFrame(drawViz);
+
+  async function ensureContext(){
+    if(ctx) return;
+    ctx = new (window.AudioContext||window.webkitAudioContext)();
+    masterGain = ctx.createGain(); masterGain.gain.value = 0.9; masterGain.connect(ctx.destination);
+    dryGain = ctx.createGain(); dryGain.gain.value = 1; dryGain.connect(masterGain);
+    wetGain = ctx.createGain(); wetGain.gain.value = parseFloat(ui.wet.value); wetGain.connect(masterGain);
+
+    // Recording: route master into MediaStreamDestination
+    dest = ctx.createMediaStreamDestination();
+    masterGain.connect(dest);
+    mediaRecorder = new MediaRecorder(dest.stream, { mimeType: MediaRecorder.isTypeSupported('audio/webm;codecs=opus') ? 'audio/webm;codecs=opus' : undefined });
+    let chunks = [];
+    mediaRecorder.ondataavailable = e=>{ if(e.data.size>0) chunks.push(e.data); };
+    mediaRecorder.onstop = ()=>{
+      const blob = new Blob(chunks, { type: chunks[0]?.type || 'audio/webm' });
+      chunks = [];
+      const url = URL.createObjectURL(blob);
+      dlLink.href = url; dlLink.download = `gurgulator-${Date.now()}.webm`;
+      dlLink.click();
+      URL.revokeObjectURL(url);
+      recBtn.textContent = '● Record';
+    };
+
+    // band‑pass filter that wanders (gurgle)
+    bpFilter = ctx.createBiquadFilter(); bpFilter.type = 'bandpass'; bpFilter.Q.value = 1.2; bpFilter.frequency.value = 400;
+
+    // formant-ish peaking EQ (on dry path)
+    formantEQ = ctx.createBiquadFilter(); formantEQ.type = 'peaking'; formantEQ.frequency.value = 600; formantEQ.Q.value = 0.9; formantEQ.gain.value = 0;
+
+    // chain dry: src -> bpFilter -> formantEQ -> dryGain
+    bpFilter.connect(formantEQ); formantEQ.connect(dryGain);
+
+    // wet path: convolver -> wetGain
+    convolver = ctx.createConvolver();
+    convolver.normalize = true;
+    convolver.buffer = makeGooIR(ctx, 1.4);
+    convolver.connect(wetGain);
+
+    wanderFilter();
+    bubblePopper();
+    formantWander();
+  }
+
+  function makeGooIR(ctx, dur){
+    const sr = ctx.sampleRate; const len = Math.floor(dur*sr);
+    const buf = ctx.createBuffer(2, len, sr);
+    for(let ch=0; ch<2; ch++){
+      const d = buf.getChannelData(ch);
+      let phase=0; const base = 40 + Math.random()*90;
+      for(let i=0;i<len;i++){
+        const env = Math.exp(-i/(sr*0.32)) * 0.9;
+        if(i % Math.floor(sr*(0.06+Math.random()*0.18)) === 0){ phase = Math.random()*Math.PI*2; }
+        const n = (Math.random()*2-1) * 0.35;
+        const tone = Math.sin(phase + i*(base+Math.random()*120)/sr*2*Math.PI) * 0.15;
+        d[i] = (n + tone) * env;
+      }
+    }
+    return buf;
+  }
+
+  function wanderFilter(){
+    if(!ctx) return;
+    const now = ctx.currentTime;
+    // burp density maps how often we move & how spiky Q is
+    const dens = parseFloat(ui.burp.value); // 0..1
+    const minDelay = 150, maxDelay = 1200; // ms
+    const nextIn = (minDelay + (1-dens)*(maxDelay-minDelay)) * (0.6 + Math.random()*0.8);
+
+    const f0 = 120 + Math.random()*1800; // Hz
+    bpFilter.frequency.cancelScheduledValues(now);
+    bpFilter.frequency.linearRampToValueAtTime(f0, now + (0.4 + Math.random()*1.2));
+
+    const q0 = 0.8 + Math.random()*(2.5 + 6*dens); // more density -> spikier
+    bpFilter.Q.cancelScheduledValues(now);
+    bpFilter.Q.linearRampToValueAtTime(q0, now + 0.25);
+
+    setTimeout(wanderFilter, nextIn);
+  }
+
+  function formantWander(){
+    if(!ctx) return;
+    const now = ctx.currentTime;
+    const amt = parseFloat(ui.formant.value); // 0..1
+    const freq = 300 + amt*1400; // 300..1700 Hz
+    const gain = -2 + amt*10;    // -2..+8 dB
+    formantEQ.frequency.cancelScheduledValues(now);
+    formantEQ.frequency.linearRampToValueAtTime(freq, now + 0.2);
+    formantEQ.gain.cancelScheduledValues(now);
+    formantEQ.gain.linearRampToValueAtTime(gain, now + 0.2);
+    setTimeout(formantWander, 300);
+  }
+
+  function bubblePopper(){
+    if(!ctx) return;
+    const rate = parseFloat(ui.pop.value); // 0..1
+    const chance = rate * 0.2; // modest global rate
+    if(Math.random() < chance){
+      const now = ctx.currentTime;
+      const dip = 0.25 + Math.random()*0.25;
+      masterGain.gain.cancelScheduledValues(now);
+      masterGain.gain.linearRampToValueAtTime(1-dip, now + 0.01);
+      masterGain.gain.linearRampToValueAtTime(0.9, now + 0.15);
+    }
+    setTimeout(bubblePopper, 120 + Math.random()*600);
+  }
+
+  // Drag & drop
+  ['dragenter','dragover'].forEach(ev=>{ jar.addEventListener(ev, e=>{ e.preventDefault(); jar.style.outline='2px solid rgba(156,198,80,.6)'; }); });
+  ;['dragleave','drop'].forEach(ev=>{ jar.addEventListener(ev, e=>{ e.preventDefault(); jar.style.outline='none'; }); });
+  jar.addEventListener('drop', async (e)=>{ e.preventDefault(); const f = e.dataTransfer.files[0]; if(f) loadFile(f); });
+  fileInput.addEventListener('change', e=>{ const f = e.target.files[0]; if(f) loadFile(f); });
+
+  async function loadFile(file){
+    await ensureContext();
+    const arr = await file.arrayBuffer();
+    buffer = await ctx.decodeAudioData(arr);
+    sampleDuration = buffer.duration;
+    pointer = 0; statusEl.textContent = `Loaded: ${file.name} — ${sampleDuration.toFixed(2)}s`;
+  }
+
+  function semitonesToRate(semi){ return Math.pow(2, semi/12); }
+
+  function scheduleGrain(when){
+    if(!buffer) return;
+    const intensity = parseFloat(ui.intensity.value);
+    const grainDurMs = parseFloat(ui.grain.value) * (0.6 + Math.random()*0.8);
+    const grainDur = Math.max(0.03, grainDurMs/1000);
+
+    const stretchRange = 0.5 + parseFloat(ui.stretch.value) * 2.5;
+    const reverseP = parseFloat(ui.reverse.value);
+    const dir = (Math.random()<reverseP? -1: 1);
+
+    let step;
+    if(frozen){
+      // hold around a tiny neighborhood
+      step = (Math.random()-0.5) * 0.02; // tiny wobble
+      pointer = frozenHead + step;
+    } else {
+      step = (grainDur * (0.8 + Math.random()*0.6)) * (dir) * (1.0 / stretchRange);
+      pointer += step;
+    }
+
+    if(pointer < 0) pointer += sampleDuration;
+    if(pointer > sampleDuration-0.05) pointer = (pointer % sampleDuration);
+
+    const start = Math.max(0, Math.min(sampleDuration - grainDur, pointer + (Math.random()-0.5) * 0.04));
+
+    const pitchSemi = (Math.random()*2-1) * parseFloat(ui.pitch.value);
+    const rate = semitonesToRate(pitchSemi) * (0.85 + Math.random()*0.3);
+
+    const src = ctx.createBufferSource(); src.buffer = buffer; src.playbackRate.value = rate;
+
+    const gGain = ctx.createGain();
+    const amp = 0.7 * (0.6 + Math.random()*0.8) * (0.6 + intensity*0.8);
+
+    const atk = 0.008 + Math.random()*0.02;
+    const rel = 0.02 + Math.random()*0.05 + intensity*0.12;
+    const now = when;
+    gGain.gain.setValueAtTime(0, now);
+    gGain.gain.linearRampToValueAtTime(amp, now + atk);
+    gGain.gain.linearRampToValueAtTime(0.0001, now + atk + grainDur + rel);
+
+    // routing per-grain: src -> gGain -> (bpFilter & convolver)
+    src.connect(gGain);
+    gGain.connect(bpFilter);
+    gGain.connect(convolver);
+
+    src.start(now, start, grainDur);
+
+    // viz
+    const x = (start / sampleDuration) * canv.width;
+    const y = canv.height - (rate*120 % canv.height)*0.4 - 40 - Math.random()*30;
+    const rad = 10 + Math.min(80, grainDur*900) * (0.8 + Math.random()*0.6);
+    const hue = 90 + (pitchSemi*5) + (intensity*40) + Math.random()*20;
+    spawnBubble(x, y, rad, hue);
+  }
+
+  function start(){
+    if(!ctx || !buffer) { statusEl.textContent = 'Load audio first.'; return; }
+    if(running) return; running = true; statusEl.textContent='Fermenting…';
+    ctx.resume();
+    const lookahead = 0.12;
+    const tick = ()=>{
+      if(!running) return;
+      const now = ctx.currentTime;
+      const grainsPerSec = parseFloat(ui.rate.value);
+      const overlap = parseFloat(ui.overlap.value)/100;
+      const hop = Math.max(1/60, (1.0 / grainsPerSec) * (1.0 - overlap*0.8));
+      let t = now; 
+      while(t < now + lookahead){
+        scheduleGrain(t);
+        t += hop * (0.7 + Math.random()*0.6);
+      }
+      lookaheadTimer = setTimeout(tick, 30);
+    };
+    tick();
+
+    const wetLoop = ()=>{
+      if(!running) return;
+      wetGain.gain.linearRampToValueAtTime(parseFloat(ui.wet.value), ctx.currentTime + 0.05);
+      setTimeout(wetLoop, 80);
+    }; wetLoop();
+  }
+
+  function stop(){ running=false; if(lookaheadTimer) clearTimeout(lookaheadTimer); statusEl.textContent='Stopped.'; }
+
+  startBtn.addEventListener('click', start);
+  stopBtn.addEventListener('click', stop);
+  freezeBtn.addEventListener('click', ()=>{
+    frozen = !frozen; if(frozen){ frozenHead = pointer; freezeBtn.textContent = 'Thaw'; statusEl.textContent='Frozen.'; } else { freezeBtn.textContent = 'Freeze'; statusEl.textContent='Fermenting…'; }
+  });
+
+  recBtn.addEventListener('click', ()=>{
+    if(!mediaRecorder) return;
+    if(mediaRecorder.state === 'inactive'){ mediaRecorder.start(); recBtn.textContent='■ Stop Rec'; }
+    else { mediaRecorder.stop(); }
+  });
+
+  // expose: clicking jar also toggles
+  jar.addEventListener('click', ()=>{ running ? stop() : start(); });
+  </script>
+</body>
+</html>
