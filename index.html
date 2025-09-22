@@ -18,14 +18,16 @@
     }
     *{box-sizing:border-box}
     html,body{height:100%}
-    body {
+body {
   margin:0; display:grid; place-items:center;
-  background:radial-gradient(1200px_800px at 70% 20%, rgba(143,191,74,.12), transparent 60%),
-             linear-gradient(180deg, #0c0f0c 0%, #0b0e0b 100%);
+  /* FIX: Set a solid background color first */
+  background-color: var(--bg); 
+  /* Then layer the gradients on top */
+  background-image: radial-gradient(1200px 800px at 70% 20%, rgba(143,191,74,.12), transparent 60%),
+                    linear-gradient(180deg, #0c0f0c 0%, #0b0e0b 100%);
   color:var(--ink);
   font-family: "Averia Sans Libre", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
 }
-
     .wrap{width:min(1100px,92vw); padding:8vmin 4vmin 10vmin;}
 
     /* --- Title --- */
@@ -150,7 +152,7 @@
     <p class="subtitle">soft errors, virtual ooze — rotware for organic, symbiotic glitch</p>
 <section class="intro">
   <p>
-    a word mash of squelch and glitch, this is an aesthetic philosophy and software suite. This proposes a philosophical shift in digital aesthetics, moving away from traditional glitch art's rigid, pixelated, and mechanical disruptions toward organic, fluid, and biologically-inspired distortions. It values asymmetry, unpredictability, and embodiment over algorithmic repetition, taking the mechanics and aesthetics of traditional glitch and moves it from rigidity to organicity. 
+    a word mash of squelch and glitch, this is an aesthetic philosophy and software suite. This proposes a philosophical shift in digital aesthetics, moving away from traditional glitch art's rigid, pixelated, and mechanical disruptions toward organic, fluid, and biologically-inspired distortions. It values asymmetry, unpredictability, and embodiment over algorithmic repetition, taking the mechanics and aesthetics of traditional glitch and moving it from rigidity to organicity. 
 
   </p>
 </section>
