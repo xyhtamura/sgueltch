@@ -1,221 +1,956 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>S G U E L T C H</title>
-  <!-- Google Fonts: a grab‑bag of gunky/oozy display faces -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sgueltch — organic glitch suite</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Butcherman&family=Creepster&family=Eater&family=Fruktur&family=Nosifer&family=Rubik+Wet+Paint&family=UnifrakturCook:wght@700&family=Fugaz+One&family=Metal+Mania&family=Hanalei&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Butcherman&family=Creepster&family=Eater&family=Fruktur&family=Nosifer&family=Rubik+Wet+Paint&family=UnifrakturCook:wght@700&family=Fugaz+One&family=Metal+Mania&family=Hanalei&family=Averia+Sans+Libre:ital,wght@0,300;0,400;0,700;1,300&display=swap&family=Rubik+Microbe" rel="stylesheet">
   <style>
-    :root{
-      --bg:#0c0f0c;        /* swampy dark */
-      --ink:#c8d0c8;       /* pallid text */
-      --slime:#8fbf4a;     /* ooze accent */
-      --sick:#b0cc64;      /* lighter ooze */
-      --grid:#1e221e;      /* subtle panel */
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-body {
-  margin:0; display:grid; place-items:center;
-  /* FIX: Set a solid background color first */
-  background-color: var(--bg); 
-  /* Then layer the gradients on top */
-  background-image: radial-gradient(1200px 800px at 70% 20%, rgba(143,191,74,.12), transparent 60%),
-                    linear-gradient(180deg, #0c0f0c 0%, #0b0e0b 100%);
-  color:var(--ink);
-  font-family: "Averia Sans Libre", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
+    /* ─── TOKENS ─── */
+:root {
+  --bg:       #0a090d;
+  --bg-card:  #10140f;
+  --ink:      #d7dfc9;
+  --ink-dim:  #7f8b75;
+
+  --slime:    #9ccf55;
+  --sick:     #c8d86c;
+  --mold:     #4b681f;
+  --brine:    #293522;
+  --corrode:  #75a199;
+
+  --bruise:   #786d82;
+  --petri:    #6477c4;
+  --fester:   #bfa880;
+  --blood:    #b56a45;
+  --rotpink:  #f50586;
+  --aqua:     #92a8a5;
+  --violet:   #b8b4d1;
+
+  --gap:      1rem;
 }
-    .wrap{width:min(1100px,92vw); padding:8vmin 4vmin 10vmin;}
 
-    /* --- Title --- */
-    h1#sgueltch{ 
-      display:flex; gap:0.04em; flex-wrap:wrap; align-items:flex-end; justify-content:center;
-      font-weight:900; line-height:0.85; letter-spacing:.02em; filter:drop-shadow(0 8px 20px rgba(0,0,0,.6));
-      user-select:none; position:relative;
+    * { box-sizing: border-box; margin: 0; padding: 0 }
+    html, body { min-height: 100% }
+
+    body {
+      background-color: var(--bg);
+      background-image:
+        radial-gradient(ellipse 1500px 700px at 66% 5%, rgba(168,255,62,.11) 0%, transparent 58%),
+        radial-gradient(ellipse 900px 650px at 6% 90%, rgba(32,224,192,.10) 0%, transparent 55%),
+        radial-gradient(ellipse 620px 420px at 92% 76%, rgba(201,79,255,.09) 0%, transparent 60%),
+        linear-gradient(140deg, #08070c 0%, #07110f 44%, #120b18 100%);
+      color: var(--ink);
+      font-family: "Averia Sans Libre", ui-sans-serif, system-ui;
+      font-weight: 300;
+      overflow-x: hidden;
+      position: relative;
     }
-    h1#sgueltch span.letter{
-      font-size:clamp(56px, 12vw, 160px); position:relative; display:inline-block; 
-      transform:translateZ(0); color:var(--ink);
-      --drip: 0; /* animated by keyframes */
+
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      pointer-events: none;
+      inset: -22vmax;
+      z-index: 0;
+    }
+
+    body::before {
+      background:
+        radial-gradient(circle at 18% 26%, rgba(255,79,163,.18), transparent 23%),
+        radial-gradient(circle at 74% 18%, rgba(70,255,226,.15), transparent 24%),
+        radial-gradient(circle at 62% 82%, rgba(255,191,56,.12), transparent 26%),
+        radial-gradient(circle at 33% 74%, rgba(118,82,255,.15), transparent 25%),
+        conic-gradient(from 230deg at 50% 50%, rgba(168,255,62,.08), rgba(201,79,255,.06), rgba(32,224,192,.08), rgba(255,191,56,.05), rgba(168,255,62,.08));
+      filter: blur(34px) saturate(1.45);
+      opacity: .72;
+      animation: chromaDrift 18s ease-in-out infinite alternate;
+    }
+
+    body::after {
+      inset: 0;
+      background:
+        repeating-linear-gradient(100deg, rgba(168,255,62,.018) 0 1px, transparent 1px 14px),
+        repeating-linear-gradient(12deg, rgba(201,79,255,.014) 0 1px, transparent 1px 19px);
+      mix-blend-mode: screen;
+      opacity: .42;
+    }
+
+    @keyframes chromaDrift {
+      0%   { transform: translate3d(-2%, -1%, 0) rotate(0deg) scale(1) }
+      50%  { transform: translate3d(2%, 1%, 0) rotate(5deg) scale(1.05) }
+      100% { transform: translate3d(-1%, 2%, 0) rotate(-4deg) scale(1.03) }
+    }
+
+    .wrap {
+      width: min(1180px, 94vw);
+      margin: 0 auto;
+      padding: 7vmin 2vmin 12vmin;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ─── HERO ─── */
+    .hero { text-align: center; padding-bottom: 3.5rem; }
+
+    h1#sgueltch {
+      display: flex;
+      gap: .02em;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      justify-content: center;
+      font-weight: 900;
+      line-height: .85;
+      letter-spacing: .02em;
+      filter: drop-shadow(0 8px 30px rgba(0,0,0,.75));
+      user-select: none;
+    }
+
+    h1#sgueltch span.letter {
+      font-size: clamp(62px, 13.5vw, 176px);
+      position: relative;
+      display: inline-block;
+      color: var(--ink);
       animation: microWobble 6s ease-in-out infinite;
-      text-shadow: 0 0 .01em rgba(0,0,0,.2), 0 .02em .02em rgba(0,0,0,.45);
+      text-shadow: 0 0 .01em rgba(0,0,0,.2), 0 .03em .05em rgba(0,0,0,.6);
     }
-    /* subtle per-letter desync */
-    h1#sgueltch span.letter:nth-child(odd){animation-duration:5.7s}
-    h1#sgueltch span.letter:nth-child(3n){animation-duration:6.6s}
+    h1#sgueltch span.letter:nth-child(1) { color: var(--slime);  text-shadow: 0 0 .18em rgba(168,255,62,.22), 0 .03em .05em rgba(0,0,0,.6) }
+    h1#sgueltch span.letter:nth-child(2) { color: var(--rotpink); text-shadow: 0 0 .16em rgba(255,79,163,.24), 0 .03em .05em rgba(0,0,0,.6) }
+    h1#sgueltch span.letter:nth-child(3) { color: var(--aqua);    text-shadow: 0 0 .16em rgba(70,255,226,.18), 0 .03em .05em rgba(0,0,0,.6) }
+    h1#sgueltch span.letter:nth-child(4) { color: var(--fester);  text-shadow: 0 0 .15em rgba(255,191,56,.18), 0 .03em .05em rgba(0,0,0,.6) }
+    h1#sgueltch span.letter:nth-child(5) { color: var(--bruise);  text-shadow: 0 0 .17em rgba(201,79,255,.22), 0 .03em .05em rgba(0,0,0,.6) }
+    h1#sgueltch span.letter:nth-child(6) { color: var(--sick);    text-shadow: 0 0 .17em rgba(228,255,99,.20), 0 .03em .05em rgba(0,0,0,.6) }
+    h1#sgueltch span.letter:nth-child(7) { color: var(--corrode); text-shadow: 0 0 .17em rgba(32,224,192,.20), 0 .03em .05em rgba(0,0,0,.6) }
+    h1#sgueltch span.letter:nth-child(8) { color: #a6020a;        text-shadow: 0 0 .16em rgba(221,107,56,.20), 0 .03em .05em rgba(0,0,0,.6) }
 
-    @keyframes microWobble{ 
-      0%,100%{ transform: translateY(0) rotate(0deg) }
-      20%{ transform: translateY(1%) rotate(-.6deg) }
-      50%{ transform: translateY(-1.2%) rotate(.8deg) }
-      80%{ transform: translateY(.6%) rotate(-.4deg) }
+    h1#sgueltch span.letter:nth-child(odd) { animation-duration: 5.6s }
+    h1#sgueltch span.letter:nth-child(3n)  { animation-duration: 6.9s }
+
+    @keyframes microWobble {
+      0%,100% { transform: translateY(0)     rotate(0deg) }
+      20%     { transform: translateY(1.2%)  rotate(-.7deg) }
+      50%     { transform: translateY(-1.1%) rotate(.9deg) }
+      80%     { transform: translateY(.7%)   rotate(-.5deg) }
     }
 
-    /* Gooey drip using ::after */
-    h1#sgueltch span.letter::after{
-      content:""; position:absolute; left:50%; top:80%; width:0.5em; height:0.9em; transform:translateX(-50%);
-      background: radial-gradient(50% 55% at 50% 0%, var(--sick) 0%, rgba(176,204,100,.6) 45%, rgba(176,204,100,0) 70%);
-      filter: blur(2px) url('#gooey'); opacity:.65; border-radius: 0 0 .6em .6em; 
-      clip-path: path("M0,0 Q.25,.15 .26,.35 Q.27,.55 .23,.72 Q.2,.88 .35,.9 Q.5,.92 .5,1 Q.5,.92 .65,.9 Q.8,.88 .77,.72 Q.73,.55 .74,.35 Q.75,.15 1,0 Z");
+    h1#sgueltch span.letter::after {
+      content: "";
+      position: absolute;
+      left: 50%; top: 83%;
+      width: .5em; height: 1em;
+      transform: translateX(-50%);
+      background: radial-gradient(50% 55% at 50% 0%,
+        var(--sick) 0%,
+        rgba(176,204,100,.42) 40%,
+        transparent 68%);
+      filter: blur(2px);
+      opacity: .42;
+      border-radius: 0 0 .7em .7em;
       animation: ooze 3.2s ease-in-out infinite;
     }
-    h1#sgueltch span.letter:nth-child(2)::after{animation-duration:3.7s}
-    h1#sgueltch span.letter:nth-child(5)::after{animation-duration:4.1s}
+    h1#sgueltch span.letter:nth-child(2)::after { animation-duration: 3.9s; opacity: .28 }
+    h1#sgueltch span.letter:nth-child(4)::after { animation-duration: 4.6s }
+    h1#sgueltch span.letter:nth-child(6)::after { animation-duration: 2.8s; opacity: .58 }
 
-    @keyframes ooze{ 0%,100%{ transform:translate(-50%,0) scaleY(.9) } 50%{ transform:translate(-50%,6%) scaleY(1.08) } }
+    @keyframes ooze {
+      0%,100% { transform: translate(-50%, 0)  scaleY(.87) }
+      50%     { transform: translate(-50%, 9%) scaleY(1.12) }
+    }
 
-    /* Font palettes per letter */
-    .f-creepster{font-family:"Creepster", system-ui}
-    .f-butcherman{font-family:"Butcherman", system-ui}
-    .f-nosifer{font-family:"Nosifer", system-ui}
-    .f-eater{font-family:"Eater", system-ui}
-    .f-fruktur{font-family:"Fruktur", system-ui}
-    .f-unifraktur{font-family:"UnifrakturCook", system-ui}
-    .f-wetpaint{font-family:"Rubik Wet Paint", system-ui}
-    .f-fugaz{font-family:"Fugaz One", system-ui}
-    .f-metal{font-family:"Metal Mania", system-ui}
-    .f-hanalei{font-family:"Hanalei", system-ui}
+    /* font palette */
+    .f-creepster  { font-family: "Creepster",       system-ui }
+    .f-butcherman { font-family: "Butcherman",      system-ui }
+    .f-nosifer    { font-family: "Nosifer",         system-ui }
+    .f-eater      { font-family: "Eater",           system-ui }
+    .f-fruktur    { font-family: "Fruktur",         system-ui }
+    .f-unifraktur { font-family: "UnifrakturCook",  system-ui }
+    .f-wetpaint   { font-family: "Rubik Wet Paint", system-ui }
+    .f-fugaz      { font-family: "Fugaz One",       system-ui }
+    .f-metal      { font-family: "Metal Mania",     system-ui }
+    .f-hanalei    { font-family: "Hanalei",         system-ui }
+	.f-microbe { font-family: "Rubik Microbe", system-ui }
 
-    .subtitle{margin:1.2rem auto 0; text-align:center; color:#aab5aa; font-size:clamp(14px,2.4vw,18px)}
+    .tagline {
+      margin-top: 1.5rem;
+      font-size: clamp(11px, 1.7vw, 14px);
+      color: var(--ink-dim);
+      letter-spacing: .24em;
+      text-transform: uppercase;
+      font-style: italic;
+    }
 
-    /* Panel */
-    .panel{margin:4rem auto 0; background:linear-gradient(180deg, rgba(31,36,31,.6), rgba(22,26,22,.5)); border:0px solid #2a302a; border-radius:16px; padding:1.25rem 1.25rem 1.4rem; max-width:900px; box-shadow:0 10px 30px rgba(0,0,0,.45)}
-    .panel h2{margin:0 0 .5rem; font-size:1rem; text-transform:uppercase; letter-spacing:.12em; color:#d9e4d9; opacity:.9}
-    .panel p{margin:.4rem 0; line-height:1.6; color:#bdc8bd}
+    /* slime divider */
+    .slime-rule {
+      display: block;
+      width: 180px; height: 2px;
+      margin: 0 auto 3.5rem;
+      background: linear-gradient(90deg, transparent, var(--rotpink) 14%, var(--slime) 35%, var(--aqua) 55%, var(--fester) 74%, transparent);
+      border-radius: 2px;
+      position: relative;
+    }
+    .slime-rule::before {
+      content: "";
+      position: absolute; inset: -7px -18px;
+      background: inherit;
+      filter: blur(9px) saturate(1.6);
+      opacity: .55;
+      border-radius: 4px;
+    }
 
-    .links{display:flex; flex-wrap:wrap; gap:.6rem; margin-top:.9rem}
-    .links a{padding:.6rem .8rem; border-radius:10px; border:1px solid #2f352f; background:#151915; color:#dbe6db; text-decoration:none; font-weight:600}
-    .links a:hover{border-color:#3c453c; background:#1b211b; box-shadow:inset 0 0 0 1px rgba(176,204,100,.25), 0 0 0 6px rgba(176,204,100,.1)}
+    /* ─── MANIFESTO ─── */
+    .manifesto {
+      max-width: 720px;
+      margin: 0 auto 5.5rem;
+      text-align: center;
+      padding: clamp(1.25rem, 3vw, 2rem);
+      border: 1px solid rgba(168,255,62,.18);
+      border-radius: 22px 13px 26px 11px;
+      background:
+        radial-gradient(circle at 14% 18%, rgba(255,79,163,.10), transparent 36%),
+        radial-gradient(circle at 90% 12%, rgba(70,255,226,.09), transparent 34%),
+        radial-gradient(circle at 70% 96%, rgba(255,191,56,.08), transparent 36%),
+        rgba(8,14,9,.58);
+      box-shadow:
+        0 22px 80px rgba(0,0,0,.34),
+        inset 0 0 0 1px rgba(70,255,226,.045);
+      backdrop-filter: blur(6px) saturate(1.1);
+    }
 
-    /* sticky footer note */
-    footer{margin-top:3rem; text-align:center; opacity:.7; font-size:.9rem}
+    .kicker {
+      display: block;
+      font-size: .7rem;
+      letter-spacing: .24em;
+      text-transform: uppercase;
+      color: var(--slime);
+      font-weight: 700;
+      margin-bottom: 1.1rem;
+      text-shadow: 0 0 14px rgba(168,255,62,.25), 0 0 28px rgba(255,79,163,.13);
+    }
 
-    /* SVG filter container (hidden) */
-    svg{position:absolute; width:0; height:0}
-	
-.tool {
-  text-align: center;
-  margin: 2rem 0;
-}
+    .manifesto p {
+      font-size: clamp(15px, 2vw, 17px);
+      line-height: 1.84;
+      color: #96a896;
+    }
+    .manifesto em { color: var(--ink); font-style: italic }
 
-.sgueltchy-title {
-  display: inline-block;
-  font-size: 1.6rem;
-  text-decoration: none;
-  color: var(--ink);
-  font-weight: 700;
-  margin-bottom: 0.1rem;
-  transition: color .2s ease, transform .2s ease;
-}
+    /* ─── SUITE GRID ─── */
+    /* 10-col base:
+       Row 1 — Pixel Lesions: 6/10 (60%) | SiltCRT: 4/10 (40%)
+       Row 2 — Gurgulator: 4/10 (40%) | Critterances: 6/10 (60%)
+       Creates a crossing-X asymmetry between rows. */
+    .suite-label {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    .suite-label h2 {
+      font-size: .7rem;
+      letter-spacing: .24em;
+      text-transform: uppercase;
+      color: var(--slime);
+      font-weight: 700;
+      text-shadow: 0 0 12px rgba(168,255,62,.22), 0 0 24px rgba(201,79,255,.14);
+    }
 
-.sgueltchy-title:hover {
-  color: var(--sick);
-  transform: scale(1.08) rotate(-1deg);
-}
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(10, 1fr);
+      gap: var(--gap);
+    }
 
-.tool p {
-  margin: 0.1rem auto 0;
-  max-width: 600px;
-  font-family: "Averia Sans Libre", sans-serif;
-  color: #bdc8bd;
-  line-height: 1.6;
-}
+    [data-tool="lesions"] {
+      grid-column: 1 / 7;
+      --tool-a: #a8ff3e; --tool-b: #c94fff; --tool-c: #ffbf38;
+      --tool-a-rgb: 168,255,62; --tool-b-rgb: 201,79,255; --tool-c-rgb: 255,191,56;
+    }
+    [data-tool="siltcrt"] {
+      grid-column: 7 / 11;
+      --tool-a: #46ffe2; --tool-b: #5d7cff; --tool-c: #e4ff63;
+      --tool-a-rgb: 70,255,226; --tool-b-rgb: 93,124,255; --tool-c-rgb: 228,255,99;
+    }
+    [data-tool="gurgulator"] {
+      grid-column: 1 / 5;
+      --tool-a: #ffbf38; --tool-b: #20e0c0; --tool-c: #dd6b38;
+      --tool-a-rgb: 255,191,56; --tool-b-rgb: 32,224,192; --tool-c-rgb: 221,107,56;
+    }
+    [data-tool="critterances"] {
+      grid-column: 5 / 11;
+      --tool-a: #ff4fa3; --tool-b: #a8ff3e; --tool-c: #7652ff;
+      --tool-a-rgb: 255,79,163; --tool-b-rgb: 168,255,62; --tool-c-rgb: 118,82,255;
+    }
 
-.intro p {
-  max-width: 720px;
-  margin: 2rem auto 0;
-  font-size: 1.05rem;
-  line-height: 1.7;
-  text-align: center;
-  color: #c8d0c8;
-}
+    /* ─── CARDS ─── */
+    .tool-card {
+      background:
+        radial-gradient(circle at 12% 0%, rgba(var(--tool-a-rgb), .14), transparent 38%),
+        radial-gradient(circle at 100% 8%, rgba(var(--tool-b-rgb), .10), transparent 34%),
+        linear-gradient(145deg, rgba(12,18,12,.96), rgba(13,11,20,.90) 58%, rgba(8,15,13,.96));
+      border: 1px solid rgba(var(--tool-a-rgb), .24);
+      border-radius: 13px 9px 15px 7px; /* deliberately uneven — organic */
+      overflow: hidden;
+      display: flex; flex-direction: column;
+      opacity: 0; transform: translateY(16px);
+      box-shadow:
+        0 18px 55px rgba(0,0,0,.24),
+        inset 0 0 0 1px rgba(var(--tool-b-rgb), .05);
+      transition:
+        border-color .35s ease,
+        box-shadow   .35s ease,
+        transform    .35s ease,
+        opacity      .4s ease,
+        filter       .35s ease;
+    }
+    .tool-card.visible {
+      opacity: 1; transform: translateY(0);
+    }
+    .tool-card:hover {
+      border-color: rgba(var(--tool-b-rgb), .45);
+      box-shadow:
+        0 0 0 3px rgba(var(--tool-a-rgb), .08),
+        0 0 36px rgba(var(--tool-b-rgb), .13),
+        0 24px 58px rgba(0,0,0,.50);
+      transform: translateY(-3px);
+      filter: saturate(1.08);
+    }
 
+    /* ─── PREVIEW SLOT ─── */
+    /* aspect-ratio 16:7 — cinematic, slightly shorter than 16:9 */
+    .preview-slot {
+      width: 100%;
+      aspect-ratio: 16 / 7;
+      background:
+        radial-gradient(circle at 30% 28%, rgba(var(--tool-a-rgb), .11), transparent 38%),
+        radial-gradient(circle at 76% 66%, rgba(var(--tool-b-rgb), .10), transparent 42%),
+        #06090a;
+      position: relative;
+      overflow: hidden;
+      flex-shrink: 0;
+      border-bottom: 1px solid rgba(var(--tool-a-rgb), .16);
+    }
+
+    .preview-slot::before,
+    .preview-slot::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .preview-slot::before {
+      background:
+        radial-gradient(circle at 18% 20%, rgba(var(--tool-a-rgb), .28), transparent 28%),
+        radial-gradient(circle at 82% 74%, rgba(var(--tool-b-rgb), .23), transparent 32%),
+        radial-gradient(circle at 52% 50%, rgba(var(--tool-c-rgb), .12), transparent 36%);
+      mix-blend-mode: screen;
+      opacity: .62;
+      animation: previewBloom 6.4s ease-in-out infinite alternate;
+    }
+
+    .preview-slot::after {
+      background:
+        repeating-linear-gradient(90deg, rgba(var(--tool-c-rgb), .055) 0 1px, transparent 1px 12px),
+        linear-gradient(180deg, transparent 0%, rgba(0,0,0,.16) 100%);
+      mix-blend-mode: color-dodge;
+      opacity: .36;
+    }
+
+    @keyframes previewBloom {
+      from { transform: translate3d(-1.5%, -1%, 0) scale(1); opacity: .46 }
+      to   { transform: translate3d(1.5%, 1%, 0) scale(1.06); opacity: .72 }
+    }
+
+    .placeholder-anim {
+      position: absolute; inset: 0;
+      filter: saturate(1.65) contrast(1.08);
+    }
+    .placeholder-anim svg {
+      width: 100%; height: 100%; display: block;
+    }
+
+    /* media targets (for when previews are uncommented) */
+    .tool-preview-img,
+    .tool-preview-vid,
+    .tool-preview-frame {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      object-fit: cover; border: none;
+    }
+
+    /* ─── CARD BODY ─── */
+    .card-body {
+      padding: 1.3rem 1.55rem 1.7rem;
+      flex: 1;
+      display: flex; flex-direction: column; gap: .45rem;
+    }
+
+    .tool-type {
+      font-size: .68rem;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      color: var(--tool-a);
+      font-weight: 700;
+      text-shadow: 0 0 12px rgba(var(--tool-a-rgb), .20);
+    }
+
+    .tool-name {
+      font-size: clamp(1.35rem, 3.2vw, 2rem);
+      color: var(--ink);
+      text-decoration: none;
+      display: inline-flex; align-items: baseline; gap: .3em;
+      line-height: 1.05;
+      transition: color .2s ease;
+    }
+    .tool-name:hover { color: var(--sick) }
+
+    .tool-year {
+      font-family: "Averia Sans Libre", sans-serif;
+      font-size: .52em; font-weight: 300;
+      color: var(--tool-b);
+      letter-spacing: .1em;
+    }
+
+    .tool-desc {
+      margin-top: .2rem;
+      font-size: clamp(13.5px, 1.7vw, 15px);
+      line-height: 1.74;
+      color: #a1b29a;
+      font-weight: 300;
+      flex: 1;
+    }
+    .tool-desc em { color: var(--tool-c); font-style: italic; text-shadow: 0 0 10px rgba(var(--tool-c-rgb), .14) }
+
+    .tool-cta {
+      display: inline-block;
+      margin-top: 1.15rem;
+      padding: .45rem .95rem;
+      border: 1px solid rgba(var(--tool-a-rgb), .28);
+      border-radius: 7px 5px 9px 4px; /* organic uneven */
+      color: var(--ink-dim);
+      text-decoration: none;
+      font-size: .72rem;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      background: rgba(var(--tool-a-rgb), .035);
+      transition: border-color .2s, color .2s, background .2s, box-shadow .2s, transform .2s;
+      align-self: flex-start;
+    }
+    .tool-cta:hover {
+      border-color: rgba(var(--tool-b-rgb), .55);
+      color: var(--tool-c);
+      background: rgba(var(--tool-b-rgb), .08);
+      box-shadow: 0 0 22px rgba(var(--tool-b-rgb), .14);
+      transform: translateY(-1px);
+    }
+
+    /* ─── FOOTER ─── */
+    footer {
+      margin-top: 5.5rem;
+      text-align: center;
+      color: var(--ink-dim);
+      font-size: .82rem;
+      font-style: italic;
+      text-shadow: 0 0 18px rgba(70,255,226,.12);
+    }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 720px) {
+      .tools-grid { grid-template-columns: 1fr }
+      [data-tool="lesions"],
+      [data-tool="siltcrt"],
+      [data-tool="gurgulator"],
+      [data-tool="critterances"] { grid-column: auto }
+      .preview-slot { aspect-ratio: 16 / 8 }
+    }
   </style>
 </head>
 <body>
-  <!-- svg filters for gooeyness -->
-  <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+
+<!-- SVG filter bank — hidden, referenced by preview SVGs below -->
+<svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true"
+     style="position:absolute;width:0;height:0;overflow:hidden">
+  <defs>
     <filter id="gooey">
-      <feGaussianBlur in="SourceGraphic" stdDeviation="1.8" result="blur"/>
-      <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -9" result="goo"/>
+      <feGaussianBlur in="SourceGraphic" stdDeviation="2.5" result="blur"/>
+      <feColorMatrix in="blur" mode="matrix"
+        values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -10" result="goo"/>
       <feBlend in="SourceGraphic" in2="goo"/>
     </filter>
-  </svg>
+  </defs>
+</svg>
 
-  <main class="wrap">
+<main class="wrap">
+
+  <!-- ═══════════════════════ HERO ═══════════════════════ -->
+  <header class="hero">
     <h1 id="sgueltch" aria-label="Sgueltch">
-      <!-- letters are injected by JS so each gets a different gunky font -->
+      <!-- letters injected by JS so each gets a different gunky font -->
     </h1>
-    <p class="subtitle">soft errors, virtual ooze — rotware for organic, symbiotic glitch</p>
-<section class="intro">
-  <p>
-    a word mash of squelch and glitch, this is an aesthetic philosophy and software suite. This proposes a philosophical shift in digital aesthetics, moving away from traditional glitch art's rigid, pixelated, and mechanical disruptions toward organic, fluid, and biologically-inspired distortions. It values asymmetry, unpredictability, and embodiment over algorithmic repetition, taking the mechanics and aesthetics of traditional glitch and moving it from rigidity to organicity. 
+    <p class="tagline">organic glitch &ensp;&middot;&ensp; visceral error &ensp;&middot;&ensp; soft symbiosis</p>
+  </header>
 
-  </p>
-</section>
+  <span class="slime-rule" aria-hidden="true"></span>
 
-<section class="panel">
-  <h2></h2>
+  <!-- ═══════════════════════ MANIFESTO ═══════════════════════ -->
+  <section class="manifesto">
+    <span class="kicker">an aesthetic philosophy &amp; software suite</span>
+    <p>
+      A word between <em>squelch</em> and <em>glitch</em>. Sgueltch proposes a
+      philosophical shift in digital aesthetics — away from traditional glitch art's
+      rigid, pixelated, mechanical disruptions and toward organic, fluid,
+      biologically-inspired distortion. It values asymmetry, unpredictability, and
+      embodiment: glitches that ooze, breathe, and transform in ways that feel
+      visceral and alive. By emphasizing collaboration between human and non-human
+      agents and rejecting algorithmic repetition, Sgueltch establishes a symbiotic,
+      ecological understanding of technological errors — connecting digital media
+      to natural processes and bodily experience.
+    </p>
+  </section>
 
-  <div class="tool">
-    <a href="/sgueltch/pixel-lesions/" class="sgueltchy-title f-nosifer">Pixel Lesions</a>
-    <p>pixel sorter using organic lesion-like paths</p>
-  </div>
+  <!-- ═══════════════════════ SUITE ═══════════════════════ -->
+  <section aria-label="Sgueltch software suite">
+    <div class="suite-label"><h2>the suite</h2></div>
 
-  <div class="tool">
-    <a href="/sgueltch/siltcrt/" class="sgueltchy-title f-fruktur">SiltCRT</a>
-    <p>A soft granular signal emulator simulating CRT phosphors as Voronoi cells. With turbulence, chromatic bleed, bloom & umbra.</p>
-  </div>
+    <div class="tools-grid">
 
-  <div class="tool">
-    <a href="/sgueltch/gurgulator/" class="sgueltchy-title f-creepster">Gurgulator</a>
-    <p>A granular resynthesizer specializing in gurgling noises, with erratic pitch bends, time warps, burping filters, and gooey convolution reverb.</p>
-  </div>
-</section>
+      <!-- ══════════ PIXEL LESIONS ══════════ -->
+      <article class="tool-card" data-tool="lesions">
 
+        <!-- Animated SVG placeholder — remove .placeholder-anim div when preview is ready -->
+        <div class="preview-slot">
+          <div class="placeholder-anim" aria-hidden="true">
+            <svg viewBox="0 0 480 210" xmlns="http://www.w3.org/2000/svg"
+                 preserveAspectRatio="xMidYMid slice">
+              <rect width="480" height="210" fill="#060e08"/>
+              <!-- spreading lesion blobs — SMIL-animated r + position for organic feel -->
+              <g filter="url(#gooey)">
+                <circle cx="185" cy="105" r="52" fill="rgba(143,191,74,.22)">
+                  <animate attributeName="r" values="52;64;48;52" dur="5s" repeatCount="indefinite"/>
+                  <animate attributeName="cx" values="185;190;180;185" dur="7s" repeatCount="indefinite"/>
+                </circle>
+                <circle cx="305" cy="78" r="35" fill="rgba(176,204,100,.18)">
+                  <animate attributeName="r" values="35;44;31;35" dur="4.2s" repeatCount="indefinite"/>
+                  <animate attributeName="cy" values="78;70;83;78" dur="5.5s" repeatCount="indefinite"/>
+                </circle>
+                <circle cx="368" cy="158" r="26" fill="rgba(74,114,24,.28)">
+                  <animate attributeName="r" values="26;33;22;26" dur="3.5s" repeatCount="indefinite"/>
+                </circle>
+                <circle cx="112" cy="162" r="20" fill="rgba(47,138,116,.22)">
+                  <animate attributeName="r" values="20;27;17;20" dur="4.9s" repeatCount="indefinite"/>
+                  <animate attributeName="cy" values="162;154;167;162" dur="6.2s" repeatCount="indefinite"/>
+                </circle>
+                <circle cx="248" cy="38" r="15" fill="rgba(143,191,74,.15)">
+                  <animate attributeName="r" values="15;21;12;15" dur="3.8s" repeatCount="indefinite"/>
+                </circle>
+                <circle cx="420" cy="60" r="12" fill="rgba(74,114,24,.18)">
+                  <animate attributeName="r" values="12;17;10;12" dur="4.5s" repeatCount="indefinite"/>
+                </circle>
+              </g>
+              <!-- pixel-noise marks suggesting sorted pixel artifacts -->
+              <rect x="148" y="82"  width="2" height="2" fill="rgba(176,204,100,.22)"/>
+              <rect x="196" y="132" width="1.5" height="1.5" fill="rgba(176,204,100,.18)"/>
+              <rect x="268" y="68"  width="2" height="2" fill="rgba(176,204,100,.2)"/>
+              <rect x="322" y="118" width="1.5" height="1.5" fill="rgba(176,204,100,.16)"/>
+              <rect x="88"  y="48"  width="2" height="2" fill="rgba(176,204,100,.14)"/>
+            </svg>
+          </div>
 
-  </main>
+          <!--
+          ══════════════════════════════════════
+          PIXEL LESIONS PREVIEW
+          When ready: comment out .placeholder-anim above, uncomment one option below.
+          ══════════════════════════════════════
 
-  <script>
-    // Title text to split
-    const title = "Sgueltch"; // preserve your casing
+          Option A — animated gif or screenshot:
+          <img src="/sgueltch/pixel-lesions/preview.gif"
+               alt="Pixel Lesions — organic pixel sorting preview"
+               class="tool-preview-img">
 
-    // A rotating set of gunky fonts; each letter picks the next one
-    const classes = [
-      "f-creepster","f-butcherman","f-nosifer","f-eater","f-fruktur","f-unifraktur","f-wetpaint","f-fugaz","f-metal","f-hanalei"
-    ];
+          Option B — looping video (recommended for quality):
+          <video autoplay loop muted playsinline class="tool-preview-vid">
+            <source src="/sgueltch/pixel-lesions/preview.mp4" type="video/mp4">
+            <source src="/sgueltch/pixel-lesions/preview.webm" type="video/webm">
+          </video>
 
-    const h1 = document.getElementById('sgueltch');
-    [...title].forEach((ch, i)=>{
-      const span=document.createElement('span');
-      span.className=`letter ${classes[i % classes.length]}`;
-      span.textContent=ch;
-      h1.appendChild(span);
+          Option C — live iframe (heavy; use only if tool is lightweight):
+          <iframe src="/sgueltch/pixel-lesions/"
+                  class="tool-preview-frame"
+                  title="Pixel Lesions live preview"
+                  loading="lazy"></iframe>
+          -->
+        </div>
+
+        <div class="card-body">
+          <span class="tool-type">pixel sorter</span>
+          <a href="/sgueltch/pixel-lesions/" class="tool-name f-microbe">Pixel Lesions</a>
+          <p class="tool-desc">
+            Reimagines pixel sorting as a biological process. Instead of the rigid
+            linear artifacts of traditional glitch art, Pixel Lesions lets you infect
+            an image with organic growths — spreading across the canvas like lichen or
+            slime mold, sorting pixels within their boundaries to produce fluid,
+            decay-like distortions that feel visceral and alive.
+          </p>
+          <a href="/sgueltch/pixel-lesions/" class="tool-cta">open tool →</a>
+        </div>
+      </article>
+
+      <!-- ══════════ SILTCRT ══════════ -->
+      <article class="tool-card" data-tool="siltcrt">
+
+        <div class="preview-slot">
+          <div class="placeholder-anim" aria-hidden="true">
+            <svg viewBox="0 0 280 210" xmlns="http://www.w3.org/2000/svg"
+                 preserveAspectRatio="xMidYMid slice">
+              <defs>
+                <!-- scanline pattern -->
+                <pattern id="scan" width="4" height="4" patternUnits="userSpaceOnUse">
+                  <rect y="0" width="4" height="1" fill="rgba(143,191,74,.035)"/>
+                </pattern>
+              </defs>
+              <rect width="280" height="210" fill="#050e09"/>
+              <!-- Voronoi-ish cell suggestion -->
+              <g stroke="rgba(143,191,74,.16)" stroke-width=".6" fill-rule="evenodd">
+                <polygon points="8,8 118,4 138,78 58,93"   fill="rgba(143,191,74,.055)"/>
+                <polygon points="118,4 218,18 208,88 138,78"  fill="rgba(143,191,74,.038)"/>
+                <polygon points="218,18 274,48 258,118 208,88" fill="rgba(143,191,74,.065)"/>
+                <polygon points="58,93 138,78 148,163 68,173"  fill="rgba(143,191,74,.045)"/>
+                <polygon points="138,78 208,88 198,168 148,163" fill="rgba(47,138,116,.055)"/>
+                <polygon points="208,88 258,118 248,200 198,168" fill="rgba(143,191,74,.038)"/>
+                <polygon points="4,138 58,93 68,173 8,200"   fill="rgba(47,138,116,.048)"/>
+                <polygon points="68,173 148,163 138,210 48,210"  fill="rgba(143,191,74,.030)"/>
+              </g>
+              <!-- Kawase bloom — bright node -->
+              <circle cx="195" cy="52" r="26" fill="rgba(176,204,100,.14)" filter="url(#gooey)">
+                <animate attributeName="r"       values="26;33;24;26" dur="4s"  repeatCount="indefinite"/>
+                <animate attributeName="opacity" values=".8;1;.65;.8"  dur="3s"  repeatCount="indefinite"/>
+              </circle>
+              <!-- Umbra — subtractive dark bloom (inverse of CRT bloom) -->
+              <circle cx="78" cy="162" r="20" fill="rgba(0,0,0,.4)" filter="url(#gooey)"/>
+              <!-- animated scanlines -->
+              <rect width="280" height="210" fill="url(#scan)">
+                <animateTransform attributeName="transform" type="translate"
+                  from="0,0" to="0,-4" dur="0.4s" repeatCount="indefinite"/>
+              </rect>
+              <!-- chromatic bleed hint -->
+              <line x1="0" y1="88"  x2="280" y2="88"
+                    stroke="rgba(255,80,80,.04)" stroke-width="1"/>
+              <line x1="0" y1="91"  x2="280" y2="91"
+                    stroke="rgba(80,80,255,.04)" stroke-width="1"/>
+            </svg>
+          </div>
+
+          <!--
+          ══════════════════════════════════════
+          SILTCRT PREVIEW
+          When ready: comment out .placeholder-anim above, uncomment one option below.
+          ══════════════════════════════════════
+
+          Option A — animated gif or screenshot:
+          <img src="/sgueltch/siltcrt/preview.gif"
+               alt="SiltCRT — Voronoi phosphor emulator preview"
+               class="tool-preview-img">
+
+          Option B — looping video:
+          <video autoplay loop muted playsinline class="tool-preview-vid">
+            <source src="/sgueltch/siltcrt/preview.mp4" type="video/mp4">
+            <source src="/sgueltch/siltcrt/preview.webm" type="video/webm">
+          </video>
+
+          Option C — live iframe:
+          <iframe src="/sgueltch/siltcrt/"
+                  class="tool-preview-frame"
+                  title="SiltCRT live preview"
+                  loading="lazy"></iframe>
+          -->
+        </div>
+
+        <div class="card-body">
+          <span class="tool-type">shader · phosphor emulator</span>
+          <a href="/sgueltch/siltcrt/" class="tool-name f-fruktur">SiltCRT</a>
+          <p class="tool-desc">
+            Emulates the decay of analog phosphor screens through Voronoi
+            tessellation, transforming images into granular fields of soft, glowing
+            cells. Signal instability — turbulence, chromatic bleed, current flow —
+            deepens the analog aesthetic. A dual light-bleed system pairs radiant
+            Kawase bloom with a subtractive <em>Umbra</em>: the inverse of familiar
+            CRT bloom.
+          </p>
+          <a href="/sgueltch/siltcrt/" class="tool-cta">open tool →</a>
+        </div>
+      </article>
+
+      <!-- ══════════ GURGULATOR ══════════ -->
+      <article class="tool-card" data-tool="gurgulator">
+
+        <div class="preview-slot">
+          <div class="placeholder-anim" aria-hidden="true">
+            <svg viewBox="0 0 280 210" xmlns="http://www.w3.org/2000/svg"
+                 preserveAspectRatio="xMidYMid slice">
+              <rect width="280" height="210" fill="#050d08"/>
+              <!-- animated waveforms via SMIL path morphing -->
+              <g fill="none">
+                <path stroke="rgba(143,191,74,.62)" stroke-width="1.5"
+                      d="M 0 105 Q 35 75 70 105 Q 105 135 140 105 Q 175 75 210 105 Q 245 135 280 105">
+                  <animate attributeName="d" dur="2.4s" repeatCount="indefinite"
+                    values="M 0 105 Q 35 75 70 105 Q 105 135 140 105 Q 175 75 210 105 Q 245 135 280 105;
+                            M 0 105 Q 35 132 70 105 Q 105 78 140 105 Q 175 132 210 105 Q 245 78 280 105;
+                            M 0 105 Q 35 75 70 105 Q 105 135 140 105 Q 175 75 210 105 Q 245 135 280 105"/>
+                </path>
+                <path stroke="rgba(176,204,100,.28)" stroke-width="1"
+                      d="M 0 105 Q 46 65 92 105 Q 138 145 184 105 Q 230 65 280 105">
+                  <animate attributeName="d" dur="3.2s" repeatCount="indefinite"
+                    values="M 0 105 Q 46 65 92 105 Q 138 145 184 105 Q 230 65 280 105;
+                            M 0 105 Q 46 143 92 105 Q 138 67 184 105 Q 230 143 280 105;
+                            M 0 105 Q 46 65 92 105 Q 138 145 184 105 Q 230 65 280 105"/>
+                </path>
+                <path stroke="rgba(47,138,116,.22)" stroke-width="2"
+                      d="M 0 105 Q 70 55 140 105 Q 210 155 280 105">
+                  <animate attributeName="d" dur="1.9s" repeatCount="indefinite"
+                    values="M 0 105 Q 70 55 140 105 Q 210 155 280 105;
+                            M 0 105 Q 70 150 140 105 Q 210 60 280 105;
+                            M 0 105 Q 70 55 140 105 Q 210 155 280 105"/>
+                </path>
+              </g>
+              <!-- rising bubbles -->
+              <g filter="url(#gooey)">
+                <circle cx="54" cy="78" r="9" fill="rgba(143,191,74,.14)">
+                  <animate attributeName="cy" values="78;62;78" dur="2s"   repeatCount="indefinite"/>
+                  <animate attributeName="r"  values="9;11;9"  dur="2s"   repeatCount="indefinite"/>
+                </circle>
+                <circle cx="158" cy="148" r="6" fill="rgba(143,191,74,.18)">
+                  <animate attributeName="cy" values="148;133;148" dur="1.6s" repeatCount="indefinite"/>
+                </circle>
+                <circle cx="228" cy="68" r="13" fill="rgba(74,114,24,.12)">
+                  <animate attributeName="cy" values="68;50;68"  dur="2.9s" repeatCount="indefinite"/>
+                  <animate attributeName="r"  values="13;16;13" dur="2.9s" repeatCount="indefinite"/>
+                </circle>
+                <circle cx="108" cy="165" r="5" fill="rgba(47,138,116,.15)">
+                  <animate attributeName="cy" values="165;154;165" dur="2.2s" repeatCount="indefinite"/>
+                </circle>
+              </g>
+            </svg>
+          </div>
+
+          <!--
+          ══════════════════════════════════════
+          GURGULATOR PREVIEW
+          When ready: comment out .placeholder-anim above, uncomment one option below.
+          ══════════════════════════════════════
+
+          Option A — animated gif or screenshot:
+          <img src="/sgueltch/gurgulator/preview.gif"
+               alt="Gurgulator — granular resynthesizer preview"
+               class="tool-preview-img">
+
+          Option B — looping video:
+          <video autoplay loop muted playsinline class="tool-preview-vid">
+            <source src="/sgueltch/gurgulator/preview.mp4" type="video/mp4">
+            <source src="/sgueltch/gurgulator/preview.webm" type="video/webm">
+          </video>
+
+          Option C — live iframe:
+          <iframe src="/sgueltch/gurgulator/"
+                  class="tool-preview-frame"
+                  title="Gurgulator live preview"
+                  loading="lazy"></iframe>
+          -->
+        </div>
+
+        <div class="card-body">
+          <span class="tool-type">granular resynthesizer</span>
+          <a href="/sgueltch/gurgulator/" class="tool-name f-creepster">Gurgulator</a>
+          <p class="tool-desc">
+            A web-based granular resynthesizer specializing in gurgling noises —
+            erratic pitch bends, time warps, and unpredictable burping filters,
+            capped with a gooey convolution reverb. Feed it any audio; let it digest.
+          </p>
+          <a href="/sgueltch/gurgulator/" class="tool-cta">open tool →</a>
+        </div>
+      </article>
+
+      <!-- ══════════ CRITTERANCES ══════════ -->
+      <article class="tool-card" data-tool="critterances">
+
+        <div class="preview-slot">
+          <div class="placeholder-anim" aria-hidden="true">
+            <svg viewBox="0 0 480 210" xmlns="http://www.w3.org/2000/svg"
+                 preserveAspectRatio="xMidYMid slice">
+              <rect width="480" height="210" fill="#060b08"/>
+              <!-- faint constellation threads -->
+              <g stroke="rgba(143,191,74,.07)" stroke-width=".6">
+                <line x1="82"  y1="78"  x2="182" y2="128"/>
+                <line x1="182" y1="128" x2="262" y2="58"/>
+                <line x1="262" y1="58"  x2="342" y2="162"/>
+                <line x1="342" y1="162" x2="422" y2="88"/>
+                <line x1="82"  y1="78"  x2="142" y2="178"/>
+                <line x1="262" y1="58"  x2="162" y2="38"/>
+                <line x1="422" y1="88"  x2="452" y2="172"/>
+                <line x1="182" y1="128" x2="142" y2="178"/>
+                <line x1="342" y1="162" x2="452" y2="172"/>
+              </g>
+              <!-- slime-green critter particles -->
+              <g fill="rgba(143,191,74,.65)">
+                <circle cx="82" cy="78" r="3">
+                  <animateTransform attributeName="transform" type="translate"
+                    values="0,0; 6,-10; -5,6; 0,0" dur="5s"   repeatCount="indefinite"/>
+                </circle>
+                <circle cx="182" cy="128" r="2">
+                  <animateTransform attributeName="transform" type="translate"
+                    values="0,0; -8,6; 4,-8; 0,0" dur="4.2s"  repeatCount="indefinite"/>
+                </circle>
+                <circle cx="262" cy="58" r="3.5">
+                  <animateTransform attributeName="transform" type="translate"
+                    values="0,0; 10,-6; -3,10; 0,0" dur="6s"   repeatCount="indefinite"/>
+                </circle>
+                <circle cx="342" cy="162" r="2.5">
+                  <animateTransform attributeName="transform" type="translate"
+                    values="0,0; -6,8; 8,-4; 0,0" dur="3.8s"  repeatCount="indefinite"/>
+                </circle>
+                <circle cx="422" cy="88" r="2">
+                  <animateTransform attributeName="transform" type="translate"
+                    values="0,0; 4,10; -8,-5; 0,0" dur="5.5s"  repeatCount="indefinite"/>
+                </circle>
+                <circle cx="162" cy="38" r="1.5">
+                  <animateTransform attributeName="transform" type="translate"
+                    values="0,0; 8,4; -4,8; 0,0" dur="4.8s"  repeatCount="indefinite"/>
+                </circle>
+                <circle cx="142" cy="178" r="2">
+                  <animateTransform attributeName="transform" type="translate"
+                    values="0,0; -5,-8; 7,3; 0,0" dur="5.2s"  repeatCount="indefinite"/>
+                </circle>
+                <circle cx="452" cy="172" r="1.5">
+                  <animateTransform attributeName="transform" type="translate"
+                    values="0,0; 6,-5; -4,8; 0,0" dur="3.5s"  repeatCount="indefinite"/>
+                </circle>
+              </g>
+              <!-- corrode-teal secondary particles (state-indicator critters) -->
+              <g fill="rgba(47,138,116,.52)">
+                <circle cx="38" cy="162" r="2">
+                  <animateTransform attributeName="transform" type="translate"
+                    values="0,0; 5,-6; -6,4; 0,0" dur="6.5s" repeatCount="indefinite"/>
+                </circle>
+                <circle cx="360" cy="28" r="1.5">
+                  <animateTransform attributeName="transform" type="translate"
+                    values="0,0; -4,8; 6,-3; 0,0" dur="4.5s" repeatCount="indefinite"/>
+                </circle>
+                <circle cx="212" cy="192" r="2.5">
+                  <animateTransform attributeName="transform" type="translate"
+                    values="0,0; 7,3; -3,-9; 0,0" dur="5.8s" repeatCount="indefinite"/>
+                </circle>
+              </g>
+              <!-- soft halo glow around dominant nodes -->
+              <circle cx="262" cy="58" r="14" fill="rgba(143,191,74,.06)" filter="url(#gooey)">
+                <animate attributeName="r" values="14;20;14" dur="4s" repeatCount="indefinite"/>
+              </circle>
+              <circle cx="82" cy="78" r="10" fill="rgba(47,138,116,.07)" filter="url(#gooey)">
+                <animate attributeName="r" values="10;15;10" dur="5s" repeatCount="indefinite"/>
+              </circle>
+              <circle cx="342" cy="162" r="10" fill="rgba(143,191,74,.05)" filter="url(#gooey)">
+                <animate attributeName="r" values="10;16;10" dur="3.5s" repeatCount="indefinite"/>
+              </circle>
+            </svg>
+          </div>
+
+          <!--
+          ══════════════════════════════════════
+          CRITTERANCES PREVIEW
+          When ready: comment out .placeholder-anim above, uncomment one option below.
+          ══════════════════════════════════════
+
+          Option A — animated gif or screenshot:
+          <img src="../critterances/preview.gif"
+               alt="Critterances — procedural creature-sound engine preview"
+               class="tool-preview-img">
+
+          Option B — looping video:
+          <video autoplay loop muted playsinline class="tool-preview-vid">
+            <source src="../critterances/preview.mp4" type="video/mp4">
+            <source src="../critterances/preview.webm" type="video/webm">
+          </video>
+
+          Option C — live iframe:
+          <iframe src="../critterances/"
+                  class="tool-preview-frame"
+                  title="Critterances live preview"
+                  loading="lazy"></iframe>
+          -->
+        </div>
+
+        <div class="card-body">
+          <span class="tool-type">procedural creature-sound engine &amp; browser toy</span>
+          <a href="../critterances/" class="tool-name f-eater">
+            critterances<span class="tool-year">2026</span>
+          </a>
+          <p class="tool-desc">
+            A procedural creature-sound engine generating chirps, murmurs, droplets,
+            filtered grains, and small synthetic vocalizations for imaginary digital
+            critters. As an interaction-audio module, it gives robot states —
+            <em>transcribing</em>, <em>thinking</em>, <em>crafting</em> — their own
+            sonic metabolism. As a standalone instrument, it lets you summon and
+            modulate garbage-bot vocalizations through swarm density, volume, and
+            critter temperament.
+          </p>
+          <a href="../critterances/" class="tool-cta">open toy →</a>
+        </div>
+      </article>
+
+    </div><!-- .tools-grid -->
+  </section>
+
+  <footer>
+    <p>sgueltch — rotware for organic, symbiotic glitch</p>
+  </footer>
+
+</main>
+
+<script>
+  /* ── Title letter build ── */
+  const TITLE   = "Sgueltch";
+  const CLASSES = [
+    "f-creepster","f-butcherman","f-nosifer","f-eater","f-fruktur",
+    "f-unifraktur","f-wetpaint","f-fugaz","f-metal","f-hanalei"
+  ];
+
+  const h1 = document.getElementById('sgueltch');
+  [...TITLE].forEach((ch, i) => {
+    const span = document.createElement('span');
+    span.className = `letter ${CLASSES[i % CLASSES.length]}`;
+    span.textContent = ch;
+    h1.appendChild(span);
+  });
+
+  /* ── Title hover: font-swap + squish ── */
+  h1.addEventListener('mouseenter', () => {
+    h1.querySelectorAll('.letter').forEach((el, i) => {
+      el.style.transition = 'transform .18s ease, color .2s ease';
+      el.style.transform  = `translateY(4%) scale(1.04) rotate(${(i % 2 ? 1 : -1) * .7}deg)`;
+      el.style.color      = 'var(--sick)';
+      el.classList.remove(...CLASSES);
+      el.classList.add(CLASSES[(i + 3) % CLASSES.length]);
     });
+  });
+  h1.addEventListener('mouseleave', () => {
+    h1.querySelectorAll('.letter').forEach(el => {
+      el.style.transform = '';
+      el.style.color     = '';
+    });
+  });
 
-    // Bonus: on hover, letters briefly squish and swap fonts
-    h1.addEventListener('mouseenter', ()=>{
-      const kids = h1.querySelectorAll('.letter');
-      kids.forEach((el, idx)=>{
-        el.style.transition = 'transform .18s ease, color .2s ease';
-        el.style.transform = 'translateY(4%) scale(1.04) rotate(0.6deg)';
-        el.style.color = 'var(--sick)';
-        // font swap
-        const next = (idx + 3) % classes.length; // hop by 3 for variety
-        el.classList.remove(...classes);
-        el.classList.add(classes[next]);
-      });
+  /* ── Staggered card entrance via IntersectionObserver ── */
+  const cards = [...document.querySelectorAll('.tool-card')];
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        const i = cards.indexOf(e.target);
+        setTimeout(() => e.target.classList.add('visible'), i * 85);
+        io.unobserve(e.target);
+      }
     });
-    h1.addEventListener('mouseleave', ()=>{
-      const kids = h1.querySelectorAll('.letter');
-      kids.forEach((el)=>{
-        el.style.transform = '';
-        el.style.color = '';
-      });
-    });
-  </script>
+  }, { threshold: 0.06 });
+  cards.forEach(c => io.observe(c));
+</script>
 </body>
 </html>
