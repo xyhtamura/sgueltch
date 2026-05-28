@@ -59,15 +59,22 @@ body {
   padding: 2rem 1.5rem 3rem;
   position: relative;
   overflow-x: hidden;
-background-color: var(--void);
-background-image:
-  linear-gradient(rgba(7, 8, 15, 0.28), rgba(7, 8, 15, 0.42)),
-  url("pixel.png");
-
-background-size: auto, 520px 520px;
-background-position: center;
-background-repeat: repeat;
-background-attachment: fixed;
+  background-color: var(--void);
+  background-image:
+    radial-gradient(circle at 12% 18%, rgba(255, 60, 157, 0.18) 0 1px, transparent 2px 100%),
+    radial-gradient(circle at 63% 71%, rgba(186, 255, 34, 0.16) 0 1px, transparent 2px 100%),
+    radial-gradient(circle at 86% 28%, rgba(34, 255, 200, 0.12) 0 1px, transparent 2px 100%),
+    radial-gradient(ellipse 80% 60% at 16% 82%, rgba(111, 255, 82, 0.15), transparent 55%),
+    radial-gradient(ellipse 60% 75% at 92% 14%, rgba(255, 60, 157, 0.16), transparent 58%),
+    radial-gradient(ellipse 65% 55% at 50% 50%, rgba(67, 35, 115, 0.22), transparent 60%);
+  background-size:
+    19px 23px,
+    31px 29px,
+    43px 37px,
+    100% 100%,
+    100% 100%,
+    100% 100%;
+}
 
 /* drifting biofilm / spore veil — not scanlines */
 body::before,
@@ -951,53 +958,34 @@ const PerivascularCrawl = {
 };
 availableGrowths.push(PerivascularCrawl);
 
-// ── Sheet Delamination (membrane-pressure wavefront) ─────────────────────────────
-// A two-frequency noise field assigns each pixel a "membrane permeability" value.
-// The wavefront advances through a priority queue sorted by permeability, so
-// high-pressure zones lead and low-pressure zones stall — creating organic lobes,
-// bays, and tongue-like protrusions rather than perfect concentric rings.
-// 8-connectivity removes the axis-aligned staircase artifact.
+// ── Sheet Delamination (wavefront peeling) ───────────────────────────────────────
 const SheetDelamination = {
     name: "Sheet Delamination",
     showBiasControls: false,
-    _perm(x, y) {
-        // Two overlapping sine fields give spatially coherent, non-repeating variation
-        return (
-            Math.sin(x * 0.071 + 1.3) * Math.cos(y * 0.086 + 0.7) * 0.55 +
-            Math.sin(x * 0.031 + 4.1) * Math.cos(y * 0.043 + 2.9) * 0.45
-        );
-    },
     init(x, y, imageData, seedColor, threshold) {
         this.imageData = imageData; this.seedColor = seedColor; this.threshold = threshold;
-        this.infected = new Set([`${x},${y}`]);
-        this._step = 0;
-        // Queue entries: [priority, x, y]. Sort ascending → pop() = highest priority.
-        this.queue = [[this._perm(x, y), x, y]];
+        this.rim = [[x, y]]; this.infected = new Set([`${x},${y}`]);
     },
     step(batchSize) {
-        const out = [];
-        const W = this.imageData.width, H = this.imageData.height;
-        const dirs8 = [[1,0],[-1,0],[0,1],[0,-1],[1,1],[-1,1],[1,-1],[-1,-1]];
-        // Periodic re-sort integrates newly pushed entries into order
-        this._step++;
-        if (this._step % 4 === 0) this.queue.sort((a, b) => a[0] - b[0]);
-        const take = Math.min(this.queue.length, batchSize);
-        for (let i = 0; i < take; i++) {
-            if (!this.queue.length) break;
-            const [, cx, cy] = this.queue.pop();
+        const out = [], nextRim = [];
+        const H = this.imageData.height, W = this.imageData.width;
+        const N = Math.min(this.rim.length, batchSize);
+        for (let i = 0; i < N; i++) {
+            const [cx, cy] = this.rim[i];
             out.push({ x: cx, y: cy });
-            for (const [dx, dy] of dirs8) {
+            for (const [dx, dy] of [[1,0],[-1,0],[0,1],[0,-1]]) {
                 const nx = cx+dx, ny = cy+dy, key = `${nx},${ny}`;
                 if (nx < 0 || ny < 0 || nx >= W || ny >= H || this.infected.has(key)) continue;
                 const c = getPixelColor(nx, ny, this.imageData);
                 if (colorDistance(this.seedColor, c) < this.threshold) {
                     this.infected.add(key);
-                    // Permeability + small random jitter to break ties organically
-                    this.queue.push([this._perm(nx, ny) + Math.random() * 0.12, nx, ny]);
+                    if (Math.random() < 0.15) out.push({ x: nx, y: ny });
+                    else nextRim.push([nx, ny]);
                 }
             }
         }
-        return { newCoords: out, isDone: this.queue.length === 0 };
+        this.rim = nextRim;
+        return { newCoords: out, isDone: this.rim.length === 0 };
     }
 };
 availableGrowths.push(SheetDelamination);
@@ -1044,222 +1032,6 @@ const MycelialRot = {
     }
 };
 availableGrowths.push(MycelialRot);
-
-// ── Coral Polyp (porous radial growth, 8-connected) ──────────────────────────────
-// Spreads in all 8 directions with a sinusoidal porosity function based on distance
-// from origin, creating ringed, gap-riddled structures like coral or lichen thalli.
-const CoralPolyp = {
-    name: "Coral Polyp",
-    showBiasControls: false,
-    init(x, y, imageData, seedColor, threshold) {
-        this.cx = x; this.cy = y;
-        this.frontier = [[x, y]];
-        this.infected = new Set([`${x},${y}`]);
-        this.imageData = imageData;
-        this.seedColor = seedColor;
-        this.threshold = threshold;
-    },
-    step(batchSize) {
-        const out = [];
-        const W = this.imageData.width, H = this.imageData.height;
-        const dirs8 = [[-1,-1],[0,-1],[1,-1],[-1,0],[1,0],[-1,1],[0,1],[1,1]];
-        const take = Math.min(this.frontier.length, batchSize);
-        for (let i = 0; i < take; i++) {
-            if (!this.frontier.length) break;
-            const ri = Math.floor(Math.random() * this.frontier.length);
-            const [cx, cy] = this.frontier.splice(ri, 1)[0];
-            out.push({ x: cx, y: cy });
-            for (const [dx, dy] of dirs8) {
-                const nx = cx+dx, ny = cy+dy, key = `${nx},${ny}`;
-                if (nx < 0 || ny < 0 || nx >= W || ny >= H || this.infected.has(key)) continue;
-                // Sinusoidal porosity: oscillates with distance from seed, creating rings
-                const dist = Math.sqrt((nx - this.cx) ** 2 + (ny - this.cy) ** 2);
-                const porosity = 0.5 + 0.5 * Math.sin(dist * 0.38) * Math.cos(dist * 0.22 + 0.8);
-                if (Math.random() > Math.max(0.15, porosity)) continue;
-                const col = getPixelColor(nx, ny, this.imageData);
-                if (colorDistance(this.seedColor, col) < this.threshold) {
-                    this.infected.add(key);
-                    this.frontier.push([nx, ny]);
-                }
-            }
-        }
-        return { newCoords: out, isDone: this.frontier.length === 0 };
-    }
-};
-availableGrowths.push(CoralPolyp);
-
-// ── Spore Cloud (scattered archipelago infection) ─────────────────────────────────
-// Combines local contiguous flood-fill with occasional long-distance spore jumps,
-// seeding satellite clusters that grow independently — like airborne fungal dispersal.
-const SporeCloud = {
-    name: "Spore Cloud",
-    showBiasControls: false,
-    init(x, y, imageData, seedColor, threshold) {
-        this.frontier = [[x, y]];
-        this.infected = new Set([`${x},${y}`]);
-        this.imageData = imageData;
-        this.seedColor = seedColor;
-        this.threshold = threshold;
-    },
-    step(batchSize) {
-        const out = [];
-        const W = this.imageData.width, H = this.imageData.height;
-        const take = Math.min(this.frontier.length, batchSize);
-        for (let i = 0; i < take; i++) {
-            if (!this.frontier.length) break;
-            const ri = Math.floor(Math.random() * this.frontier.length);
-            const [cx, cy] = this.frontier.splice(ri, 1)[0];
-            out.push({ x: cx, y: cy });
-            // Normal 4-connected local spread
-            for (const [dx, dy] of [[0,1],[0,-1],[1,0],[-1,0]]) {
-                const nx = cx+dx, ny = cy+dy, key = `${nx},${ny}`;
-                if (nx < 0 || ny < 0 || nx >= W || ny >= H || this.infected.has(key)) continue;
-                const col = getPixelColor(nx, ny, this.imageData);
-                if (colorDistance(this.seedColor, col) < this.threshold) {
-                    this.infected.add(key);
-                    this.frontier.push([nx, ny]);
-                }
-            }
-            // Stochastic long-distance spore jump
-            if (Math.random() < 0.035) {
-                const angle = Math.random() * Math.PI * 2;
-                const dist  = 8 + Math.random() * 24;
-                const sx = Math.round(cx + Math.cos(angle) * dist);
-                const sy = Math.round(cy + Math.sin(angle) * dist);
-                const key = `${sx},${sy}`;
-                if (sx >= 0 && sy >= 0 && sx < W && sy < H && !this.infected.has(key)) {
-                    const col = getPixelColor(sx, sy, this.imageData);
-                    if (colorDistance(this.seedColor, col) < this.threshold) {
-                        this.infected.add(key);
-                        this.frontier.push([sx, sy]);
-                    }
-                }
-            }
-        }
-        return { newCoords: out, isDone: this.frontier.length === 0 };
-    }
-};
-availableGrowths.push(SporeCloud);
-
-// ── Vascular Dendrite (continuous-angle wandering tendrils) ─────────────────────
-// Tips track a continuous float angle (never snapped to 8 grid directions) and a
-// float position. Each step the angle drifts by a small random amount, making
-// tendrils curve organically like capillaries or root hairs.
-// Branches spawn at non-perpendicular angles to avoid right-angle geometry.
-const VascularDendrite = {
-    name: "Vascular Dendrite",
-    showBiasControls: false,
-    init(x, y, imageData, seedColor, threshold) {
-        this.imageData = imageData;
-        this.seedColor = seedColor;
-        this.threshold = threshold;
-        this.infected = new Set([`${x},${y}`]);
-        this.tips = [];
-        // 5 initial tips at evenly spread but individually randomised angles
-        for (let i = 0; i < 5; i++) {
-            const angle = (Math.PI * 2 * i / 5) + (Math.random() - 0.5) * 0.9;
-            // fx/fy: float position for sub-pixel smooth movement
-            this.tips.push({ fx: x, fy: y, angle, energy: 55 + Math.floor(Math.random() * 45) });
-        }
-    },
-    step(batchSize) {
-        const out = [];
-        const W = this.imageData.width, H = this.imageData.height;
-        const nextTips = [];
-
-        for (const tip of this.tips) {
-            if (tip.energy <= 0) continue;
-            // Small angular wander each step — accumulates into smooth, curved paths
-            const newAngle = tip.angle + (Math.random() - 0.5) * 0.33;
-            const nfx = tip.fx + Math.cos(newAngle);
-            const nfy = tip.fy + Math.sin(newAngle);
-            const nx = Math.round(nfx), ny = Math.round(nfy);
-            const key = `${nx},${ny}`;
-
-            if (nx >= 0 && ny >= 0 && nx < W && ny < H) {
-                if (!this.infected.has(key)) {
-                    const col = getPixelColor(nx, ny, this.imageData);
-                    if (colorDistance(this.seedColor, col) < this.threshold) {
-                        this.infected.add(key);
-                        out.push({ x: nx, y: ny });
-                        nextTips.push({ fx: nfx, fy: nfy, angle: newAngle, energy: tip.energy - 1 });
-                        // Branch: organic non-perpendicular offset avoids right-angle geometry
-                        if (Math.random() < 0.09) {
-                            const sign = Math.random() < 0.5 ? 1 : -1;
-                            const branchAngle = newAngle + sign * (0.85 + Math.random() * 0.75);
-                            nextTips.push({ fx: nfx, fy: nfy, angle: branchAngle, energy: Math.floor(tip.energy * 0.50) });
-                        }
-                    } else {
-                        // Color mismatch: deflect and keep floating
-                        nextTips.push({ fx: tip.fx, fy: tip.fy, angle: newAngle + (Math.random() - 0.5) * 1.6, energy: tip.energy - 1 });
-                    }
-                } else {
-                    // Already-infected pixel: still advance float so tip keeps moving
-                    nextTips.push({ fx: nfx, fy: nfy, angle: newAngle + (Math.random() - 0.5) * 0.5, energy: tip.energy - 1 });
-                }
-            } else {
-                // Out of bounds: reflect back
-                nextTips.push({ ...tip, angle: tip.angle + Math.PI * (0.5 + Math.random() * 0.5), energy: tip.energy - 2 });
-            }
-        }
-        this.tips = nextTips.filter(t => t.energy > 0);
-        return { newCoords: out, isDone: this.tips.length === 0 };
-    }
-};
-availableGrowths.push(VascularDendrite);
-
-// ── Osmotic Pressure (noise-perturbed gradient seep) ─────────────────────────────
-// A two-frequency spatial noise field is added to each pixel's brightness before
-// it enters the priority queue. This creates "membrane ridges" — zones of
-// locally elevated or suppressed permeability — so the seep forms organic tongues
-// and bays rather than following brightness contours in neat horizontal bands.
-// 8-connectivity removes axis-aligned staircase artifacts.
-const OsmoticPressure = {
-    name: "Osmotic Pressure",
-    showBiasControls: false,
-    _noise(x, y) {
-        // Two overlapping sine fields = spatially coherent, non-repeating membrane texture
-        return (
-            Math.sin(x * 0.061 + 2.3) * Math.cos(y * 0.074 + 1.1) * 18 +
-            Math.sin(x * 0.028 + 5.7) * Math.cos(y * 0.036 + 4.2) * 12
-        );
-    },
-    init(x, y, imageData, seedColor, threshold) {
-        this.imageData = imageData; this.seedColor = seedColor; this.threshold = threshold;
-        this._step = 0;
-        const sc = getPixelColor(x, y, imageData);
-        const p = getBrightness(sc.r, sc.g, sc.b) + this._noise(x, y);
-        this.frontier = [[p, x, y]];
-        this.infected = new Set([`${x},${y}`]);
-    },
-    step(batchSize) {
-        const out = [];
-        const W = this.imageData.width, H = this.imageData.height;
-        const dirs8 = [[0,1],[0,-1],[1,0],[-1,0],[1,1],[-1,1],[1,-1],[-1,-1]];
-        // Periodic re-sort: ascending so pop() = highest noised-brightness
-        this._step++;
-        if (this._step % 4 === 0) this.frontier.sort((a, b) => a[0] - b[0]);
-        const take = Math.min(this.frontier.length, batchSize);
-        for (let i = 0; i < take; i++) {
-            if (!this.frontier.length) break;
-            const [, cx, cy] = this.frontier.pop();
-            out.push({ x: cx, y: cy });
-            for (const [dx, dy] of dirs8) {
-                const nx = cx+dx, ny = cy+dy, key = `${nx},${ny}`;
-                if (nx < 0 || ny < 0 || nx >= W || ny >= H || this.infected.has(key)) continue;
-                const col = getPixelColor(nx, ny, this.imageData);
-                if (colorDistance(this.seedColor, col) < this.threshold) {
-                    this.infected.add(key);
-                    // Brightness + spatial noise + small random component breaks exact ties
-                    const p = getBrightness(col.r, col.g, col.b) + this._noise(nx, ny) + Math.random() * 7;
-                    this.frontier.push([p, nx, ny]);
-                }
-            }
-        }
-        return { newCoords: out, isDone: this.frontier.length === 0 };
-    }
-};
-availableGrowths.push(OsmoticPressure);
 
 
 
@@ -1399,201 +1171,6 @@ const ChromaticSeep = {
     }
 };
 availableEffects.push(ChromaticSeep);
-
-// ── Rot Palette ───────────────────────────────────────────────────────────────────
-// Maps each pixel's brightness through a three-stop biological decay gradient:
-// shadows → bruise-purple, mids → bile green-yellow, highlights → fevered off-white.
-// Discards original hue entirely — pure biological recolouring.
-const RotPalette = {
-    name: "Rot Palette",
-    showOptions: false,
-    apply(lesionCoords, imageData) {
-        return lesionCoords.map(({ x, y }) => {
-            const col = getPixelColor(x, y, imageData);
-            const t = getBrightness(col.r, col.g, col.b) / 255;
-            let r, g, b;
-            if (t < 0.33) {
-                // dark → bruise purple / mold shadow
-                const s = t / 0.33;
-                r = Math.round(72  + s * (40  - 72));
-                g = Math.round(8   + s * (115 - 8));
-                b = Math.round(95  + s * (18  - 95));
-            } else if (t < 0.67) {
-                // mid → sickly green-yellow (bile fluorescence)
-                const s = (t - 0.33) / 0.34;
-                r = Math.round(40  + s * (185 - 40));
-                g = Math.round(115 + s * (210 - 115));
-                b = Math.round(18  + s * (12  - 18));
-            } else {
-                // bright → off-white with slight toxic cast
-                const s = (t - 0.67) / 0.33;
-                r = Math.round(185 + s * (235 - 185));
-                g = Math.round(210 + s * (242 - 210));
-                b = Math.round(12  + s * (185 - 12));
-            }
-            return { r: Math.min(255, r), g: Math.min(255, g), b: Math.min(255, b) };
-        });
-    }
-};
-availableEffects.push(RotPalette);
-
-// ── Radial Sort ───────────────────────────────────────────────────────────────────
-// Divides the lesion into angular sectors from the centroid and sorts each sector
-// independently by the chosen criteria. Creates spoke-like radial emanations.
-const RadialSort = {
-    name: "Radial Sort",
-    showOptions: true,
-    apply(lesionCoords, imageData, options) {
-        if (!lesionCoords.length) return [];
-        const { sortCriteria, isReversed } = options;
-        const N = lesionCoords.length;
-
-        // Compute centroid
-        let cx = 0, cy = 0;
-        for (const c of lesionCoords) { cx += c.x; cy += c.y; }
-        cx /= N; cy /= N;
-
-        const N_SECTORS = 20;
-        const sectors = Array.from({ length: N_SECTORS }, () => []);
-        lesionCoords.forEach((c, i) => {
-            const angle = Math.atan2(c.y - cy, c.x - cx); // -π..π
-            const si = Math.floor(((angle + Math.PI) / (Math.PI * 2)) * N_SECTORS) % N_SECTORS;
-            sectors[si].push(i);
-        });
-
-        const fn  = getSortFunction(sortCriteria);
-        const result = new Array(N);
-        sectors.forEach(idxList => {
-            if (!idxList.length) return;
-            const pixels = idxList.map(i => {
-                const { x, y } = lesionCoords[i];
-                return getPixelColor(x, y, imageData);
-            });
-            pixels.sort(fn);
-            if (isReversed) pixels.reverse();
-            idxList.forEach((origIdx, k) => { result[origIdx] = pixels[k]; });
-        });
-        // Fallback for any unassigned pixel
-        for (let i = 0; i < N; i++) {
-            if (!result[i]) result[i] = getPixelColor(lesionCoords[i].x, lesionCoords[i].y, imageData);
-        }
-        return result;
-    }
-};
-availableEffects.push(RadialSort);
-
-// ── Liquefaction ──────────────────────────────────────────────────────────────────
-// Each pixel samples from a random neighbour within the accumulated lesion pool
-// (using nearby insertion-order indices, which approximate spatial proximity).
-// Creates viscous churning — pixels bleed and mix like fluid.
-const Liquefaction = {
-    name: "Liquefaction",
-    showOptions: false,
-    apply(lesionCoords, imageData) {
-        if (!lesionCoords.length) return [];
-        const N = lesionCoords.length;
-        // Nearby indices ≈ spatially close (lesionCoords accumulates in spread order)
-        const radius = Math.min(100, Math.max(8, Math.floor(N * 0.12)));
-        return lesionCoords.map((_, i) => {
-            const offset = Math.floor((Math.random() * 2 - 1) * radius);
-            const j = Math.max(0, Math.min(N - 1, i + offset));
-            const { x, y } = lesionCoords[j];
-            return getPixelColor(x, y, imageData);
-        });
-    }
-};
-availableEffects.push(Liquefaction);
-
-// ── Crystalline Fault ─────────────────────────────────────────────────────────────
-// Replaces the axis-aligned rectangular grid with Voronoi cells seeded via
-// k-means++ initialisation (spread-out random centers drawn from the lesion itself).
-// Each pixel is assigned to its nearest seed and sorted within that cell.
-// Voronoi boundaries are irregular and organic — no visible grid seams.
-const CrystallineFault = {
-    name: "Crystalline Fault",
-    showOptions: true,
-    _centers: null,
-    _lastN: 0,
-    onLesionStart() { this._centers = null; this._lastN = 0; },
-    apply(lesionCoords, imageData, options) {
-        if (!lesionCoords.length) return [];
-        const { sortCriteria, isReversed } = options;
-        const N = lesionCoords.length;
-        const N_CELLS = Math.max(4, Math.min(22, Math.floor(Math.sqrt(N / 9))));
-
-        // Recompute centers only when lesion has grown substantially
-        if (!this._centers || this._centers.length !== N_CELLS || N > this._lastN * 1.35) {
-            this._centers = [];
-            // k-means++ seeding: first center random, subsequent ones biased toward
-            // being far from existing centers — gives well-spread irregular cells
-            this._centers.push(lesionCoords[Math.floor(Math.random() * N)]);
-            while (this._centers.length < N_CELLS) {
-                let bestIdx = 0, bestDist = -Infinity;
-                const sampleSize = Math.min(N, 220);
-                for (let s = 0; s < sampleSize; s++) {
-                    const c = lesionCoords[Math.floor(Math.random() * N)];
-                    let minD = Infinity;
-                    for (const ctr of this._centers) {
-                        const d = (c.x - ctr.x) ** 2 + (c.y - ctr.y) ** 2;
-                        if (d < minD) minD = d;
-                    }
-                    if (minD > bestDist) { bestDist = minD; bestIdx = Math.floor(Math.random() * N); }
-                }
-                this._centers.push(lesionCoords[bestIdx]);
-            }
-            this._lastN = N;
-        }
-
-        // Assign each pixel to nearest Voronoi center
-        const cells = Array.from({ length: N_CELLS }, () => []);
-        const ctrs = this._centers;
-        lesionCoords.forEach((c, i) => {
-            let best = 0, bestD = Infinity;
-            for (let ci = 0; ci < N_CELLS; ci++) {
-                const d = (c.x - ctrs[ci].x) ** 2 + (c.y - ctrs[ci].y) ** 2;
-                if (d < bestD) { bestD = d; best = ci; }
-            }
-            cells[best].push(i);
-        });
-
-        const fn = getSortFunction(sortCriteria);
-        const result = new Array(N);
-        cells.forEach(idxList => {
-            if (!idxList.length) return;
-            const pixels = idxList.map(i => {
-                const { x, y } = lesionCoords[i];
-                return getPixelColor(x, y, imageData);
-            });
-            pixels.sort(fn);
-            if (isReversed) pixels.reverse();
-            idxList.forEach((origIdx, k) => { result[origIdx] = pixels[k]; });
-        });
-        return result;
-    }
-};
-availableEffects.push(CrystallineFault);
-
-// ── Necrotic Inversion ────────────────────────────────────────────────────────────
-// Inverts pixel luminance and biases the result toward the rot palette:
-// former highlights become bruise-purple, former shadows become bile-yellow.
-// The "dead tissue" complement of Rot Palette.
-const NecroticInversion = {
-    name: "Necrotic Inversion",
-    showOptions: false,
-    apply(lesionCoords, imageData) {
-        return lesionCoords.map(({ x, y }) => {
-            const { r, g, b } = getPixelColor(x, y, imageData);
-            // Invert and push toward biological palette
-            const ir = 255 - r, ig = 255 - g, ib = 255 - b;
-            return {
-                r: Math.min(255, Math.round(ir * 0.72 + 42)),
-                g: Math.min(255, Math.round(ig * 0.88 + 18)),
-                b: Math.min(255, Math.round(ib * 0.55 + 8))
-            };
-        });
-    }
-};
-availableEffects.push(NecroticInversion);
 
 
 
