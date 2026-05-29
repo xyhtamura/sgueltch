@@ -3,116 +3,188 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SiltCRT - Soft Granular Signal Emulator</title>
+    <title>SiltCRT — Soft Granular Signal Emulator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="style.css">
-	<script type="importmap">
-    {
-        "imports": {
-            "three": "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.module.js",
-            "three/addons/": "https://unpkg.com/three@0.128.0/examples/jsm/"
-        }
-    }
-</script>
 </head>
 <body>
 
+    <div class="grain-overlay" aria-hidden="true"></div>
+
     <div id="app-container">
-	            <h2 class="title">SILTCRT</h2>
-            <p class="subtitle">Soft Granular Signal Emulator</p>
-            <p><a href="/siltcrt/block/">Block Version</a></p>
+
+        <header class="masthead">
+            <h1 class="title">SILTCRT</h1>
+            <p class="subtitle">soft granular signal emulator · light through turbid sediment</p>
+            <p class="crossref"><span class="reticle">◦</span> <a href="/siltcrt/block/">block version</a></p>
+        </header>
+
         <div id="canvas-container">
             <div id="drop-zone">
-                <p>Drag & Drop Image Here<br>or</p>
-                <button id="upload-btn-placeholder">Upload Image</button>
+                <p class="dz-glyph">⠿</p>
+                <p>drag &amp; drop a <em>specimen</em> here<br><span class="dz-sub">image or video · or</span></p>
+                <button id="upload-btn-placeholder">load specimen</button>
             </div>
             <canvas id="main-canvas"></canvas>
+            <div id="rec-indicator" class="hidden"><span class="rec-dot"></span> CAPTURING</div>
+        </div>
+
+        <!-- video transport (revealed only when a video specimen is loaded) -->
+        <div id="video-transport" class="hidden">
+            <button id="play-pause-btn">⏸ pause</button>
+            <label class="inline-toggle"><input type="checkbox" id="loop-toggle" checked> loop</label>
+            <span class="transport-meta" id="source-meta">—</span>
         </div>
 
         <div id="controls-container">
 
-			 <div id="controls-grid">
-            <div class="control-group">
-                <h3>Warping</h3>
-                <div class="slider-group">
-                    <label for="turbulence">Turbulence (Log)</label>
-                    <input type="range" id="turbulence" min="0.0" max="2.0" value="0.25" step="0.01">
-                    <input type="number" id="turbulence-num" min="0.0" max="2.0" value="0.25" step="0.01">
-                </div>
-                <div class="slider-group">
-                    <label for="flowSpeed">Flow Speed (Log)</label>
-                    <input type="range" id="flowSpeed" min="0.0" max="1.0" value="0.46" step="0.01">
-                    <input type="number" id="flowSpeed-num" min="0.0" max="1.0" value="0.1" step="0.01">
-                </div>
-            </div>
+            <div id="controls-grid">
 
-            <div class="control-group">
-                <h3>Phosphor & Analog</h3>
-				
-                <div class="slider-group">
-                    <label for="phosphorSize">Voronoi Cells</label>
-                    <input type="range" id="phosphorSize" min="5.0" max="8000.0" value="7500.0" step="1">
-                    <input type="number" id="phosphorSize-num" min="5.0" max="8000.0" value="7500.0" step="1">
+                <div class="control-group">
+                    <h3>warping</h3>
+                    <div class="slider-group">
+                        <label for="turbulence">turbulence (log)</label>
+                        <input type="range" id="turbulence" min="0.0" max="2.0" value="0.25" step="0.01">
+                        <input type="number" id="turbulence-num" min="0.0" max="2.0" value="0.25" step="0.01">
+                    </div>
+                    <div class="slider-group">
+                        <label for="flowSpeed">flow speed (log)</label>
+                        <input type="range" id="flowSpeed" min="0.0" max="1.0" value="0.46" step="0.01">
+                        <input type="number" id="flowSpeed-num" min="0.0" max="1.0" value="0.46" step="0.01">
+                    </div>
                 </div>
-				
-                 <div class="slider-group">
-                    <label for="chromaticBleed">Chromatic Bleed</label>
-                    <input type="range" id="chromaticBleed" min="0.0" max="0.02" value="0.001" step="0.0001">
-                    <input type="number" id="chromaticBleed-num" min="0.0" max="0.02" value="0.001" step="0.0001">
+
+                <div class="control-group">
+                    <h3>phosphor &amp; analog</h3>
+                    <div class="slider-group">
+                        <label for="phosphorSize">voronoi cells</label>
+                        <input type="range" id="phosphorSize" min="5.0" max="8000.0" value="7500.0" step="1">
+                        <input type="number" id="phosphorSize-num" min="5.0" max="8000.0" value="7500.0" step="1">
+                    </div>
+                    <div class="slider-group">
+                        <label for="chromaticBleed">chromatic bleed</label>
+                        <input type="range" id="chromaticBleed" min="0.0" max="0.02" value="0.001" step="0.0001">
+                        <input type="number" id="chromaticBleed-num" min="0.0" max="0.02" value="0.001" step="0.0001">
+                    </div>
+                    <div class="slider-group">
+                        <label for="voronoiSoftness">voronoi softness</label>
+                        <input type="range" id="voronoiSoftness" min="0.0" max="1.0" value="0.5" step="0.01">
+                        <input type="number" id="voronoiSoftness-num" min="0.0" max="1.0" value="0.5" step="0.01">
+                    </div>
                 </div>
-				<div class="slider-group">
-    <label for="voronoiSoftness">Voronoi Softness</label>
-    <input type="range" id="voronoiSoftness" min="0.0" max="1.0" value="0.5" step="0.01">
-    <input type="number" id="voronoiSoftness-num" min="0.0" max="1.0" value="0.5" step="0.01">
-</div>
+
+                <div class="control-group">
+                    <h3>bloom</h3>
+                    <div class="slider-group">
+                        <label for="bloomIntensity">bloom intensity</label>
+                        <input type="range" id="bloomIntensity" min="0.0" max="2.0" value="0.8" step="0.01">
+                        <input type="number" id="bloomIntensity-num" min="0.0" max="2.0" value="0.8" step="0.01">
+                    </div>
+                    <div class="slider-group">
+                        <label for="bloomThreshold">bloom threshold</label>
+                        <input type="range" id="bloomThreshold" min="0.0" max="1.0" value="0.7" step="0.01">
+                        <input type="number" id="bloomThreshold-num" min="0.0" max="1.0" value="0.7" step="0.01">
+                    </div>
+                    <div class="slider-group">
+                        <label for="bloomRadius">bloom radius</label>
+                        <input type="range" id="bloomRadius" min="0.1" max="10.0" value="2.0" step="0.1">
+                        <input type="number" id="bloomRadius-num" min="0.1" max="10.0" value="2.0" step="0.1">
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <h3>umbra <span class="h3-note">negative bloom</span></h3>
+                    <div class="slider-group">
+                        <label for="umbraIntensity">umbra intensity</label>
+                        <input type="range" id="umbraIntensity" min="0.0" max="2.0" value="0.0" step="0.01">
+                        <input type="number" id="umbraIntensity-num" min="0.0" max="2.0" value="0.0" step="0.01">
+                    </div>
+                    <div class="slider-group">
+                        <label for="umbraThreshold">umbra threshold</label>
+                        <input type="range" id="umbraThreshold" min="0.0" max="1.0" value="0.3" step="0.01">
+                        <input type="number" id="umbraThreshold-num" min="0.0" max="1.0" value="0.3" step="0.01">
+                    </div>
+                    <div class="slider-group">
+                        <label for="umbraRadius">umbra radius</label>
+                        <input type="range" id="umbraRadius" min="0.1" max="10.0" value="2.0" step="0.1">
+                        <input type="number" id="umbraRadius-num" min="0.1" max="10.0" value="2.0" step="0.1">
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <h3>persistence <span class="h3-note">phosphor decay</span></h3>
+                    <div class="slider-group">
+                        <label for="persistence">trail / smear</label>
+                        <input type="range" id="persistence" min="0.0" max="0.98" value="0.6" step="0.01">
+                        <input type="number" id="persistence-num" min="0.0" max="0.98" value="0.6" step="0.01">
+                    </div>
+                    <p class="group-note">brightness lingers across frames and rots away — the image breathes instead of holding still.</p>
+                </div>
+
+                <div class="control-group">
+                    <h3>tube <span class="h3-note">chamber glass</span></h3>
+                    <div class="slider-group">
+                        <label for="curvature">curvature</label>
+                        <input type="range" id="curvature" min="0.0" max="0.6" value="0.08" step="0.01">
+                        <input type="number" id="curvature-num" min="0.0" max="0.6" value="0.08" step="0.01">
+                    </div>
+                    <div class="slider-group">
+                        <label for="vignette">vignette</label>
+                        <input type="range" id="vignette" min="0.0" max="1.0" value="0.35" step="0.01">
+                        <input type="number" id="vignette-num" min="0.0" max="1.0" value="0.35" step="0.01">
+                    </div>
+                    <div class="slider-group">
+                        <label for="grain">silt grain</label>
+                        <input type="range" id="grain" min="0.0" max="0.4" value="0.06" step="0.005">
+                        <input type="number" id="grain-num" min="0.0" max="0.4" value="0.06" step="0.005">
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <h3>phosphor tint</h3>
+                    <div class="tint-row">
+                        <input type="color" id="phosphorTint" value="#c6f53a">
+                        <span class="tint-label">glow hue</span>
+                    </div>
+                    <div class="slider-group">
+                        <label for="tintAmount">tint amount</label>
+                        <input type="range" id="tintAmount" min="0.0" max="1.0" value="0.4" step="0.01">
+                        <input type="number" id="tintAmount-num" min="0.0" max="1.0" value="0.4" step="0.01">
+                    </div>
+                    <p class="group-note">biases bloom toward a single phosphor colour — the way a real tube only ever glows one way.</p>
+                </div>
+
+                <div class="control-group">
+                    <h3>capture <span class="h3-note">export</span></h3>
+                    <div class="slider-group">
+                        <label for="duration">duration (sec)</label>
+                        <input type="range" id="duration" min="1" max="30" value="6" step="1">
+                        <input type="number" id="duration-num" min="1" max="120" value="6" step="1">
+                    </div>
+                    <div class="slider-group">
+                        <label for="fps">fps</label>
+                        <input type="range" id="fps" min="12" max="60" value="30" step="1">
+                        <input type="number" id="fps-num" min="12" max="60" value="30" step="1">
+                    </div>
+                    <button id="match-video-btn" class="ghost-btn hidden">match video length</button>
+                    <p class="group-note" id="capture-status">records the live signal to .webm</p>
+                </div>
+
             </div>
-			<div class="control-group">
-                <h3>Bloom</h3>
-                <div class="slider-group">
-                    <label for="bloomIntensity">Bloom Intensity</label>
-                    <input type="range" id="bloomIntensity" min="0.0" max="2.0" value="0.8" step="0.01">
-                    <input type="number" id="bloomIntensity-num" min="0.0" max="2.0" value="0.8" step="0.01">
-                </div>
-                <div class="slider-group">
-                    <label for="bloomThreshold">Bloom Threshold</label>
-                    <input type="range" id="bloomThreshold" min="0.0" max="1.0" value="0.7" step="0.01">
-                    <input type="number" id="bloomThreshold-num" min="0.0" max="1.0" value="0.7" step="0.01">
-                </div>
-				    <div class="slider-group">
-        <label for="bloomRadius">Bloom Radius</label>
-        <input type="range" id="bloomRadius" min="0.0" max="10.0" value="2.0" step="0.1">
-        <input type="number" id="bloomRadius-num" min="0.0" max="10.0" value="2.0" step="0.1">
-    </div>
-            </div>
-			<div class="control-group">
-                <h3>Umbra (Negative Bloom)</h3>
-                <div class="slider-group">
-                    <label for="umbraIntensity">Umbra Intensity</label>
-                    <input type="range" id="umbraIntensity" min="0.0" max="2.0" value="0" step="0.01">
-                    <input type="number" id="umbraIntensity-num" min="0.0" max="2.0" value="0" step="0.01">
-                </div>
-                <div class="slider-group">
-                    <label for="umbraThreshold">Umbra Threshold</label>
-                    <input type="range" id="umbraThreshold" min="0.0" max="1.0" value="0" step="0.01">
-                    <input type="number" id="umbraThreshold-num" min="0.0" max="1.0" value="0" step="0.01">
-                </div>
-				    <div class="slider-group">
-        <label for="umbraRadius">Umbra Radius</label>
-        <input type="range" id="umbraRadius" min="0.0" max="10.0" value="2.0" step="0.1">
-        <input type="number" id="umbraRadius-num" min="0.0" max="10.0" value="2.0" step="0.1">
-    </div>
-            </div>
-			</div>
 
             <div class="button-group">
-                <input type="file" id="file-upload" accept="image/*" style="display: none;">
-                <button id="upload-btn">Upload Image</button>
-                <button id="save-btn">Save Image</button>
+                <input type="file" id="file-upload" accept="image/*,video/*" style="display: none;">
+                <button id="upload-btn">load specimen</button>
+                <button id="randomize-btn" class="alt-btn">randomize</button>
+                <button id="save-btn">save frame</button>
+                <button id="record-btn" class="rec-btn">export video</button>
             </div>
         </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="script.kawase.js"></script>
+    <script src="script.js"></script>
 
 </body>
 </html>
