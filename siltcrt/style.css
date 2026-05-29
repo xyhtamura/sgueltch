@@ -136,28 +136,39 @@ body {
 /* ---- transtemporal embossed wordmark ---- */
 .title {
     margin: 0 0 0.5rem; line-height: 1.04;
-    /* relief shared by both words */
-    text-shadow: 0 -1px 0 rgba(255,255,255,0.5), 0 1px 1px rgba(0,0,0,0.5), 0 3px 6px rgba(0,0,0,0.35);
+    text-shadow: none;
 }
 .b-silt, .b-crt {
-    -webkit-background-clip: text; background-clip: text;
+    -webkit-background-clip: text; 
+    background-clip: text;
     -webkit-text-fill-color: transparent;
     font-size: clamp(2.1rem, 6.6vw, 3.1rem);
+    
+    /* Map the chassis material directly onto the text */
+    background-color: var(--plastic);
+    background-image: 
+        linear-gradient(158deg, rgba(255,255,255,0.3), rgba(0,0,0,0.05)),
+        url('sandyplastic.png');
+    background-size: cover, auto;
+    background-repeat: no-repeat, repeat;
+
+    /* 
+      Use chained drop-shadow filters instead of text-shadow.
+      This respects the transparent text fill and draws the relief OUTSIDE the clipping mask.
+    */
+    filter: 
+        drop-shadow(-1px -1px 0px rgba(255, 255, 255, 0.8))
+        drop-shadow(1px 1px 0px rgba(137, 122, 89, 0.8))
+        drop-shadow(2px 4px 4px rgba(0, 0, 0, 0.2));
 }
 .b-silt {                       
     font-family: 'Rozha One', serif; font-weight: 400;
-    color: #bcc4cc;
-    /* Changed from background to background-image */
-    background-image: linear-gradient(180deg, #f3f1f7 0%, #c8d0d8 36%, #94a3b0 64%, #d3cedd 100%);
 }
 
 .b-crt {                        
     font-family: 'Audiowide', sans-serif; font-weight: 400;
     margin-left: 0.06em; letter-spacing: 0.01em;
     font-size: clamp(1.85rem, 5.9vw, 2.75rem);
-    color: #b6c04a;
-    /* Changed from background to background-image */
-    background-image: linear-gradient(180deg, #f0e6ab 0%, #bcc24e 42%, #57a791 78%, #d2d96e 100%);
 }
 .subtitle {
     font-size: 0.66rem; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase;
