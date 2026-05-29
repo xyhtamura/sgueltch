@@ -1,369 +1,727 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Gurgulator — ferment your audio</title>
-  <style>
-    :root{
-      --bg:#0c0f0c; --ink:#d7dfd7; --muted:#a8b3a8; --slime:#9cc650; --jar:#121512; --line:#202620;
-      --accent:#b8d66b;
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{margin:0; background:radial-gradient(1200px_800px at 70% 15%, rgba(156,198,80,.12), transparent 60%), linear-gradient(180deg,#0c0f0c 0%,#0a0d0a 100%); color:var(--ink); font-family:system-ui, -apple-system, Segoe UI, Roboto, Arial}
-    .wrap{display:grid; grid-template-columns: 1fr 420px; gap:20px; padding:20px; max-width:1280px; margin:0 auto}
-    header{grid-column:1 / -1; text-align:center; padding:12px 0 2px}
-    h1{margin:.2rem 0 .4rem; font-size:clamp(26px,4.4vw,42px); letter-spacing:.02em}
-    .sub{color:var(--muted)}
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>GURGULATOR — ferment your audio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik+Wet+Paint&family=Bagel+Fat+One&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* hued-dark base — never zero chroma */
+    --bg:        hsl(266 32% 6%);
+    --bg2:       hsl(258 30% 9%);
+    --jar:       hsl(255 26% 8%);
+    --panel:     hsl(255 24% 11%);
+    --line:      hsl(280 22% 22%);
+    --line2:     hsl(285 30% 30%);
+    --ink:       hsl(86 22% 90%);     /* chartreuse-tinted off-white */
+    --muted:     hsl(280 14% 62%);
+    /* specimen pigments spread across the wheel */
+    --acid:      hsl(74 92% 58%);     /* primary: acid chartreuse */
+    --flesh:     hsl(332 86% 64%);    /* fleshy magenta */
+    --wet:       hsl(186 84% 56%);    /* wet cyan */
+    --violet:    hsl(282 78% 66%);    /* depth */
+    --acid-dim:  hsl(74 60% 30%);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; color:var(--ink);
+    font-family:"Space Mono", ui-monospace, monospace;
+    background:
+      radial-gradient(1100px 700px at 78% -8%, hsl(186 80% 30% / .14), transparent 55%),
+      radial-gradient(900px 700px at 8% 110%, hsl(332 70% 35% / .14), transparent 55%),
+      linear-gradient(180deg, var(--bg) 0%, var(--bg2) 100%);
+    background-attachment:fixed;
+  }
+  /* grain overlay */
+  body::after{
+    content:""; position:fixed; inset:0; pointer-events:none; z-index:999; opacity:.05; mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
 
-    .jar{position:relative; background:linear-gradient(180deg, rgba(25,32,25,.7), rgba(14,18,14,.7)); border:1px solid var(--line); border-radius:18px; overflow:hidden; min-height:520px; display:grid; place-items:center}
-    #viz{width:100%; height:100%}
-    .drop{position:absolute; inset:0; display:grid; place-items:center; pointer-events:none;}
-    .drop .hint{pointer-events:none; background:rgba(0,0,0,.35); border:1px dashed #334033; color:#dce8dc; padding:10px 14px; border-radius:10px}
+  .wrap{display:grid; grid-template-columns: 1fr 460px; gap:18px; padding:20px; max-width:1340px; margin:0 auto}
+  header{grid-column:1 / -1; display:flex; align-items:flex-end; justify-content:space-between; gap:16px; flex-wrap:wrap; padding:6px 4px 0}
+  .brand{display:flex; align-items:baseline; gap:14px; flex-wrap:wrap}
+  h1{
+    font-family:"Rubik Wet Paint", cursive; font-weight:400;
+    margin:0; line-height:.9; font-size:clamp(40px,7vw,82px);
+    color:var(--acid);
+    text-shadow: 2px 3px 0 hsl(332 86% 64% / .55), -2px -1px 0 hsl(186 84% 56% / .4);
+    transform:rotate(-2deg);
+  }
+  .tag{font-size:13px; color:var(--muted); max-width:42ch; line-height:1.45}
+  .tag b{color:var(--wet); font-weight:700}
+  .badge{
+    display:inline-block; font-family:"Bagel Fat One"; font-size:12px; letter-spacing:.04em;
+    color:var(--bg); background:var(--flesh); padding:3px 10px 4px; border-radius:999px;
+    transform:rotate(2deg); box-shadow:2px 2px 0 hsl(282 78% 66% / .6);
+  }
 
-    .panel{background:linear-gradient(180deg, rgba(31,36,31,.6), rgba(22,26,22,.5)); border:1px solid var(--line); border-radius:14px; padding:14px}
-    .panel h2{margin:0 0 6px; font-size:14px; text-transform:uppercase; letter-spacing:.14em; color:#e8f0e8}
-    .controls{display:grid; gap:10px}
-    .row{display:grid; grid-template-columns: 1fr auto; gap:8px; align-items:center}
-    .row label{font-size:13px; color:#cdd7cd}
-    .row input[type="range"]{width:100%}
-    .btns{display:flex; flex-wrap:wrap; gap:8px; margin-top:8px}
-    button,.filebtn{appearance:none; border:1px solid var(--line); background:#141914; color:var(--ink); padding:8px 10px; border-radius:10px; cursor:pointer; font-weight:600}
-    button:hover,.filebtn:hover{border-color:#3a463a; background:#192019}
-    .file{display:none}
+  /* ---- the dish (viz + performance pad) ---- */
+  .dish-shell{position:relative; border:2px solid var(--line2); border-radius:22px; overflow:hidden;
+    background:linear-gradient(180deg, hsl(255 30% 10%), hsl(258 34% 6%));
+    box-shadow: inset 0 0 80px hsl(266 50% 3% / .9), 0 18px 40px hsl(266 60% 2% / .5);
+    min-height:560px; display:flex; flex-direction:column}
+  .dish-shell .meta{display:flex; justify-content:space-between; align-items:center;
+    padding:9px 14px; border-bottom:1px solid var(--line); font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--muted)}
+  .dish-shell .meta .dot{width:9px;height:9px;border-radius:50%;background:var(--acid-dim);display:inline-block;margin-right:7px;vertical-align:middle;box-shadow:0 0 0 0 var(--acid)}
+  .dish-shell.live .meta .dot{background:var(--acid); animation:pulse 1.1s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 hsl(74 92% 58% / .6)}70%{box-shadow:0 0 0 7px hsl(74 92% 58% / 0)}100%{box-shadow:0 0 0 0 hsl(74 92% 58% / 0)}}
+  #dish{flex:1; width:100%; display:block; touch-action:none; cursor:crosshair}
+  .axis{position:absolute; font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--muted); pointer-events:none; opacity:.75}
+  .axis.x{bottom:8px; left:50%; transform:translateX(-50%)}
+  .axis.yl{top:50%; left:8px; transform:translateY(-50%) rotate(-90deg)}
+  .hint{position:absolute; inset:0; display:grid; place-items:center; pointer-events:none}
+  .hint span{font-family:"Bagel Fat One"; font-size:20px; color:hsl(86 22% 90% / .5);
+    border:2px dashed var(--line2); padding:14px 20px; border-radius:14px; background:hsl(266 40% 6% / .5)}
 
-    .status{margin-top:10px; font-size:13px; color:#bcd3bc}
-    .note{margin-top:8px; font-size:12px; color:#9fb79f}
+  /* ---- panels ---- */
+  .stack{display:flex; flex-direction:column; gap:14px}
+  .panel{background:var(--panel); border:2px solid var(--line); border-radius:16px; padding:13px 14px 15px;
+    box-shadow:0 10px 24px hsl(266 60% 2% / .4)}
+  .panel > h2{margin:0 0 11px; font-family:"Bagel Fat One"; font-weight:400; font-size:15px; letter-spacing:.02em;
+    display:flex; align-items:center; gap:8px}
+  .panel > h2 .pip{width:13px;height:13px;border-radius:4px;transform:rotate(45deg)}
+  .g-grain .pip{background:var(--acid)} .g-ferment .pip{background:var(--flesh)}
+  .g-body .pip{background:var(--wet)} .g-spread .pip{background:var(--violet)}
+  .panel > h2 span.k{color:var(--muted); font-family:"Space Mono"; font-size:10px; letter-spacing:.18em; text-transform:uppercase; margin-left:auto; font-weight:700}
 
-    .badge{display:inline-block; padding:3px 7px; border-radius:999px; background:rgba(156,198,80,.18); color:#dff0df; border:1px solid rgba(156,198,80,.35); font-size:12px}
-  </style>
+  .ctrl{display:grid; grid-template-columns: 118px 1fr 58px; align-items:center; gap:9px; padding:3px 0}
+  .ctrl label{font-size:11.5px; color:var(--ink); letter-spacing:.01em}
+  .ctrl .read{font-size:11px; text-align:right; color:var(--acid); font-weight:700;
+    background:hsl(266 40% 5% / .6); border:1px solid var(--line); border-radius:6px; padding:2px 4px}
+
+  input[type=range]{ -webkit-appearance:none; appearance:none; width:100%; height:22px; background:transparent; cursor:pointer}
+  input[type=range]::-webkit-slider-runnable-track{height:6px; border-radius:99px;
+    background:linear-gradient(90deg, var(--acid-dim), hsl(280 30% 22%)); border:1px solid var(--line)}
+  input[type=range]::-moz-range-track{height:6px; border-radius:99px; background:hsl(280 30% 22%); border:1px solid var(--line)}
+  input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none; appearance:none;
+    width:18px; height:18px; margin-top:-7px; border-radius:50% 50% 48% 52% / 52% 50% 50% 48%;
+    background:radial-gradient(circle at 35% 30%, hsl(74 100% 78%), var(--acid));
+    border:2px solid hsl(266 40% 6%); box-shadow:0 0 10px hsl(74 92% 58% / .5)}
+  input[type=range]::-moz-range-thumb{width:16px; height:16px; border-radius:50%;
+    background:var(--acid); border:2px solid hsl(266 40% 6%); box-shadow:0 0 10px hsl(74 92% 58% / .5)}
+  .g-ferment input[type=range]::-webkit-slider-thumb{background:radial-gradient(circle at 35% 30%, hsl(332 100% 82%), var(--flesh)); box-shadow:0 0 10px hsl(332 86% 64% / .5)}
+  .g-body input[type=range]::-webkit-slider-thumb{background:radial-gradient(circle at 35% 30%, hsl(186 100% 82%), var(--wet)); box-shadow:0 0 10px hsl(186 84% 56% / .5)}
+  .g-spread input[type=range]::-webkit-slider-thumb{background:radial-gradient(circle at 35% 30%, hsl(282 100% 86%), var(--violet)); box-shadow:0 0 10px hsl(282 78% 66% / .5)}
+  .g-ferment .read,.g-ferment .ctrl .read{color:var(--flesh)} .g-body .read{color:var(--wet)} .g-spread .read{color:var(--violet)}
+
+  /* ---- transport + cultures ---- */
+  .transport{display:flex; flex-wrap:wrap; gap:8px}
+  button,.filebtn{font-family:"Space Mono"; font-weight:700; font-size:12px; letter-spacing:.04em;
+    border:2px solid var(--line2); background:hsl(255 26% 9%); color:var(--ink);
+    padding:9px 12px; border-radius:10px; cursor:pointer; transition:transform .08s, background .15s, color .15s}
+  button:hover,.filebtn:hover{transform:translate(-1px,-1px); background:hsl(255 26% 13%)}
+  button:active{transform:translate(0,0)}
+  button.primary{background:var(--acid); color:hsl(266 40% 6%); border-color:var(--acid)}
+  button.primary:hover{box-shadow:3px 3px 0 hsl(332 86% 64% / .7)}
+  button.armed{background:var(--flesh); color:hsl(266 40% 6%); border-color:var(--flesh); animation:rec 1s infinite}
+  @keyframes rec{50%{opacity:.65}}
+  button.on{background:var(--wet); color:hsl(266 40% 6%); border-color:var(--wet)}
+  .file{display:none}
+  #dl{display:none}
+  #dl.show{display:inline-block; text-decoration:none; background:var(--violet); color:hsl(266 40% 6%); border-color:var(--violet)}
+
+  .cultures{display:flex; flex-wrap:wrap; gap:7px}
+  .culture{font-family:"Bagel Fat One"; font-weight:400; font-size:11px; letter-spacing:.03em;
+    padding:5px 11px 6px; border-radius:999px; cursor:pointer; border:2px solid hsl(266 40% 6%);
+    color:hsl(266 40% 6%); transform:rotate(-1deg); box-shadow:2px 2px 0 hsl(266 60% 3% / .5); transition:transform .1s}
+  .culture:hover{transform:rotate(0deg) scale(1.06)}
+  .culture:nth-child(6n+1){background:var(--acid)} .culture:nth-child(6n+2){background:var(--flesh)}
+  .culture:nth-child(6n+3){background:var(--wet)} .culture:nth-child(6n+4){background:var(--violet)}
+  .culture:nth-child(6n+5){background:hsl(48 95% 60%)} .culture:nth-child(6n){background:hsl(146 70% 55%)}
+
+  .status{font-size:11.5px; color:var(--muted); min-height:1.2em; letter-spacing:.02em}
+  .status b{color:var(--acid)}
+  .meter{height:8px; border-radius:99px; background:hsl(266 40% 5%); border:1px solid var(--line); overflow:hidden}
+  .meter > i{display:block; height:100%; width:0%; background:linear-gradient(90deg, var(--wet), var(--acid) 60%, var(--flesh)); transition:width .05s}
+  .foot{grid-column:1/-1; text-align:center; color:var(--muted); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; padding:8px 0 2px; opacity:.8}
+  .foot b{color:var(--violet)}
+  .kbd{border:1px solid var(--line2); border-radius:5px; padding:1px 5px; font-size:10px; color:var(--ink); background:hsl(266 40% 6%)}
+
+  @media (max-width:920px){ .wrap{grid-template-columns:1fr} .dish-shell{min-height:420px} }
+</style>
 </head>
 <body>
-  <div class="wrap">
-    <header>
-      <h1>Gurgulator <span class="badge">early prototype</span></h1>
-      <div class="sub">drop a sound, press <em>Start Fermenting</em>, and record the ooze</div>
-    </header>
-
-    <div class="jar" id="jar">
-      <canvas id="viz"></canvas>
-      <div class="drop"><div class="hint">Drop audio here (wav/mp3/aiff)</div></div>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <h1>Gurgulator</h1>
+      <div class="tag"><span class="badge">SGUELTCH SUITE</span><br>
+        a wet granular resynthesizer. drop a sound (or <b>seed a spore</b>), drag the dish to <b>perform</b>, record the ooze. it does what your DAW won't.</div>
     </div>
+    <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
+      <div class="meter" style="width:170px"><i id="meter"></i></div>
+      <div class="status" id="status">no culture loaded.</div>
+    </div>
+  </header>
 
-    <aside class="panel">
-      <h2>Controls</h2>
-      <div class="controls">
-        <div class="row"><label>Ferment Intensity</label><input id="intensity" type="range" min="0" max="1" step="0.01" value="0.6"></div>
-        <div class="row"><label>Bubble Rate (grains/sec)</label><input id="rate" type="range" min="2" max="40" step="1" value="16"></div>
-        <div class="row"><label>Grain Size (ms)</label><input id="grain" type="range" min="30" max="500" step="5" value="160"></div>
-        <div class="row"><label>Overlap (%)</label><input id="overlap" type="range" min="0" max="100" step="1" value="55"></div>
-        <div class="row"><label>Stretch Range (0.5×–3×)</label><input id="stretch" type="range" min="0" max="1" step="0.01" value="0.6"></div>
-        <div class="row"><label>Pitch Range (± semitones)</label><input id="pitch" type="range" min="0" max="12" step="0.1" value="7"></div>
-        <div class="row"><label>Reverse Probability</label><input id="reverseProb" type="range" min="0" max="0.4" step="0.01" value="0.15"></div>
-
-        <div class="row"><label>Formant Tilt (peaking EQ)</label><input id="formant" type="range" min="0" max="1" step="0.01" value="0.35"></div>
-        <div class="row"><label>Gurgle Burp Density</label><input id="burp" type="range" min="0" max="1" step="0.01" value="0.5"></div>
-        <div class="row"><label>Bubble Pop Rate</label><input id="pop" type="range" min="0" max="1" step="0.01" value="0.15"></div>
-
-        <div class="row"><label>Wet Convolver (goo IR)</label><input id="wet" type="range" min="0" max="1" step="0.01" value="0.25"></div>
-        <div class="row"><label>Gurgle Filter (band‑sweep)</label><input id="filter" type="range" min="0" max="1" step="0.01" value="0.5"></div>
-
-        <div class="btns">
-          <label class="filebtn" for="file">Load Audio</label>
-          <input class="file" id="file" type="file" accept="audio/*">
-          <button id="start">Start Fermenting</button>
-          <button id="stop">Stop</button>
-          <button id="freeze">Freeze/Thaw</button>
-          <button id="rec">● Record</button>
-          <a id="download" style="display:none"></a>
-        </div>
-        <div class="status" id="status">No audio loaded.</div>
-        <div class="note">Granular scheduler + stochastic pitch/time, wandering band‑pass, peaking EQ tilt, goo convolver, bubble pops, and live recording.</div>
-      </div>
-    </aside>
+  <!-- DISH -->
+  <div class="dish-shell" id="dishShell">
+    <div class="meta"><span><span class="dot"></span>petri dish · drag to steer</span><span id="dishReadout">idle</span></div>
+    <canvas id="dish"></canvas>
+    <div class="axis x">dry ⟷ drenched</div>
+    <div class="axis yl">calm ⟷ frantic</div>
+    <div class="hint" id="hint"><span>drop audio · or seed a spore</span></div>
   </div>
 
-  <script>
-  // --- Audio plumbing ---
-  const fileInput = document.getElementById('file');
-  const startBtn = document.getElementById('start');
-  const stopBtn  = document.getElementById('stop');
-  const freezeBtn= document.getElementById('freeze');
-  const recBtn   = document.getElementById('rec');
-  const dlLink   = document.getElementById('download');
-  const statusEl = document.getElementById('status');
-  const jar = document.getElementById('jar');
+  <!-- CONTROLS -->
+  <div class="stack">
+    <div class="panel">
+      <h2><span class="pip" style="background:var(--acid)"></span>Transport
+        <span class="k">space · f · r</span></h2>
+      <div class="transport">
+        <label class="filebtn" for="file">⬇ Load Audio</label>
+        <input class="file" id="file" type="file" accept="audio/*">
+        <button id="spore">✦ Seed Spore</button>
+        <button id="start" class="primary">▶ Ferment</button>
+        <button id="stop">■ Halt</button>
+        <button id="freeze">❄ Freeze</button>
+        <button id="rec">● Record</button>
+        <button id="panic">⚠ Panic</button>
+        <a id="dl">⤓ Save .webm</a>
+      </div>
+      <div style="margin-top:11px" class="cultures" id="cultures"></div>
+    </div>
 
-  const ui = {
-    intensity: document.getElementById('intensity'),
-    rate:      document.getElementById('rate'),
-    grain:     document.getElementById('grain'),
-    overlap:   document.getElementById('overlap'),
-    stretch:   document.getElementById('stretch'),
-    pitch:     document.getElementById('pitch'),
-    reverse:   document.getElementById('reverseProb'),
-    formant:   document.getElementById('formant'),
-    burp:      document.getElementById('burp'),
-    pop:       document.getElementById('pop'),
-    wet:       document.getElementById('wet'),
-    filter:    document.getElementById('filter'),
+    <div class="panel g-grain"><h2><span class="pip"></span>Grain Culture</h2><div id="grp-grain"></div></div>
+    <div class="panel g-ferment"><h2><span class="pip"></span>Ferment</h2><div id="grp-ferment"></div></div>
+    <div class="panel g-body"><h2><span class="pip"></span>Body &amp; Squelch</h2><div id="grp-body"></div></div>
+    <div class="panel g-spread"><h2><span class="pip"></span>Spread</h2><div id="grp-spread"></div></div>
+  </div>
+
+  <div class="foot">made of <b>fluid flow · growth · viscosity · bodily transformation</b> — not grids · part of Sgueltch (2025)</div>
+</div>
+
+<script>
+"use strict";
+/* ============================================================
+   GURGULATOR — wet granular resynthesizer (Sgueltch suite)
+   ============================================================ */
+
+/* ---------- control definitions ---------- */
+const GROUPS = {
+  grain:[
+    {id:"rate",     label:"Bubble Rate", min:1,  max:60, step:1,    val:16,  fmt:v=>v+" g/s"},
+    {id:"grain",    label:"Grain Size",  min:20, max:600,step:5,    val:160, fmt:v=>v+" ms"},
+    {id:"overlap",  label:"Overlap",     min:0,  max:100,step:1,    val:55,  fmt:v=>v+"%"},
+    {id:"stretch",  label:"Time Warp",   min:0,  max:1,  step:0.01, val:0.6, fmt:v=>(0.5+v*2.5).toFixed(2)+"×"},
+    {id:"pitch",    label:"Pitch Drift", min:0,  max:12, step:0.1,  val:7,   fmt:v=>"±"+(+v).toFixed(1)+"st"},
+    {id:"reverse",  label:"Reverse",     min:0,  max:0.6,step:0.01, val:0.15,fmt:v=>Math.round(v*100)+"%"},
+  ],
+  ferment:[
+    {id:"intensity",label:"Ferment / Drive", min:0,max:1,step:0.01,val:0.6, fmt:pct},
+    {id:"viscosity",label:"Viscosity",       min:0,max:1,step:0.01,val:0.5, fmt:pct},
+    {id:"peristalsis",label:"Peristalsis",   min:0,max:1,step:0.01,val:0.4, fmt:pct},
+    {id:"mutate",   label:"Mutate",          min:0,max:1,step:0.01,val:0.2, fmt:pct},
+  ],
+  body:[
+    {id:"sweep",    label:"Sweep",       min:0,max:1,step:0.01,val:0.5, fmt:pct},
+    {id:"burp",     label:"Burp",        min:0,max:1,step:0.01,val:0.5, fmt:pct},
+    {id:"formant",  label:"Formant",     min:0,max:1,step:0.01,val:0.35,fmt:pct},
+    {id:"squelch",  label:"Squelch",     min:0,max:1,step:0.01,val:0.3, fmt:pct},
+    {id:"pop",      label:"Bubble Pop",  min:0,max:1,step:0.01,val:0.15,fmt:pct},
+  ],
+  spread:[
+    {id:"wet",      label:"Goo Reverb",  min:0,max:1,step:0.01,val:0.3, fmt:pct},
+    {id:"bloom",    label:"Bloom",       min:0,max:1,step:0.01,val:0.3, fmt:pct},
+    {id:"master",   label:"Master",      min:0,max:1.2,step:0.01,val:0.9,fmt:pct},
+  ],
+};
+function pct(v){ return Math.round(v*100)+"%"; }
+
+const ui = {};        // id -> input element
+const reads = {};     // id -> readout element
+function val(id){ return parseFloat(ui[id].value); }
+
+function buildControls(){
+  for(const grp in GROUPS){
+    const host = document.getElementById("grp-"+grp);
+    for(const c of GROUPS[grp]){
+      const row = document.createElement("div"); row.className="ctrl";
+      const lab = document.createElement("label"); lab.textContent=c.label;
+      const inp = document.createElement("input"); inp.type="range";
+      inp.min=c.min; inp.max=c.max; inp.step=c.step; inp.value=c.val; inp.id="ui_"+c.id;
+      const rd = document.createElement("div"); rd.className="read";
+      const upd = ()=>{ rd.textContent = c.fmt(parseFloat(inp.value)); };
+      inp.addEventListener("input", upd);
+      row.append(lab, inp, rd);
+      host.appendChild(row);
+      ui[c.id]=inp; reads[c.id]=rd; upd();
+    }
+  }
+}
+buildControls();
+
+/* ---------- cultures (presets) ---------- */
+const CULTURES = {
+  NATA:    {rate:10,grain:300,overlap:70,stretch:0.4,pitch:3,reverse:0.05,intensity:0.55,viscosity:0.85,peristalsis:0.25,mutate:0.05,sweep:0.3,burp:0.3,formant:0.4,squelch:0.45,pop:0.05,wet:0.55,bloom:0.45,master:0.85, pad:[0.62,0.18]},
+  LAMBIC:  {rate:24,grain:120,overlap:55,stretch:0.6,pitch:8,reverse:0.2,intensity:0.65,viscosity:0.4,peristalsis:0.6,mutate:0.25,sweep:0.6,burp:0.7,formant:0.45,squelch:0.4,pop:0.2,wet:0.35,bloom:0.4,master:0.9, pad:[0.5,0.6]},
+  KOMBUCHA:{rate:38,grain:70,overlap:45,stretch:0.55,pitch:6,reverse:0.12,intensity:0.6,viscosity:0.3,peristalsis:0.55,mutate:0.35,sweep:0.7,burp:0.5,formant:0.35,squelch:0.25,pop:0.6,wet:0.3,bloom:0.25,master:0.9, pad:[0.4,0.72]},
+  BILE:    {rate:8,grain:420,overlap:75,stretch:0.3,pitch:2,reverse:0.06,intensity:0.7,viscosity:0.8,peristalsis:0.3,mutate:0.1,sweep:0.25,burp:0.4,formant:0.75,squelch:0.6,pop:0.05,wet:0.5,bloom:0.55,master:0.82, pad:[0.72,0.16]},
+  CURDLE:  {rate:20,grain:90,overlap:25,stretch:0.7,pitch:10,reverse:0.35,intensity:0.7,viscosity:0.25,peristalsis:0.5,mutate:0.75,sweep:0.8,burp:0.65,formant:0.5,squelch:0.35,pop:0.4,wet:0.3,bloom:0.35,master:0.88, pad:[0.42,0.82]},
+  RENNET:  {rate:6,grain:500,overlap:88,stretch:0.45,pitch:4,reverse:0.04,intensity:0.5,viscosity:0.9,peristalsis:0.2,mutate:0.03,sweep:0.2,burp:0.25,formant:0.5,squelch:0.5,pop:0.02,wet:0.65,bloom:0.6,master:0.8, pad:[0.8,0.1]},
+};
+function loadCulture(name){
+  const c = CULTURES[name]; if(!c) return;
+  for(const k in c){
+    if(k==="pad"){ padTarget.x=c.pad[0]; padTarget.y=c.pad[1]; continue; }
+    if(ui[k]){ ui[k].value=c[k]; ui[k].dispatchEvent(new Event("input")); }
+  }
+  setStatus("culture <b>"+name+"</b> pitched. drag the dish.");
+}
+(function(){
+  const host=document.getElementById("cultures");
+  Object.keys(CULTURES).forEach(n=>{
+    const b=document.createElement("button"); b.className="culture"; b.textContent=n;
+    b.addEventListener("click",()=>loadCulture(n)); host.appendChild(b);
+  });
+})();
+
+/* ---------- audio engine ---------- */
+let ctx, grainBus, bpFilter, formantEQ, dryGain,
+    convolver, wetGain,
+    squelchSend, squelchDelay, squelchLP, squelchFB, squelchOut,
+    bloomDelay, bloomLP, bloomFB, bloomOut,
+    preMaster, saturator, master, analyser, dest, mediaRecorder;
+let buffer=null, running=false, schedTimer=null, engineTimer=null;
+let pointer=0, sampleDur=0, frozen=false, frozenHead=0;
+let lastSatDrive=-1;
+
+/* smoothed performance state */
+const padTarget={x:0.5,y:0.35};
+const S={padX:0.5,padY:0.35,peri:0,periTarget:0};
+
+function makeSatCurve(drive){
+  const n=2048, c=new Float32Array(n), k=1+drive*4;
+  for(let i=0;i<n;i++){ const x=i/(n-1)*2-1; c[i]=Math.tanh(x*k)/Math.tanh(k); }
+  return c;
+}
+
+/* synthesized gooey impulse response */
+function makeGooIR(dur){
+  const sr=ctx.sampleRate, len=Math.floor(dur*sr), buf=ctx.createBuffer(2,len,sr);
+  for(let ch=0;ch<2;ch++){
+    const d=buf.getChannelData(ch); let phase=Math.random()*6.28;
+    const base=40+Math.random()*90;
+    for(let i=0;i<len;i++){
+      const env=Math.exp(-i/(sr*0.34))*0.9;
+      if(i % Math.floor(sr*(0.05+Math.random()*0.2))===0) phase=Math.random()*6.28;
+      const n=(Math.random()*2-1)*0.35;
+      const tone=Math.sin(phase+i*(base+Math.random()*120)/sr*6.283)*0.16;
+      d[i]=(n+tone)*env;
+    }
+  }
+  return buf;
+}
+
+/* synthesize a playable "spore" so the instrument makes sound with no upload */
+function makeSporeBuffer(){
+  const sr=ctx.sampleRate, dur=3.6, len=Math.floor(dur*sr), buf=ctx.createBuffer(1,len,sr);
+  const d=buf.getChannelData(0);
+  const f1=72, f2=109, f3=181;            // detuned low partials
+  for(let i=0;i<len;i++){
+    const t=i/sr;
+    const slow=0.5+0.5*Math.sin(t*0.9);   // slow AM swell
+    let s = Math.sin(t*f1*6.283)*0.4
+          + Math.sin(t*f2*6.283+Math.sin(t*1.7))*0.28
+          + Math.sin(t*f3*6.283)*0.16*slow;
+    // intermittent wet noise bursts
+    if(Math.sin(t*3.1)>0.84) s += (Math.random()*2-1)*0.5*Math.exp(-((t%0.32))*22);
+    const env=Math.min(1,t*4)*Math.min(1,(dur-t)*4);
+    d[i]=Math.tanh(s*1.2)*0.6*env;
+  }
+  buffer=buf; sampleDur=dur; pointer=0;
+  hideHint();
+  setStatus("spore seeded — <b>3.6s</b> synthetic culture. press Ferment.");
+}
+
+async function ensureContext(){
+  if(ctx) return;
+  ctx = new (window.AudioContext||window.webkitAudioContext)();
+
+  grainBus  = ctx.createGain(); grainBus.gain.value=1;
+  preMaster = ctx.createGain(); preMaster.gain.value=1;
+  master    = ctx.createGain(); master.gain.value=val("master");
+
+  saturator = ctx.createWaveShaper(); saturator.curve=makeSatCurve(val("intensity")); saturator.oversample="2x";
+  analyser  = ctx.createAnalyser(); analyser.fftSize=1024;
+
+  // dry / gurgle path: grainBus -> bandpass -> formant peaking -> dryGain
+  bpFilter = ctx.createBiquadFilter(); bpFilter.type="bandpass"; bpFilter.frequency.value=400; bpFilter.Q.value=1.2;
+  formantEQ= ctx.createBiquadFilter(); formantEQ.type="peaking"; formantEQ.frequency.value=600; formantEQ.Q.value=0.9; formantEQ.gain.value=0;
+  dryGain  = ctx.createGain(); dryGain.gain.value=1;
+  grainBus.connect(bpFilter); bpFilter.connect(formantEQ); formantEQ.connect(dryGain); dryGain.connect(preMaster);
+
+  // squelch resonator (self-oscillating short feedback delay = wet burping body)
+  squelchSend = ctx.createGain(); squelchSend.gain.value=val("squelch");
+  squelchDelay= ctx.createDelay(0.08); squelchDelay.delayTime.value=0.012;
+  squelchLP   = ctx.createBiquadFilter(); squelchLP.type="lowpass"; squelchLP.frequency.value=1400;
+  squelchFB   = ctx.createGain(); squelchFB.gain.value=0.6;
+  squelchOut  = ctx.createGain(); squelchOut.gain.value=0.9;
+  grainBus.connect(squelchSend); squelchSend.connect(squelchDelay);
+  squelchDelay.connect(squelchLP); squelchLP.connect(squelchFB); squelchFB.connect(squelchDelay); // loop
+  squelchLP.connect(squelchOut); squelchOut.connect(preMaster);
+
+  // goo convolution reverb
+  convolver = ctx.createConvolver(); convolver.normalize=true; convolver.buffer=makeGooIR(1.6);
+  wetGain   = ctx.createGain(); wetGain.gain.value=val("wet");
+  grainBus.connect(convolver); convolver.connect(wetGain); wetGain.connect(preMaster);
+
+  // bloom: feedback delay network fed by the wet path = reverb that spreads/self-sustains
+  bloomDelay= ctx.createDelay(1.2); bloomDelay.delayTime.value=0.34;
+  bloomLP   = ctx.createBiquadFilter(); bloomLP.type="lowpass"; bloomLP.frequency.value=2600;
+  bloomFB   = ctx.createGain(); bloomFB.gain.value=0.3;
+  bloomOut  = ctx.createGain(); bloomOut.gain.value=0.8;
+  wetGain.connect(bloomDelay); bloomDelay.connect(bloomLP);
+  bloomLP.connect(bloomFB); bloomFB.connect(bloomDelay);      // loop (clamped in engineTick)
+  bloomLP.connect(bloomOut); bloomOut.connect(preMaster);
+
+  // master chain + recording tap
+  preMaster.connect(saturator); saturator.connect(master); master.connect(analyser);
+  analyser.connect(ctx.destination);
+  dest = ctx.createMediaStreamDestination(); master.connect(dest);
+  setupRecorder();
+
+  wanderFilter(); formantWander(); bubblePopper(); squelchWobble();
+}
+
+function setupRecorder(){
+  let mime = MediaRecorder.isTypeSupported("audio/webm;codecs=opus") ? "audio/webm;codecs=opus" : undefined;
+  mediaRecorder = new MediaRecorder(dest.stream, mime?{mimeType:mime}:undefined);
+  let chunks=[];
+  mediaRecorder.ondataavailable=e=>{ if(e.data.size>0) chunks.push(e.data); };
+  mediaRecorder.onstop=()=>{
+    const blob=new Blob(chunks,{type:chunks[0]?.type||"audio/webm"}); chunks=[];
+    const url=URL.createObjectURL(blob);
+    const dl=document.getElementById("dl");
+    dl.href=url; dl.download=`gurgulator-${Date.now()}.webm`; dl.classList.add("show");
+    document.getElementById("rec").classList.remove("armed");
+    document.getElementById("rec").textContent="● Record";
+    setStatus("ooze captured — <b>save</b> when ready.");
   };
+}
 
-  let ctx, masterGain, convolver, wetGain, dryGain, bpFilter, formantEQ, dest, mediaRecorder;
-  let buffer = null;
-  let running = false;
-  let lookaheadTimer = null;
-  let pointer = 0; // read head in seconds
-  let sampleDuration = 0;
-  let frozen = false; let frozenHead = 0;
+const clamp=(v,a,b)=>v<a?a:(v>b?b:v);
 
-  // visualize
-  const canv = document.getElementById('viz');
-  const g = canv.getContext('2d');
-  function resizeViz(){ const r = jar.getBoundingClientRect(); canv.width=r.width; canv.height=Math.max(520, r.height); }
-  window.addEventListener('resize', resizeViz); resizeViz();
+/* slow viscous parameter morph + peristalsis + feedback clamping */
+function engineTick(){
+  if(!ctx) return;
+  const visc=val("viscosity");
+  const k = 0.05 + (1-visc)*0.55;                  // high viscosity => sluggish
+  S.padX += (padTarget.x - S.padX)*k;
+  S.padY += (padTarget.y - S.padY)*k;
 
-  const bubbles = [];
-  function spawnBubble(x, y, r, hue){ bubbles.push({x,y,r,alpha:0.9, v:(0.6+Math.random()*1.2), hue}); }
-  function drawViz(){
-    g.clearRect(0,0,canv.width,canv.height);
-    g.fillStyle = 'rgba(20,25,20,0.9)'; g.fillRect(0,0,canv.width,canv.height);
-    for(let i=bubbles.length-1;i>=0;i--){
-      const b = bubbles[i];
-      b.y -= b.v; b.r *= 0.998; b.alpha *= 0.985;
-      if(b.alpha<0.02 || b.r<3){ bubbles.splice(i,1); continue; }
-      g.beginPath();
-      const grad = g.createRadialGradient(b.x, b.y, b.r*0.2, b.x, b.y, b.r);
-      grad.addColorStop(0, `hsla(${b.hue},70%,70%,${0.35*b.alpha})`);
-      grad.addColorStop(1, `hsla(${b.hue},50%,40%,${0.08*b.alpha})`);
-      g.fillStyle = grad; g.arc(b.x,b.y,b.r,0,Math.PI*2); g.fill();
-      g.strokeStyle = `hsla(${b.hue},60%,60%,${0.25*b.alpha})`; g.lineWidth = 1.2; g.stroke();
+  const pr=val("peristalsis");
+  if(Math.random() < 0.015 + pr*0.22) S.periTarget = Math.random()*2-1;
+  S.peri += (S.periTarget - S.peri)*(0.02 + pr*0.28);
+
+  const now=ctx.currentTime, rt=now + (0.05 + visc*0.7);   // viscous ramp time
+  const drench=S.padX;
+
+  wetGain.gain.linearRampToValueAtTime(clamp(val("wet") + drench*0.5, 0, 1.0), rt);
+  bloomFB.gain.linearRampToValueAtTime(clamp(val("bloom")*0.78 + drench*0.08, 0, 0.84), rt);
+  bloomLP.frequency.linearRampToValueAtTime(1400 + (1-drench)*2600, rt);
+  squelchSend.gain.linearRampToValueAtTime(clamp(val("squelch") + drench*0.3, 0, 1.2), rt);
+  squelchFB.gain.linearRampToValueAtTime(clamp(0.45 + val("squelch")*0.4, 0, 0.9), rt);
+  master.gain.linearRampToValueAtTime(clamp(val("master"), 0, 1.2), rt);
+
+  const d=val("intensity");
+  if(Math.abs(d-lastSatDrive)>0.02){ saturator.curve=makeSatCurve(d); lastSatDrive=d; }
+
+  // meter
+  if(analyser){
+    const buf=new Uint8Array(analyser.fftSize); analyser.getByteTimeDomainData(buf);
+    let sum=0; for(let i=0;i<buf.length;i++){ const x=(buf[i]-128)/128; sum+=x*x; }
+    const rms=Math.sqrt(sum/buf.length);
+    document.getElementById("meter").style.width=clamp(rms*180,0,100)+"%";
+  }
+  document.getElementById("dishReadout").textContent =
+    `drench ${(S.padX*100|0)}% · frenzy ${(S.padY*100|0)}% · peri ${(S.peri>=0?'+':'')}${S.peri.toFixed(2)}`;
+
+  engineTimer=setTimeout(engineTick, 28);
+}
+
+/* wandering band-pass (gurgle) — now reads Sweep (was a dead control) + peristalsis */
+function wanderFilter(){
+  if(!ctx) return;
+  const now=ctx.currentTime;
+  const sweep=val("sweep"), burp=val("burp");
+  const center = 220 + S.peri*sweep*1400;          // peristalsis pushes the band
+  const span   = 300 + sweep*2200;
+  const f0 = clamp(center + (Math.random()*2-1)*span, 80, 6000);
+  bpFilter.frequency.cancelScheduledValues(now);
+  bpFilter.frequency.linearRampToValueAtTime(f0, now + (0.25 + (1-sweep)*1.1));
+  const q0 = 0.7 + Math.random()*(2 + 7*burp);
+  bpFilter.Q.cancelScheduledValues(now);
+  bpFilter.Q.linearRampToValueAtTime(q0, now+0.2);
+  const minD=140, maxD=1100;
+  const nextIn=(minD + (1-burp)*(maxD-minD))*(0.6+Math.random()*0.8);
+  setTimeout(wanderFilter, nextIn);
+}
+
+function formantWander(){
+  if(!ctx) return;
+  const now=ctx.currentTime, amt=val("formant");
+  formantEQ.frequency.linearRampToValueAtTime(280 + amt*1500 + S.peri*200, now+0.2);
+  formantEQ.gain.linearRampToValueAtTime(-2 + amt*11, now+0.2);
+  setTimeout(formantWander, 240);
+}
+
+/* squelch delay-time wobble => burpy pitch bends in the resonant body */
+function squelchWobble(){
+  if(!ctx) return;
+  const now=ctx.currentTime, amt=val("squelch");
+  const t = 0.004 + Math.random()*(0.004 + amt*0.03);
+  squelchDelay.delayTime.cancelScheduledValues(now);
+  squelchDelay.delayTime.linearRampToValueAtTime(t, now + 0.05 + Math.random()*0.15);
+  squelchLP.frequency.linearRampToValueAtTime(700 + Math.random()*2200, now+0.1);
+  setTimeout(squelchWobble, 80 + Math.random()*220);
+}
+
+function bubblePopper(){
+  if(!ctx) return;
+  const rate=val("pop");
+  if(Math.random() < rate*0.22){
+    const now=ctx.currentTime, dip=0.3+Math.random()*0.35;
+    master.gain.cancelScheduledValues(now);
+    master.gain.setValueAtTime(master.gain.value, now);
+    master.gain.linearRampToValueAtTime(master.gain.value*(1-dip), now+0.008);
+    master.gain.linearRampToValueAtTime(val("master"), now+0.13);
+    spawnBurst();
+  }
+  setTimeout(bubblePopper, 110 + Math.random()*520);
+}
+
+const semis = s => Math.pow(2, s/12);
+
+function scheduleGrain(when){
+  if(!buffer) return;
+  const intensity=val("intensity");
+  const stretch = 0.5 + val("stretch")*2.5;
+  const reverseP= val("reverse");
+  const dir = Math.random()<reverseP ? -1 : 1;
+  const grainMs = val("grain") * (0.6 + Math.random()*0.8);
+  const grainDur= Math.max(0.03, grainMs/1000);
+
+  if(frozen){
+    pointer = frozenHead + (Math.random()-0.5)*0.02;
+  } else {
+    const surge = 1 + S.peri*0.6;                  // peristalsis warps the read speed
+    pointer += grainDur*(0.8+Math.random()*0.6)*dir*(1/stretch)*surge;
+  }
+  if(pointer<0) pointer += sampleDur;
+  if(pointer > sampleDur-0.05) pointer = pointer % sampleDur;
+
+  const start = clamp(pointer + (Math.random()-0.5)*0.04, 0, Math.max(0, sampleDur-grainDur));
+  const pitchAmt = val("pitch") * (1 + S.padY*0.6);
+  const pitchSemi = (Math.random()*2-1)*pitchAmt;
+  const rate = semis(pitchSemi) * (0.85+Math.random()*0.3);
+
+  // mutate => stutter cluster (organic buffer-repeat)
+  const effMut = clamp(val("mutate") + S.padY*0.25, 0, 1);
+  const cluster = (Math.random() < effMut*0.5) ? (2 + (Math.random()*5|0)) : 1;
+  const microHop = grainDur*0.7;
+
+  for(let n=0;n<cluster;n++){
+    const t = when + n*microHop;
+    const src=ctx.createBufferSource(); src.buffer=buffer; src.playbackRate.value=rate;
+    const g=ctx.createGain();
+    const amp = 0.6*(0.6+Math.random()*0.8)*(0.6+intensity*0.8)/Math.sqrt(cluster);
+    const atk=0.006+Math.random()*0.02, rel=0.02+Math.random()*0.05+intensity*0.12;
+    g.gain.setValueAtTime(0,t);
+    g.gain.linearRampToValueAtTime(amp, t+atk);
+    g.gain.linearRampToValueAtTime(0.0001, t+atk+grainDur+rel);
+    src.connect(g); g.connect(grainBus);
+    try{ src.start(t, start, grainDur); }catch(e){}
+  }
+
+  // viz
+  const fx = (start/sampleDur);
+  const x = fx*dishW;
+  const y = dishH - (S.padY*0.45+0.1)*dishH - Math.random()*30;
+  const rad = 7 + Math.min(70, grainDur*900)*(0.6+Math.random()*0.7) * (cluster>1?1.4:1);
+  const hue = 74 + pitchSemi*6 + S.padX*120 + (cluster>1? 200:0) + Math.random()*20;
+  spawnBubble(x, y, rad, hue, cluster>1);
+}
+
+function startEngine(){
+  if(!ctx || !buffer){ setStatus("load audio or <b>seed a spore</b> first."); return; }
+  if(running) return;
+  running=true; ctx.resume();
+  document.getElementById("dishShell").classList.add("live");
+  setStatus("fermenting…");
+  const lookahead=0.12;
+  const tick=()=>{
+    if(!running) return;
+    const now=ctx.currentTime;
+    const gps = val("rate") * (1 + S.padY*1.4) * (0.65 + 0.7*(0.5+0.5*S.peri));
+    const overlap=val("overlap")/100;
+    const hop=Math.max(1/80, (1/gps)*(1-overlap*0.8));
+    let t=now;
+    while(t < now+lookahead){ scheduleGrain(t); t += hop*(0.7+Math.random()*0.6); }
+    schedTimer=setTimeout(tick, 28);
+  };
+  tick();
+}
+function stopEngine(){
+  running=false; if(schedTimer) clearTimeout(schedTimer);
+  document.getElementById("dishShell").classList.remove("live");
+  setStatus("halted.");
+}
+function panic(){
+  stopEngine();
+  if(ctx){ const now=ctx.currentTime;
+    [bloomFB,squelchFB,wetGain].forEach(g=>{ g.gain.cancelScheduledValues(now); g.gain.setValueAtTime(0,now); });
+    master.gain.cancelScheduledValues(now); master.gain.setValueAtTime(0,now);
+    setTimeout(()=>{ if(ctx){ master.gain.setValueAtTime(val("master"),ctx.currentTime);
+      wetGain.gain.setValueAtTime(val("wet"),ctx.currentTime); } }, 260);
+  }
+  setStatus("panicked — feedback purged.");
+}
+
+/* ---------- visualizer (the dish doubles as performance pad) ---------- */
+const dish=document.getElementById("dish"), gx=dish.getContext("2d");
+let dishW=0, dishH=0;
+function resizeDish(){
+  const r=dish.getBoundingClientRect();
+  dish.width=dishW=Math.max(300, r.width|0);
+  dish.height=dishH=Math.max(360, r.height|0);
+}
+window.addEventListener("resize", resizeDish);
+
+const bubbles=[]; const bursts=[];
+function spawnBubble(x,y,r,hue,glitch){
+  if(bubbles.length>140) bubbles.shift();
+  bubbles.push({x,y,r,alpha:0.9,v:0.5+Math.random()*1.3,hue,glitch,
+    wob:Math.random()*6.28, ws:0.04+Math.random()*0.08});
+}
+function spawnBurst(){ bursts.push({x:Math.random()*dishW,y:dishH*(0.4+Math.random()*0.5),r:4,alpha:0.7}); }
+
+function drawDish(){
+  gx.clearRect(0,0,dishW,dishH);
+  // viscous membrane background
+  const t=performance.now()/1000;
+  gx.fillStyle="hsl(258 34% 7%)"; gx.fillRect(0,0,dishW,dishH);
+  for(let i=0;i<3;i++){
+    const bx=dishW*(0.3+0.4*Math.sin(t*0.2+i*2)), by=dishH*(0.5+0.4*Math.cos(t*0.15+i*1.7));
+    const rr=Math.min(dishW,dishH)*0.5;
+    const gr=gx.createRadialGradient(bx,by,0,bx,by,rr);
+    const hue=[186,332,282][i];
+    gr.addColorStop(0,`hsl(${hue} 70% 45% / .10)`); gr.addColorStop(1,"transparent");
+    gx.fillStyle=gr; gx.beginPath(); gx.arc(bx,by,rr,0,6.283); gx.fill();
+  }
+  // pad crosshair (current performance position)
+  const px=S.padX*dishW, py=(1-S.padY)*dishH;
+  gx.strokeStyle="hsl(74 92% 58% / .25)"; gx.lineWidth=1;
+  gx.beginPath(); gx.moveTo(px,0); gx.lineTo(px,dishH); gx.moveTo(0,py); gx.lineTo(dishW,py); gx.stroke();
+  gx.fillStyle="hsl(74 92% 58% / .9)"; gx.beginPath(); gx.arc(px,py,5,0,6.283); gx.fill();
+  gx.strokeStyle="hsl(332 86% 64% / .9)"; gx.lineWidth=2; gx.beginPath(); gx.arc(px,py,11,0,6.283); gx.stroke();
+
+  // read-head scan band
+  if(buffer && sampleDur>0){
+    const hx=((frozen?frozenHead:pointer)/sampleDur)*dishW;
+    gx.fillStyle="hsl(186 84% 56% / .12)"; gx.fillRect(hx-2,0,4,dishH);
+  }
+
+  // jelly bubbles (wobbling, non-circular = biological uncanny)
+  for(let i=bubbles.length-1;i>=0;i--){
+    const b=bubbles[i];
+    b.y-=b.v; b.r*=0.997; b.alpha*=0.985; b.wob+=b.ws;
+    if(b.alpha<0.03||b.r<2.5){ bubbles.splice(i,1); continue; }
+    gx.beginPath();
+    const pts=10;
+    for(let k=0;k<=pts;k++){
+      const a=k/pts*6.283;
+      const wob=b.glitch ? (Math.sin(a*4+b.wob)*0.22) : (Math.sin(a*3+b.wob)*0.12);
+      const rr=b.r*(1+wob);
+      const xx=b.x+Math.cos(a)*rr, yy=b.y+Math.sin(a)*rr*0.92;
+      k===0?gx.moveTo(xx,yy):gx.lineTo(xx,yy);
     }
-    requestAnimationFrame(drawViz);
+    gx.closePath();
+    const gr=gx.createRadialGradient(b.x-b.r*0.3,b.y-b.r*0.3,b.r*0.15,b.x,b.y,b.r);
+    gr.addColorStop(0,`hsl(${b.hue} 85% 72% / ${0.4*b.alpha})`);
+    gr.addColorStop(1,`hsl(${b.hue} 70% 42% / ${0.06*b.alpha})`);
+    gx.fillStyle=gr; gx.fill();
+    gx.strokeStyle=`hsl(${b.hue} 80% 64% / ${0.3*b.alpha})`; gx.lineWidth=b.glitch?1.6:1; gx.stroke();
   }
-  requestAnimationFrame(drawViz);
-
-  async function ensureContext(){
-    if(ctx) return;
-    ctx = new (window.AudioContext||window.webkitAudioContext)();
-    masterGain = ctx.createGain(); masterGain.gain.value = 0.9; masterGain.connect(ctx.destination);
-    dryGain = ctx.createGain(); dryGain.gain.value = 1; dryGain.connect(masterGain);
-    wetGain = ctx.createGain(); wetGain.gain.value = parseFloat(ui.wet.value); wetGain.connect(masterGain);
-
-    // Recording: route master into MediaStreamDestination
-    dest = ctx.createMediaStreamDestination();
-    masterGain.connect(dest);
-    mediaRecorder = new MediaRecorder(dest.stream, { mimeType: MediaRecorder.isTypeSupported('audio/webm;codecs=opus') ? 'audio/webm;codecs=opus' : undefined });
-    let chunks = [];
-    mediaRecorder.ondataavailable = e=>{ if(e.data.size>0) chunks.push(e.data); };
-    mediaRecorder.onstop = ()=>{
-      const blob = new Blob(chunks, { type: chunks[0]?.type || 'audio/webm' });
-      chunks = [];
-      const url = URL.createObjectURL(blob);
-      dlLink.href = url; dlLink.download = `gurgulator-${Date.now()}.webm`;
-      dlLink.click();
-      URL.revokeObjectURL(url);
-      recBtn.textContent = '● Record';
-    };
-
-    // band‑pass filter that wanders (gurgle)
-    bpFilter = ctx.createBiquadFilter(); bpFilter.type = 'bandpass'; bpFilter.Q.value = 1.2; bpFilter.frequency.value = 400;
-
-    // formant-ish peaking EQ (on dry path)
-    formantEQ = ctx.createBiquadFilter(); formantEQ.type = 'peaking'; formantEQ.frequency.value = 600; formantEQ.Q.value = 0.9; formantEQ.gain.value = 0;
-
-    // chain dry: src -> bpFilter -> formantEQ -> dryGain
-    bpFilter.connect(formantEQ); formantEQ.connect(dryGain);
-
-    // wet path: convolver -> wetGain
-    convolver = ctx.createConvolver();
-    convolver.normalize = true;
-    convolver.buffer = makeGooIR(ctx, 1.4);
-    convolver.connect(wetGain);
-
-    wanderFilter();
-    bubblePopper();
-    formantWander();
+  // pop bursts (expanding rings)
+  for(let i=bursts.length-1;i>=0;i--){
+    const u=bursts[i]; u.r+=3; u.alpha*=0.93;
+    if(u.alpha<0.03){ bursts.splice(i,1); continue; }
+    gx.strokeStyle=`hsl(332 86% 64% / ${u.alpha})`; gx.lineWidth=2;
+    gx.beginPath(); gx.arc(u.x,u.y,u.r,0,6.283); gx.stroke();
   }
+  requestAnimationFrame(drawDish);
+}
 
-  function makeGooIR(ctx, dur){
-    const sr = ctx.sampleRate; const len = Math.floor(dur*sr);
-    const buf = ctx.createBuffer(2, len, sr);
-    for(let ch=0; ch<2; ch++){
-      const d = buf.getChannelData(ch);
-      let phase=0; const base = 40 + Math.random()*90;
-      for(let i=0;i<len;i++){
-        const env = Math.exp(-i/(sr*0.32)) * 0.9;
-        if(i % Math.floor(sr*(0.06+Math.random()*0.18)) === 0){ phase = Math.random()*Math.PI*2; }
-        const n = (Math.random()*2-1) * 0.35;
-        const tone = Math.sin(phase + i*(base+Math.random()*120)/sr*2*Math.PI) * 0.15;
-        d[i] = (n + tone) * env;
-      }
-    }
-    return buf;
-  }
+/* pad interaction: dragging the dish steers the macro-axes */
+let dragging=false;
+function setPadFromEvent(e){
+  const r=dish.getBoundingClientRect();
+  const cx=(e.touches?e.touches[0].clientX:e.clientX)-r.left;
+  const cy=(e.touches?e.touches[0].clientY:e.clientY)-r.top;
+  padTarget.x=clamp(cx/r.width,0,1);
+  padTarget.y=clamp(1-cy/r.height,0,1);
+}
+dish.addEventListener("pointerdown", e=>{ dragging=true; dish.setPointerCapture(e.pointerId); setPadFromEvent(e); });
+dish.addEventListener("pointermove", e=>{ if(dragging) setPadFromEvent(e); });
+dish.addEventListener("pointerup",   ()=> dragging=false);
+dish.addEventListener("pointercancel",()=> dragging=false);
 
-  function wanderFilter(){
-    if(!ctx) return;
-    const now = ctx.currentTime;
-    // burp density maps how often we move & how spiky Q is
-    const dens = parseFloat(ui.burp.value); // 0..1
-    const minDelay = 150, maxDelay = 1200; // ms
-    const nextIn = (minDelay + (1-dens)*(maxDelay-minDelay)) * (0.6 + Math.random()*0.8);
+/* ---------- file / drop ---------- */
+const dishShell=document.getElementById("dishShell"), hint=document.getElementById("hint");
+function hideHint(){ hint.style.display="none"; }
+["dragenter","dragover"].forEach(ev=>dishShell.addEventListener(ev,e=>{e.preventDefault();dishShell.style.outline="2px solid hsl(74 92% 58% / .7)";}));
+["dragleave","drop"].forEach(ev=>dishShell.addEventListener(ev,e=>{e.preventDefault();dishShell.style.outline="none";}));
+dishShell.addEventListener("drop", e=>{ e.preventDefault(); const f=e.dataTransfer.files[0]; if(f) loadFile(f); });
+document.getElementById("file").addEventListener("change", e=>{ const f=e.target.files[0]; if(f) loadFile(f); });
 
-    const f0 = 120 + Math.random()*1800; // Hz
-    bpFilter.frequency.cancelScheduledValues(now);
-    bpFilter.frequency.linearRampToValueAtTime(f0, now + (0.4 + Math.random()*1.2));
+async function loadFile(file){
+  await ensureContext(); ensureEngineLoop();
+  try{
+    const arr=await file.arrayBuffer();
+    buffer=await ctx.decodeAudioData(arr);
+    sampleDur=buffer.duration; pointer=0; hideHint();
+    setStatus(`loaded <b>${file.name}</b> — ${sampleDur.toFixed(2)}s. press Ferment.`);
+  }catch(err){ setStatus("couldn't decode that file."); }
+}
 
-    const q0 = 0.8 + Math.random()*(2.5 + 6*dens); // more density -> spikier
-    bpFilter.Q.cancelScheduledValues(now);
-    bpFilter.Q.linearRampToValueAtTime(q0, now + 0.25);
+/* ---------- transport wiring ---------- */
+function ensureEngineLoop(){ if(!engineTimer) engineTick(); }
+function setStatus(html){ document.getElementById("status").innerHTML=html; }
 
-    setTimeout(wanderFilter, nextIn);
-  }
+document.getElementById("spore").addEventListener("click", async ()=>{ await ensureContext(); ensureEngineLoop(); makeSporeBuffer(); });
+document.getElementById("start").addEventListener("click", async ()=>{ await ensureContext(); ensureEngineLoop(); if(!buffer) makeSporeBuffer(); startEngine(); });
+document.getElementById("stop").addEventListener("click", stopEngine);
+document.getElementById("panic").addEventListener("click", panic);
+document.getElementById("freeze").addEventListener("click", ()=>{
+  frozen=!frozen;
+  const b=document.getElementById("freeze");
+  if(frozen){ frozenHead=pointer; b.classList.add("on"); b.textContent="❄ Thaw"; setStatus("frozen — droning on the read-head."); }
+  else{ b.classList.remove("on"); b.textContent="❄ Freeze"; setStatus(running?"fermenting…":"thawed."); }
+});
+document.getElementById("rec").addEventListener("click", async ()=>{
+  await ensureContext();
+  if(!mediaRecorder) return;
+  const b=document.getElementById("rec");
+  if(mediaRecorder.state==="inactive"){ document.getElementById("dl").classList.remove("show"); mediaRecorder.start(); b.classList.add("armed"); b.textContent="■ Stop Rec"; }
+  else mediaRecorder.stop();
+});
 
-  function formantWander(){
-    if(!ctx) return;
-    const now = ctx.currentTime;
-    const amt = parseFloat(ui.formant.value); // 0..1
-    const freq = 300 + amt*1400; // 300..1700 Hz
-    const gain = -2 + amt*10;    // -2..+8 dB
-    formantEQ.frequency.cancelScheduledValues(now);
-    formantEQ.frequency.linearRampToValueAtTime(freq, now + 0.2);
-    formantEQ.gain.cancelScheduledValues(now);
-    formantEQ.gain.linearRampToValueAtTime(gain, now + 0.2);
-    setTimeout(formantWander, 300);
-  }
+/* keyboard */
+window.addEventListener("keydown", e=>{
+  if(/input|textarea/i.test(e.target.tagName)) return;
+  if(e.code==="Space"){ e.preventDefault(); running?stopEngine():document.getElementById("start").click(); }
+  else if(e.key==="f"||e.key==="F"){ document.getElementById("freeze").click(); }
+  else if(e.key==="r"||e.key==="R"){ document.getElementById("rec").click(); }
+});
 
-  function bubblePopper(){
-    if(!ctx) return;
-    const rate = parseFloat(ui.pop.value); // 0..1
-    const chance = rate * 0.2; // modest global rate
-    if(Math.random() < chance){
-      const now = ctx.currentTime;
-      const dip = 0.25 + Math.random()*0.25;
-      masterGain.gain.cancelScheduledValues(now);
-      masterGain.gain.linearRampToValueAtTime(1-dip, now + 0.01);
-      masterGain.gain.linearRampToValueAtTime(0.9, now + 0.15);
-    }
-    setTimeout(bubblePopper, 120 + Math.random()*600);
-  }
-
-  // Drag & drop
-  ['dragenter','dragover'].forEach(ev=>{ jar.addEventListener(ev, e=>{ e.preventDefault(); jar.style.outline='2px solid rgba(156,198,80,.6)'; }); });
-  ;['dragleave','drop'].forEach(ev=>{ jar.addEventListener(ev, e=>{ e.preventDefault(); jar.style.outline='none'; }); });
-  jar.addEventListener('drop', async (e)=>{ e.preventDefault(); const f = e.dataTransfer.files[0]; if(f) loadFile(f); });
-  fileInput.addEventListener('change', e=>{ const f = e.target.files[0]; if(f) loadFile(f); });
-
-  async function loadFile(file){
-    await ensureContext();
-    const arr = await file.arrayBuffer();
-    buffer = await ctx.decodeAudioData(arr);
-    sampleDuration = buffer.duration;
-    pointer = 0; statusEl.textContent = `Loaded: ${file.name} — ${sampleDuration.toFixed(2)}s`;
-  }
-
-  function semitonesToRate(semi){ return Math.pow(2, semi/12); }
-
-  function scheduleGrain(when){
-    if(!buffer) return;
-    const intensity = parseFloat(ui.intensity.value);
-    const grainDurMs = parseFloat(ui.grain.value) * (0.6 + Math.random()*0.8);
-    const grainDur = Math.max(0.03, grainDurMs/1000);
-
-    const stretchRange = 0.5 + parseFloat(ui.stretch.value) * 2.5;
-    const reverseP = parseFloat(ui.reverse.value);
-    const dir = (Math.random()<reverseP? -1: 1);
-
-    let step;
-    if(frozen){
-      // hold around a tiny neighborhood
-      step = (Math.random()-0.5) * 0.02; // tiny wobble
-      pointer = frozenHead + step;
-    } else {
-      step = (grainDur * (0.8 + Math.random()*0.6)) * (dir) * (1.0 / stretchRange);
-      pointer += step;
-    }
-
-    if(pointer < 0) pointer += sampleDuration;
-    if(pointer > sampleDuration-0.05) pointer = (pointer % sampleDuration);
-
-    const start = Math.max(0, Math.min(sampleDuration - grainDur, pointer + (Math.random()-0.5) * 0.04));
-
-    const pitchSemi = (Math.random()*2-1) * parseFloat(ui.pitch.value);
-    const rate = semitonesToRate(pitchSemi) * (0.85 + Math.random()*0.3);
-
-    const src = ctx.createBufferSource(); src.buffer = buffer; src.playbackRate.value = rate;
-
-    const gGain = ctx.createGain();
-    const amp = 0.7 * (0.6 + Math.random()*0.8) * (0.6 + intensity*0.8);
-
-    const atk = 0.008 + Math.random()*0.02;
-    const rel = 0.02 + Math.random()*0.05 + intensity*0.12;
-    const now = when;
-    gGain.gain.setValueAtTime(0, now);
-    gGain.gain.linearRampToValueAtTime(amp, now + atk);
-    gGain.gain.linearRampToValueAtTime(0.0001, now + atk + grainDur + rel);
-
-    // routing per-grain: src -> gGain -> (bpFilter & convolver)
-    src.connect(gGain);
-    gGain.connect(bpFilter);
-    gGain.connect(convolver);
-
-    src.start(now, start, grainDur);
-
-    // viz
-    const x = (start / sampleDuration) * canv.width;
-    const y = canv.height - (rate*120 % canv.height)*0.4 - 40 - Math.random()*30;
-    const rad = 10 + Math.min(80, grainDur*900) * (0.8 + Math.random()*0.6);
-    const hue = 90 + (pitchSemi*5) + (intensity*40) + Math.random()*20;
-    spawnBubble(x, y, rad, hue);
-  }
-
-  function start(){
-    if(!ctx || !buffer) { statusEl.textContent = 'Load audio first.'; return; }
-    if(running) return; running = true; statusEl.textContent='Fermenting…';
-    ctx.resume();
-    const lookahead = 0.12;
-    const tick = ()=>{
-      if(!running) return;
-      const now = ctx.currentTime;
-      const grainsPerSec = parseFloat(ui.rate.value);
-      const overlap = parseFloat(ui.overlap.value)/100;
-      const hop = Math.max(1/60, (1.0 / grainsPerSec) * (1.0 - overlap*0.8));
-      let t = now; 
-      while(t < now + lookahead){
-        scheduleGrain(t);
-        t += hop * (0.7 + Math.random()*0.6);
-      }
-      lookaheadTimer = setTimeout(tick, 30);
-    };
-    tick();
-
-    const wetLoop = ()=>{
-      if(!running) return;
-      wetGain.gain.linearRampToValueAtTime(parseFloat(ui.wet.value), ctx.currentTime + 0.05);
-      setTimeout(wetLoop, 80);
-    }; wetLoop();
-  }
-
-  function stop(){ running=false; if(lookaheadTimer) clearTimeout(lookaheadTimer); statusEl.textContent='Stopped.'; }
-
-  startBtn.addEventListener('click', start);
-  stopBtn.addEventListener('click', stop);
-  freezeBtn.addEventListener('click', ()=>{
-    frozen = !frozen; if(frozen){ frozenHead = pointer; freezeBtn.textContent = 'Thaw'; statusEl.textContent='Frozen.'; } else { freezeBtn.textContent = 'Freeze'; statusEl.textContent='Fermenting…'; }
-  });
-
-  recBtn.addEventListener('click', ()=>{
-    if(!mediaRecorder) return;
-    if(mediaRecorder.state === 'inactive'){ mediaRecorder.start(); recBtn.textContent='■ Stop Rec'; }
-    else { mediaRecorder.stop(); }
-  });
-
-  // expose: clicking jar also toggles
-  jar.addEventListener('click', ()=>{ running ? stop() : start(); });
-  </script>
+resizeDish();
+requestAnimationFrame(drawDish);
+</script>
 </body>
 </html>
