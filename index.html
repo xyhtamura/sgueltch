@@ -172,6 +172,13 @@
     .f-metal      { font-family: "Metal Mania",     system-ui }
     .f-hanalei    { font-family: "Hanalei",         system-ui }
 	.f-microbe { font-family: "Rubik Microbe", system-ui }
+    .f-typebojangle {
+      font-family: "Averia Sans Libre", system-ui;
+      font-weight: 700;
+      text-shadow:
+        .035em .025em 0 rgba(255,61,143,.45),
+        -.03em -.02em 0 rgba(61,216,200,.38);
+    }
 
     .tagline {
       margin-top: 1.5rem;
@@ -240,7 +247,7 @@
     /* ─── SUITE GRID ─── */
     /* 10-col base:
        Row 1 — Pixel Lesions: 6/10 (60%) | SiltCRT: 4/10 (40%)
-       Row 2 — Gurgulator: 4/10 (40%) | Critterances: 6/10 (60%)
+       Row 2 — Gurgulator: 4/10 (40%) | TypeBojangler: 6/10 (60%)
        Creates a crossing-X asymmetry between rows. */
     .suite-label {
       text-align: center;
@@ -276,10 +283,10 @@
       --tool-a: #ffbf38; --tool-b: #20e0c0; --tool-c: #dd6b38;
       --tool-a-rgb: 255,191,56; --tool-b-rgb: 32,224,192; --tool-c-rgb: 221,107,56;
     }
-    [data-tool="critterances"] {
+    [data-tool="typebojangler"] {
       grid-column: 5 / 11;
-      --tool-a: #ff4fa3; --tool-b: #a8ff3e; --tool-c: #7652ff;
-      --tool-a-rgb: 255,79,163; --tool-b-rgb: 168,255,62; --tool-c-rgb: 118,82,255;
+      --tool-a: #ffe040; --tool-b: #ff3d8f; --tool-c: #3dd8c8;
+      --tool-a-rgb: 255,224,64; --tool-b-rgb: 255,61,143; --tool-c-rgb: 61,216,200;
     }
 
     /* ─── CARDS ─── */
@@ -462,7 +469,7 @@
       [data-tool="lesions"],
       [data-tool="siltcrt"],
       [data-tool="gurgulator"],
-      [data-tool="critterances"] { grid-column: auto }
+      [data-tool="typebojangler"] { grid-column: auto }
       .preview-slot { aspect-ratio: 16 / 8 }
     }
   </style>
@@ -489,26 +496,26 @@
     <h1 id="sgueltch" aria-label="Sgueltch">
       <!-- letters injected by JS so each gets a different gunky font -->
     </h1>
-    <p class="tagline">organic glitch &ensp;&middot;&ensp; visceral error &ensp;&middot;&ensp; soft symbiosis</p>
+
   </header>
 
-  <span class="slime-rule" aria-hidden="true"></span>
 
   <!-- ═══════════════════════ MANIFESTO ═══════════════════════ -->
-  <section class="manifesto">
-    <span class="kicker">an aesthetic philosophy &amp; software suite</span>
-    <p>
-      A word between <em>squelch</em> and <em>glitch</em>. Sgueltch proposes a
-      philosophical shift in digital aesthetics — away from traditional glitch art's
-      rigid, pixelated, mechanical disruptions and toward organic, fluid,
-      biologically-inspired distortion. It values asymmetry, unpredictability, and
-      embodiment: glitches that ooze, breathe, and transform in ways that feel
-      visceral and alive. By emphasizing collaboration between human and non-human
-      agents and rejecting algorithmic repetition, Sgueltch establishes a symbiotic,
-      ecological understanding of technological errors — connecting digital media
-      to natural processes and bodily experience.
-    </p>
-  </section>
+<section class="manifesto">
+  <span class="kicker">an aesthetic philosophy &amp; software suite</span>
+  <p>
+    A word between <em>squelch</em> and <em>glitch</em>. Sgueltch moves away from traditional glitch art's
+    rigid, pixelated, grid-based disruptions and toward fluid, continuous,
+    biologically-inspired distortion. The familiar look of glitch such as blocks,
+    grids, lines, compression scars, and hard digital fractures are aesthetic traces of specific epistemics, technical systems,
+    and the defaults that computation inherits. 
+  </p>
+  <p>
+    Sgueltch asks what digital error can become when it begins from other substrates:
+    ooze, tissue, silt, weather, viscosity, lesion, flocking, breath, and growth.
+    It values asymmetry, unpredictability, embodiment, and mess-compatible media as a counter-infrastructure and a counter-erroring for an alternate digitality.
+  </p>
+</section>
 
   <!-- ═══════════════════════ SUITE ═══════════════════════ -->
   <section aria-label="Sgueltch software suite">
@@ -588,10 +595,9 @@
           <a href="/sgueltch/pixel-lesions/" class="tool-name f-microbe">Pixel Lesions</a>
           <p class="tool-desc">
             Reimagines pixel sorting as a biological process. Instead of the rigid
-            linear artifacts of traditional glitch art, Pixel Lesions lets you infect
-            an image with organic growths — spreading across the canvas like lichen or
-            slime mold, sorting pixels within their boundaries to produce fluid,
-            decay-like distortions that feel visceral and alive.
+            linear artifacts of traditional sorting mechanisms, Pixel Lesions lets you infect
+            an image with organic growths. The sorting algorithm follows organic growth patterns like lichen or
+            slime mold.
           </p>
           <a href="/sgueltch/pixel-lesions/" class="tool-cta">open tool →</a>
         </div>
@@ -671,11 +677,9 @@
           <span class="tool-type">shader · phosphor emulator</span>
           <a href="/sgueltch/siltcrt/" class="tool-name f-fruktur">SiltCRT</a>
           <p class="tool-desc">
-            Emulates the decay of analog phosphor screens through Voronoi
-            tessellation, transforming images into granular fields of soft, glowing
-            cells. Signal instability — turbulence, chromatic bleed, current flow —
-            deepens the analog aesthetic. A dual light-bleed system pairs radiant
-            Kawase bloom with a subtractive <em>Umbra</em>: the inverse of familiar
+            Emulates the decay of analog phosphor screens using Voronoi
+            tessellated phosphor cells instead of a regular grid. Has settings for turbulence, chromatic bleed, current flow. Features a dual light-bleed system for
+            Kawase bloom and a subtractive Umbra: the inverse of familiar
             CRT bloom.
           </p>
           <a href="/sgueltch/siltcrt/" class="tool-cta">open tool →</a>
@@ -763,137 +767,145 @@
           <span class="tool-type">granular resynthesizer</span>
           <a href="/sgueltch/gurgulator/" class="tool-name f-creepster">Gurgulator</a>
           <p class="tool-desc">
-            A web-based granular resynthesizer specializing in gurgling noises —
+            A web-based granular resynthesizer specializing in gurgling noises such as
             erratic pitch bends, time warps, and unpredictable burping filters,
-            capped with a gooey convolution reverb. Feed it any audio; let it digest.
+            capped with a gooey convolution reverb. 
           </p>
           <a href="/sgueltch/gurgulator/" class="tool-cta">open tool →</a>
         </div>
       </article>
 
-      <!-- ══════════ CRITTERANCES ══════════ -->
-      <article class="tool-card" data-tool="critterances">
+      <!-- ══════════ TYPEBOJANGLER ══════════ -->
+      <article class="tool-card" data-tool="typebojangler">
 
         <div class="preview-slot">
           <div class="placeholder-anim" aria-hidden="true">
             <svg viewBox="0 0 480 210" xmlns="http://www.w3.org/2000/svg"
                  preserveAspectRatio="xMidYMid slice">
-              <rect width="480" height="210" fill="#060b08"/>
-              <!-- faint constellation threads -->
-              <g stroke="rgba(143,191,74,.07)" stroke-width=".6">
-                <line x1="82"  y1="78"  x2="182" y2="128"/>
-                <line x1="182" y1="128" x2="262" y2="58"/>
-                <line x1="262" y1="58"  x2="342" y2="162"/>
-                <line x1="342" y1="162" x2="422" y2="88"/>
-                <line x1="82"  y1="78"  x2="142" y2="178"/>
-                <line x1="262" y1="58"  x2="162" y2="38"/>
-                <line x1="422" y1="88"  x2="452" y2="172"/>
-                <line x1="182" y1="128" x2="142" y2="178"/>
-                <line x1="342" y1="162" x2="452" y2="172"/>
+              <rect width="480" height="210" fill="#0f0b1e"/>
+              <defs>
+                <linearGradient id="typeStageGlow" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="rgba(255,224,64,.15)"/>
+                  <stop offset="52%" stop-color="rgba(255,61,143,.10)"/>
+                  <stop offset="100%" stop-color="rgba(61,216,200,.13)"/>
+                </linearGradient>
+              </defs>
+
+              <!-- miniature app shell -->
+              <rect x="26" y="24" width="428" height="162" rx="10" fill="#170f2c" stroke="rgba(255,224,64,.20)" stroke-width="1"/>
+              <rect x="26" y="24" width="428" height="26" rx="10" fill="rgba(31,21,56,.92)"/>
+              <rect x="26" y="44" width="428" height="6" fill="rgba(31,21,56,.92)"/>
+
+              <circle cx="424" cy="37" r="4" fill="rgba(255,224,64,.55)"/>
+              <circle cx="438" cy="37" r="4" fill="rgba(255,61,143,.55)"/>
+
+              <!-- controls/sidebar -->
+              <rect x="38" y="62" width="105" height="110" rx="7" fill="#1f1538" stroke="rgba(150,130,210,.14)"/>
+              <g opacity=".75">
+                <rect x="50" y="76" width="50" height="6" rx="3" fill="#ffe040"/>
+                <rect x="50" y="93" width="76" height="3" rx="1.5" fill="rgba(237,232,255,.28)"/>
+                <rect x="50" y="104" width="60" height="3" rx="1.5" fill="rgba(237,232,255,.20)"/>
+                <rect x="50" y="122" width="80" height="5" rx="2.5" fill="rgba(255,61,143,.28)"/>
+                <rect x="50" y="139" width="67" height="5" rx="2.5" fill="rgba(61,216,200,.25)"/>
+                <rect x="50" y="155" width="48" height="5" rx="2.5" fill="rgba(255,224,64,.25)"/>
               </g>
-              <!-- slime-green critter particles -->
-              <g fill="rgba(143,191,74,.65)">
-                <circle cx="82" cy="78" r="3">
+
+              <!-- stage -->
+              <rect x="158" y="62" width="280" height="110" rx="8" fill="#0f0b1e" stroke="rgba(150,130,210,.12)"/>
+              <rect x="158" y="62" width="280" height="110" rx="8" fill="url(#typeStageGlow)"/>
+
+              <!-- uncooperative glyphs -->
+              <g font-family="Averia Sans Libre, sans-serif" font-weight="700" text-anchor="middle">
+                <text x="235" y="98" font-size="34" fill="#ede8ff"
+                      transform="rotate(-7 235 98)">Y
+                  <animateTransform attributeName="transform" type="rotate"
+                    values="-7 235 98; 9 235 98; -4 235 98; -7 235 98"
+                    dur="4.2s" repeatCount="indefinite"/>
+                </text>
+                <text x="270" y="96" font-size="46" fill="#ffe040"
+                      transform="rotate(10 270 96)">o
+                  <animateTransform attributeName="transform" type="rotate"
+                    values="10 270 96; -5 270 96; 13 270 96; 10 270 96"
+                    dur="3.5s" repeatCount="indefinite"/>
+                </text>
+                <text x="307" y="101" font-size="30" fill="#ff3d8f"
+                      transform="rotate(-13 307 101)">u
+                  <animateTransform attributeName="transform" type="rotate"
+                    values="-13 307 101; 8 307 101; -9 307 101; -13 307 101"
+                    dur="5s" repeatCount="indefinite"/>
+                </text>
+
+                <text x="224" y="139" font-size="23" fill="#3dd8c8"
+                      transform="rotate(11 224 139)">t
                   <animateTransform attributeName="transform" type="translate"
-                    values="0,0; 6,-10; -5,6; 0,0" dur="5s"   repeatCount="indefinite"/>
-                </circle>
-                <circle cx="182" cy="128" r="2">
+                    values="0,0; 0,-5; 0,3; 0,0"
+                    dur="3.8s" repeatCount="indefinite"/>
+                </text>
+                <text x="252" y="141" font-size="38" fill="#ede8ff"
+                      transform="rotate(-4 252 141)">y
+                  <animateTransform attributeName="transform" type="rotate"
+                    values="-4 252 141; 7 252 141; -2 252 141; -4 252 141"
+                    dur="4.6s" repeatCount="indefinite"/>
+                </text>
+                <text x="289" y="136" font-size="29" fill="#ffe040"
+                      transform="rotate(16 289 136)">p
                   <animateTransform attributeName="transform" type="translate"
-                    values="0,0; -8,6; 4,-8; 0,0" dur="4.2s"  repeatCount="indefinite"/>
-                </circle>
-                <circle cx="262" cy="58" r="3.5">
-                  <animateTransform attributeName="transform" type="translate"
-                    values="0,0; 10,-6; -3,10; 0,0" dur="6s"   repeatCount="indefinite"/>
-                </circle>
-                <circle cx="342" cy="162" r="2.5">
-                  <animateTransform attributeName="transform" type="translate"
-                    values="0,0; -6,8; 8,-4; 0,0" dur="3.8s"  repeatCount="indefinite"/>
-                </circle>
-                <circle cx="422" cy="88" r="2">
-                  <animateTransform attributeName="transform" type="translate"
-                    values="0,0; 4,10; -8,-5; 0,0" dur="5.5s"  repeatCount="indefinite"/>
-                </circle>
-                <circle cx="162" cy="38" r="1.5">
-                  <animateTransform attributeName="transform" type="translate"
-                    values="0,0; 8,4; -4,8; 0,0" dur="4.8s"  repeatCount="indefinite"/>
-                </circle>
-                <circle cx="142" cy="178" r="2">
-                  <animateTransform attributeName="transform" type="translate"
-                    values="0,0; -5,-8; 7,3; 0,0" dur="5.2s"  repeatCount="indefinite"/>
-                </circle>
-                <circle cx="452" cy="172" r="1.5">
-                  <animateTransform attributeName="transform" type="translate"
-                    values="0,0; 6,-5; -4,8; 0,0" dur="3.5s"  repeatCount="indefinite"/>
-                </circle>
+                    values="0,0; 5,2; -3,-4; 0,0"
+                    dur="4.1s" repeatCount="indefinite"/>
+                </text>
+                <text x="326" y="142" font-size="42" fill="#ff3d8f"
+                      transform="rotate(-10 326 142)">e
+                  <animateTransform attributeName="transform" type="rotate"
+                    values="-10 326 142; 5 326 142; -14 326 142; -10 326 142"
+                    dur="3.7s" repeatCount="indefinite"/>
+                </text>
               </g>
-              <!-- corrode-teal secondary particles (state-indicator critters) -->
-              <g fill="rgba(47,138,116,.52)">
-                <circle cx="38" cy="162" r="2">
-                  <animateTransform attributeName="transform" type="translate"
-                    values="0,0; 5,-6; -6,4; 0,0" dur="6.5s" repeatCount="indefinite"/>
-                </circle>
-                <circle cx="360" cy="28" r="1.5">
-                  <animateTransform attributeName="transform" type="translate"
-                    values="0,0; -4,8; 6,-3; 0,0" dur="4.5s" repeatCount="indefinite"/>
-                </circle>
-                <circle cx="212" cy="192" r="2.5">
-                  <animateTransform attributeName="transform" type="translate"
-                    values="0,0; 7,3; -3,-9; 0,0" dur="5.8s" repeatCount="indefinite"/>
-                </circle>
+
+              <!-- chromatic ghosting hints -->
+              <g opacity=".22" font-family="Averia Sans Libre, sans-serif" font-weight="700" text-anchor="middle">
+                <text x="300" y="124" font-size="72" fill="#3dd8c8" transform="rotate(-5 300 124)">type</text>
+                <text x="304" y="128" font-size="72" fill="#ff3d8f" transform="rotate(-5 304 128)">type</text>
               </g>
-              <!-- soft halo glow around dominant nodes -->
-              <circle cx="262" cy="58" r="14" fill="rgba(143,191,74,.06)" filter="url(#gooey)">
-                <animate attributeName="r" values="14;20;14" dur="4s" repeatCount="indefinite"/>
-              </circle>
-              <circle cx="82" cy="78" r="10" fill="rgba(47,138,116,.07)" filter="url(#gooey)">
-                <animate attributeName="r" values="10;15;10" dur="5s" repeatCount="indefinite"/>
-              </circle>
-              <circle cx="342" cy="162" r="10" fill="rgba(143,191,74,.05)" filter="url(#gooey)">
-                <animate attributeName="r" values="10;16;10" dur="3.5s" repeatCount="indefinite"/>
-              </circle>
             </svg>
           </div>
 
           <!--
           ══════════════════════════════════════
-          CRITTERANCES PREVIEW
+          TYPEBOJANGLER PREVIEW
           When ready: comment out .placeholder-anim above, uncomment one option below.
           ══════════════════════════════════════
 
           Option A — animated gif or screenshot:
-          <img src="../critterances/preview.gif"
-               alt="Critterances — procedural creature-sound engine preview"
+          <img src="../typebojangler/preview.gif"
+               alt="TypeBojangler — typographic irregularity renderer preview"
                class="tool-preview-img">
 
           Option B — looping video:
           <video autoplay loop muted playsinline class="tool-preview-vid">
-            <source src="../critterances/preview.mp4" type="video/mp4">
-            <source src="../critterances/preview.webm" type="video/webm">
+            <source src="../typebojangler/preview.mp4" type="video/mp4">
+            <source src="../typebojangler/preview.webm" type="video/webm">
           </video>
 
           Option C — live iframe:
-          <iframe src="../critterances/"
+          <iframe src="../typebojangler/"
                   class="tool-preview-frame"
-                  title="Critterances live preview"
+                  title="TypeBojangler live preview"
                   loading="lazy"></iframe>
           -->
         </div>
 
         <div class="card-body">
-          <span class="tool-type">procedural creature-sound engine &amp; browser toy</span>
-          <a href="../critterances/" class="tool-name f-eater">
-            critterances<span class="tool-year">2026</span>
+          <span class="tool-type">typographic irregularity renderer</span>
+          <a href="../typebojangler/" class="tool-name f-typebojangle">
+            TypeBojangler<span class="tool-year">2026</span>
           </a>
           <p class="tool-desc">
-            A procedural creature-sound engine generating chirps, murmurs, droplets,
-            filtered grains, and small synthetic vocalizations for imaginary digital
-            critters. As an interaction-audio module, it gives robot states —
-            <em>transcribing</em>, <em>thinking</em>, <em>crafting</em> — their own
-            sonic metabolism. As a standalone instrument, it lets you summon and
-            modulate garbage-bot vocalizations through swarm density, volume, and
-            critter temperament.
+            A browser-based text renderer that jitters type qualities such as 
+            size, rotation, spacing, baseline wobble, color drift,
+            opacity variance, blur, breathing, and chromatic ghosting. Exports
+            the result as <em>SVG</em> or <em>PNG</em>. Allows own <em>OTF</em>/<em>TTF</em>
           </p>
-          <a href="../critterances/" class="tool-cta">open toy →</a>
+          <a href="../typebojangler/" class="tool-cta">open tool →</a>
         </div>
       </article>
 
