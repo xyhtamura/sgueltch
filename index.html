@@ -6,7 +6,7 @@
   <title>Sgueltch — organic glitch suite</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Butcherman&family=Creepster&family=Eater&family=Fruktur&family=Nosifer&family=Rubik+Wet+Paint&family=UnifrakturCook:wght@700&family=Fugaz+One&family=Metal+Mania&family=Hanalei&family=Averia+Sans+Libre:ital,wght@0,300;0,400;0,700;1,300&display=swap&family=Rubik+Microbe" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Averia+Sans+Libre:ital,wght@0,300;0,400;0,700;1,300&family=Butcherman&family=Creepster&family=DM+Mono:wght@400;500&family=Eater&family=Fraunces:ital,opsz,wght@1,9..144,600&family=Fruktur&family=Fugaz+One&family=Hanalei&family=Metal+Mania&family=Nosifer&family=Rubik+Microbe&family=Rubik+Wet+Paint&family=UnifrakturCook:wght@700&display=swap" rel="stylesheet">
   <style>
     /* ─── TOKENS ─── */
 :root {
@@ -179,6 +179,16 @@
         .035em .025em 0 rgba(255,61,143,.45),
         -.03em -.02em 0 rgba(61,216,200,.38);
     }
+    .f-ooid {
+      font-family: "Fraunces", Georgia, serif;
+      font-style: italic;
+      font-weight: 600;
+      letter-spacing: .015em;
+      text-shadow:
+        0 0 .35em rgba(199,242,62,.18),
+        .035em .025em 0 rgba(52,223,198,.22),
+        -.026em -.018em 0 rgba(207,92,255,.18);
+    }
 
     .tagline {
       margin-top: 1.5rem;
@@ -287,6 +297,11 @@
       grid-column: 5 / 11;
       --tool-a: #ffe040; --tool-b: #ff3d8f; --tool-c: #3dd8c8;
       --tool-a-rgb: 255,224,64; --tool-b-rgb: 255,61,143; --tool-c-rgb: 61,216,200;
+    }
+    [data-tool="ooid"] {
+      grid-column: 2 / 10;
+      --tool-a: #c7f23e; --tool-b: #34dfc6; --tool-c: #cf5cff;
+      --tool-a-rgb: 199,242,62; --tool-b-rgb: 52,223,198; --tool-c-rgb: 207,92,255;
     }
 
     /* ─── CARDS ─── */
@@ -469,7 +484,8 @@
       [data-tool="lesions"],
       [data-tool="siltcrt"],
       [data-tool="gurgulator"],
-      [data-tool="typebojangler"] { grid-column: auto }
+      [data-tool="typebojangler"],
+      [data-tool="ooid"] { grid-column: auto }
       .preview-slot { aspect-ratio: 16 / 8 }
     }
   </style>
@@ -906,6 +922,108 @@
             the result as <em>SVG</em> or <em>PNG</em>. Allows own <em>OTF</em>/<em>TTF</em>
           </p>
           <a href="../typebojangler/" class="tool-cta">open tool →</a>
+        </div>
+      </article>
+
+
+      <!-- ══════════ OOID ══════════ -->
+      <article class="tool-card" data-tool="ooid">
+
+        <div class="preview-slot">
+          <div class="placeholder-anim" aria-hidden="true">
+            <svg viewBox="0 0 640 280" xmlns="http://www.w3.org/2000/svg"
+                 preserveAspectRatio="xMidYMid slice">
+              <defs>
+                <radialGradient id="ooidCore" cx="50%" cy="50%" r="65%">
+                  <stop offset="0%" stop-color="rgba(199,242,62,.42)"/>
+                  <stop offset="45%" stop-color="rgba(52,223,198,.20)"/>
+                  <stop offset="100%" stop-color="rgba(6,16,13,0)"/>
+                </radialGradient>
+                <filter id="ooidSoft">
+                  <feGaussianBlur stdDeviation="6"/>
+                </filter>
+              </defs>
+
+              <rect width="640" height="280" fill="#04100c"/>
+              <rect width="640" height="280" fill="url(#ooidCore)" opacity=".32"/>
+
+              <!-- oriented Gaussian records -->
+              <g filter="url(#ooidSoft)" opacity=".92">
+                <ellipse cx="234" cy="126" rx="104" ry="42" transform="rotate(-18 234 126)" fill="rgba(199,242,62,.26)">
+                  <animate attributeName="rx" values="104;122;92;104" dur="6.2s" repeatCount="indefinite"/>
+                  <animateTransform attributeName="transform" type="rotate"
+                    values="-18 234 126; -10 234 126; -24 234 126; -18 234 126"
+                    dur="7.8s" repeatCount="indefinite"/>
+                </ellipse>
+                <ellipse cx="388" cy="116" rx="75" ry="29" transform="rotate(28 388 116)" fill="rgba(52,223,198,.28)">
+                  <animate attributeName="rx" values="75;58;88;75" dur="5.1s" repeatCount="indefinite"/>
+                </ellipse>
+                <ellipse cx="326" cy="170" rx="92" ry="36" transform="rotate(7 326 170)" fill="rgba(207,92,255,.20)">
+                  <animateTransform attributeName="transform" type="rotate"
+                    values="7 326 170; 21 326 170; -3 326 170; 7 326 170"
+                    dur="6.9s" repeatCount="indefinite"/>
+                </ellipse>
+                <circle cx="478" cy="178" r="36" fill="rgba(199,242,62,.20)">
+                  <animate attributeName="r" values="36;48;29;36" dur="4.4s" repeatCount="indefinite"/>
+                </circle>
+                <circle cx="152" cy="180" r="42" fill="rgba(52,223,198,.18)">
+                  <animate attributeName="cx" values="152;140;164;152" dur="5.7s" repeatCount="indefinite"/>
+                  <animate attributeName="r" values="42;30;50;42" dur="5.7s" repeatCount="indefinite"/>
+                </circle>
+              </g>
+
+              <!-- crisp record points / corruption hits -->
+              <g>
+                <circle cx="234" cy="126" r="3" fill="#c7f23e"/>
+                <circle cx="388" cy="116" r="3" fill="#34dfc6"/>
+                <circle cx="326" cy="170" r="3" fill="#cf5cff"/>
+                <circle cx="478" cy="178" r="2.5" fill="#c7f23e"/>
+                <circle cx="152" cy="180" r="2.5" fill="#34dfc6"/>
+                <path d="M234 126 C278 98 338 94 388 116" fill="none" stroke="rgba(211,226,208,.20)" stroke-width="1" stroke-dasharray="4 7"/>
+                <path d="M326 170 C372 184 424 188 478 178" fill="none" stroke="rgba(207,92,255,.24)" stroke-width="1" stroke-dasharray="5 8"/>
+              </g>
+            </svg>
+          </div>
+
+          <!--
+          ══════════════════════════════════════
+          OOID PREVIEW
+          When ready: comment out .placeholder-anim above, uncomment one option below.
+          ══════════════════════════════════════
+
+          Option A — animated gif or screenshot:
+          <img src="/sgueltch/ooid/preview.gif"
+               alt="ooid — gaussian blob codec preview"
+               class="tool-preview-img">
+
+          Option B — looping video:
+          <video autoplay loop muted playsinline class="tool-preview-vid">
+            <source src="/sgueltch/ooid/preview.mp4" type="video/mp4">
+            <source src="/sgueltch/ooid/preview.webm" type="video/webm">
+          </video>
+
+          Option C — live iframe:
+          <iframe src="/sgueltch/ooid/"
+                  class="tool-preview-frame"
+                  title="ooid live preview"
+                  loading="lazy"></iframe>
+          -->
+        </div>
+
+        <div class="card-body">
+          <span class="tool-type">codec · databending format</span>
+          <a href="/sgueltch/ooid/" class="tool-name f-ooid">
+            ooid<span class="tool-year">2026</span>
+          </a>
+          <p class="tool-desc">
+            A Gaussian-blob image codec and alternate <em>.ooid</em>
+            file format for databending. Encodes images or generated colour fields
+            into oriented blob records, then exposes non-destructive damage sliders,
+            direct byte/hex editing, and <em>PNG</em>/<em>.ooid</em> export. Produces
+            round swelling lesions, fog, teleportation, and recolouring instead of
+            blocks or scanlines.
+          </p>
+          <a href="/sgueltch/ooid/" class="tool-cta">open tool →</a>
         </div>
       </article>
 
