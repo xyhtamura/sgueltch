@@ -205,7 +205,7 @@
       <p class="eyebrow">Encoder <span class="v" id="img_v">no image</span></p>
       <div class="row" data-tip="How many Gaussians to fit. More blobs hug the original more closely but take longer to encode. A simple image may use fewer than this — the encoder won't add blobs it doesn't need.">
         <label>blobs</label>
-        <input id="icount" type="range" min="400" max="9000" step="100" value="3200">
+        <input id="icount" type="range" min="400" max="20000" step="100" value="3200">
         <span class="val" id="icount_v">3200</span></div>
       <div class="row" data-tip="Starting blob size. Left = big soft masses (impressionistic); right = small fine grains (sharper, needs more blobs).">
         <label>coarse↔fine</label>
@@ -254,7 +254,7 @@
     <!-- GRAIN (field) -->
     <section id="m_grain">
       <p class="eyebrow">Grain</p>
-      <div class="row" data-tip="How many blobs sample the field. More blobs = denser, smoother coverage."><label>blobs</label><input id="fcount" type="range" min="200" max="9000" step="100" value="2800"><span class="val" id="fcount_v">2800</span></div>
+      <div class="row" data-tip="How many blobs sample the field. More blobs = denser, smoother coverage."><label>blobs</label><input id="fcount" type="range" min="200" max="20000" step="100" value="2800"><span class="val" id="fcount_v">2800</span></div>
       <div class="row" data-tip="Median blob size. Small grain reads as speckle or noise; large grain as soft washes."><label>grain</label><input id="fgrain" type="range" min="1" max="100" value="40"><span class="val" id="fgrain_v">40</span></div>
       <div class="row" data-tip="0 = round blobs. Higher = streaky blobs that align to the field's own gradient, so the texture flows."><label>stretch</label><input id="faniso" type="range" min="0" max="100" value="45"><span class="val" id="faniso_v">45</span></div>
       <div class="row" data-tip="How opaque each blob is. Lower lets blobs layer translucently into deeper colour."><label>opacity</label><input id="falpha" type="range" min="5" max="100" value="55"><span class="val" id="falpha_v">55</span></div>
