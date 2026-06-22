@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Averia+Sans+Libre:ital,wght@0,300;0,400;0,700;1,300&family=Butcherman&family=Creepster&family=DM+Mono:wght@400;500&family=Eater&family=Fraunces:ital,opsz,wght@1,9..144,600&family=Fruktur&family=Fugaz+One&family=Hanalei&family=Metal+Mania&family=Nosifer&family=Rubik+Microbe&family=Rubik+Wet+Paint&family=UnifrakturCook:wght@700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DynaPuff:wght@500;700&display=swap" rel="stylesheet">
   <style>
     /* ─── TOKENS ─── */
 :root {
@@ -179,15 +180,15 @@
         .035em .025em 0 rgba(255,61,143,.45),
         -.03em -.02em 0 rgba(61,216,200,.38);
     }
-    .f-ooid {
-      font-family: "Fraunces", Georgia, serif;
-      font-style: italic;
-      font-weight: 600;
-      letter-spacing: .015em;
+    .f-goopcodecs {
+      font-family: "DynaPuff", "Averia Sans Libre", system-ui;
+      font-style: normal;
+      font-weight: 700;
+      letter-spacing: .005em;
       text-shadow:
-        0 0 .35em rgba(199,242,62,.18),
-        .035em .025em 0 rgba(52,223,198,.22),
-        -.026em -.018em 0 rgba(207,92,255,.18);
+        0 0 .35em rgba(199,242,62,.20),
+        .035em .025em 0 rgba(52,223,198,.24),
+        -.026em -.018em 0 rgba(207,92,255,.20);
     }
 
     .tagline {
@@ -299,7 +300,7 @@
       --tool-a: #ffe040; --tool-b: #ff3d8f; --tool-c: #3dd8c8;
       --tool-a-rgb: 255,224,64; --tool-b-rgb: 255,61,143; --tool-c-rgb: 61,216,200;
     }
-    [data-tool="ooid"] {
+    [data-tool="goopcodecs"] {
       grid-column: 2 / 10;
       --tool-a: #c7f23e; --tool-b: #34dfc6; --tool-c: #cf5cff;
       --tool-a-rgb: 199,242,62; --tool-b-rgb: 52,223,198; --tool-c-rgb: 207,92,255;
@@ -486,7 +487,7 @@
       [data-tool="siltcrt"],
       [data-tool="gurgulator"],
       [data-tool="typebojangler"],
-      [data-tool="ooid"] { grid-column: auto }
+      [data-tool="goopcodecs"] { grid-column: auto }
       .preview-slot { aspect-ratio: 16 / 8 }
     }
 	
@@ -957,104 +958,122 @@
       </article>
 
 
-      <!-- ══════════ OOID ══════════ -->
-      <article class="tool-card" data-tool="ooid">
+      <!-- ══════════ GOOPCODECS ══════════ -->
+      <article class="tool-card" data-tool="goopcodecs">
 
         <div class="preview-slot">
           <div class="placeholder-anim" aria-hidden="true">
             <svg viewBox="0 0 640 280" xmlns="http://www.w3.org/2000/svg"
                  preserveAspectRatio="xMidYMid slice">
               <defs>
-                <radialGradient id="ooidCore" cx="50%" cy="50%" r="65%">
-                  <stop offset="0%" stop-color="rgba(199,242,62,.42)"/>
-                  <stop offset="45%" stop-color="rgba(52,223,198,.20)"/>
-                  <stop offset="100%" stop-color="rgba(6,16,13,0)"/>
-                </radialGradient>
-                <filter id="ooidSoft">
-                  <feGaussianBlur stdDeviation="6"/>
+                <filter id="goopSoft">
+                  <feGaussianBlur stdDeviation="5"/>
                 </filter>
+                <linearGradient id="goopRail" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0%" stop-color="rgba(199,242,62,.72)"/>
+                  <stop offset="50%" stop-color="rgba(52,223,198,.54)"/>
+                  <stop offset="100%" stop-color="rgba(207,92,255,.64)"/>
+                </linearGradient>
               </defs>
 
               <rect width="640" height="280" fill="#04100c"/>
-              <rect width="640" height="280" fill="url(#ooidCore)" opacity=".32"/>
+              <rect width="640" height="280" fill="url(#goopRail)" opacity=".08"/>
 
-              <!-- oriented Gaussian records -->
-              <g filter="url(#ooidSoft)" opacity=".92">
-                <ellipse cx="234" cy="126" rx="104" ry="42" transform="rotate(-18 234 126)" fill="rgba(199,242,62,.26)">
-                  <animate attributeName="rx" values="104;122;92;104" dur="6.2s" repeatCount="indefinite"/>
-                  <animateTransform attributeName="transform" type="rotate"
-                    values="-18 234 126; -10 234 126; -24 234 126; -18 234 126"
-                    dur="7.8s" repeatCount="indefinite"/>
-                </ellipse>
-                <ellipse cx="388" cy="116" rx="75" ry="29" transform="rotate(28 388 116)" fill="rgba(52,223,198,.28)">
-                  <animate attributeName="rx" values="75;58;88;75" dur="5.1s" repeatCount="indefinite"/>
-                </ellipse>
-                <ellipse cx="326" cy="170" rx="92" ry="36" transform="rotate(7 326 170)" fill="rgba(207,92,255,.20)">
-                  <animateTransform attributeName="transform" type="rotate"
-                    values="7 326 170; 21 326 170; -3 326 170; 7 326 170"
-                    dur="6.9s" repeatCount="indefinite"/>
-                </ellipse>
-                <circle cx="478" cy="178" r="36" fill="rgba(199,242,62,.20)">
-                  <animate attributeName="r" values="36;48;29;36" dur="4.4s" repeatCount="indefinite"/>
-                </circle>
-                <circle cx="152" cy="180" r="42" fill="rgba(52,223,198,.18)">
-                  <animate attributeName="cx" values="152;140;164;152" dur="5.7s" repeatCount="indefinite"/>
-                  <animate attributeName="r" values="42;30;50;42" dur="5.7s" repeatCount="indefinite"/>
-                </circle>
+              <!-- codec specimens: ooid / scute / vermis -->
+              <g transform="translate(54 46)">
+                <rect x="0" y="0" width="150" height="150" rx="28" fill="rgba(8,18,12,.74)" stroke="rgba(199,242,62,.24)"/>
+                <g filter="url(#goopSoft)">
+                  <ellipse cx="72" cy="78" rx="54" ry="23" transform="rotate(-18 72 78)" fill="rgba(199,242,62,.35)">
+                    <animate attributeName="rx" values="54;66;48;54" dur="5.6s" repeatCount="indefinite"/>
+                  </ellipse>
+                  <ellipse cx="92" cy="68" rx="36" ry="18" transform="rotate(27 92 68)" fill="rgba(52,223,198,.28)">
+                    <animate attributeName="rx" values="36;28;46;36" dur="4.4s" repeatCount="indefinite"/>
+                  </ellipse>
+                  <circle cx="54" cy="104" r="24" fill="rgba(207,92,255,.22)">
+                    <animate attributeName="r" values="24;31;20;24" dur="4.9s" repeatCount="indefinite"/>
+                  </circle>
+                </g>
+                <text x="75" y="178" text-anchor="middle" font-family="DM Mono, monospace" font-size="14" fill="#c7f23e">ooid</text>
+                <text x="75" y="195" text-anchor="middle" font-family="DM Mono, monospace" font-size="9" fill="rgba(215,223,201,.56)">round loss</text>
               </g>
 
-              <!-- crisp record points / corruption hits -->
-              <g>
-                <circle cx="234" cy="126" r="3" fill="#c7f23e"/>
-                <circle cx="388" cy="116" r="3" fill="#34dfc6"/>
-                <circle cx="326" cy="170" r="3" fill="#cf5cff"/>
-                <circle cx="478" cy="178" r="2.5" fill="#c7f23e"/>
-                <circle cx="152" cy="180" r="2.5" fill="#34dfc6"/>
-                <path d="M234 126 C278 98 338 94 388 116" fill="none" stroke="rgba(211,226,208,.20)" stroke-width="1" stroke-dasharray="4 7"/>
-                <path d="M326 170 C372 184 424 188 478 178" fill="none" stroke="rgba(207,92,255,.24)" stroke-width="1" stroke-dasharray="5 8"/>
+              <g transform="translate(245 46)">
+                <rect x="0" y="0" width="150" height="150" rx="16" fill="rgba(12,13,10,.78)" stroke="rgba(52,223,198,.24)"/>
+                <g stroke="rgba(244,196,124,.24)" stroke-width="1.2">
+                  <polygon points="8,10 66,4 82,58 34,82" fill="rgba(230,161,92,.20)"/>
+                  <polygon points="66,4 138,20 118,74 82,58" fill="rgba(244,196,124,.15)"/>
+                  <polygon points="34,82 82,58 92,132 24,140" fill="rgba(166,75,42,.22)"/>
+                  <polygon points="82,58 118,74 134,140 92,132" fill="rgba(230,161,92,.17)"/>
+                  <polygon points="118,74 146,34 146,146 134,140" fill="rgba(244,196,124,.12)"/>
+                </g>
+                <circle cx="68" cy="54" r="3" fill="#e6a15c">
+                  <animate attributeName="cx" values="68;73;63;68" dur="4.8s" repeatCount="indefinite"/>
+                </circle>
+                <circle cx="96" cy="104" r="3" fill="#ffd22e">
+                  <animate attributeName="cy" values="104;96;110;104" dur="5.2s" repeatCount="indefinite"/>
+                </circle>
+                <text x="75" y="178" text-anchor="middle" font-family="DM Mono, monospace" font-size="14" fill="#34dfc6">scute</text>
+                <text x="75" y="195" text-anchor="middle" font-family="DM Mono, monospace" font-size="9" fill="rgba(215,223,201,.56)">cellular loss</text>
               </g>
+
+              <g transform="translate(436 46)">
+                <rect x="0" y="0" width="150" height="150" rx="30" fill="rgba(19,8,23,.78)" stroke="rgba(207,92,255,.26)"/>
+                <path d="M20 112 C42 24, 68 126, 92 44 S128 80, 136 30" fill="none" stroke="rgba(255,131,210,.65)" stroke-width="13" stroke-linecap="round" filter="url(#goopSoft)">
+                  <animate attributeName="d" dur="5.8s" repeatCount="indefinite"
+                    values="M20 112 C42 24, 68 126, 92 44 S128 80, 136 30;
+                            M18 104 C44 34, 66 116, 94 54 S126 90, 136 38;
+                            M20 112 C42 24, 68 126, 92 44 S128 80, 136 30"/>
+                </path>
+                <path d="M20 112 C42 24, 68 126, 92 44 S128 80, 136 30" fill="none" stroke="rgba(107,255,213,.36)" stroke-width="4" stroke-linecap="round"/>
+                <text x="75" y="178" text-anchor="middle" font-family="DM Mono, monospace" font-size="14" fill="#cf5cff">vermis</text>
+                <text x="75" y="195" text-anchor="middle" font-family="DM Mono, monospace" font-size="9" fill="rgba(215,223,201,.56)">flowing loss</text>
+              </g>
+
+              <path d="M206 120 C224 112 230 112 245 120" stroke="rgba(215,223,201,.24)" stroke-width="1" stroke-dasharray="5 8" fill="none"/>
+              <path d="M397 120 C416 112 421 112 436 120" stroke="rgba(215,223,201,.24)" stroke-width="1" stroke-dasharray="5 8" fill="none"/>
             </svg>
           </div>
 
           <!--
           ══════════════════════════════════════
-          OOID PREVIEW
+          GOOPCODECS PREVIEW
           When ready: comment out .placeholder-anim above, uncomment one option below.
           ══════════════════════════════════════
 
           Option A — animated gif or screenshot:
-          <img src="/sgueltch/ooid/preview.gif"
-               alt="ooid — gaussian blob codec preview"
+          <img src="/sgueltch/goopCodecs/preview.gif"
+               alt="goopCodecs — databending codec collection preview"
                class="tool-preview-img">
 
           Option B — looping video:
           <video autoplay loop muted playsinline class="tool-preview-vid">
-            <source src="/sgueltch/ooid/preview.mp4" type="video/mp4">
-            <source src="/sgueltch/ooid/preview.webm" type="video/webm">
+            <source src="/sgueltch/goopCodecs/preview.mp4" type="video/mp4">
+            <source src="/sgueltch/goopCodecs/preview.webm" type="video/webm">
           </video>
 
           Option C — live iframe:
-          <iframe src="/sgueltch/ooid/"
+          <iframe src="/sgueltch/goopCodecs/"
                   class="tool-preview-frame"
-                  title="ooid live preview"
+                  title="goopCodecs live preview"
                   loading="lazy"></iframe>
           -->
         </div>
 
         <div class="card-body">
-          <span class="tool-type">codec · databending format</span>
-          <a href="/sgueltch/ooid/" class="tool-name f-ooid">
-            ooid<span class="tool-year">2026</span>
+          <span class="tool-type">codec suite · databending formats</span>
+          <a href="/sgueltch/goopCodecs/" class="tool-name f-goopcodecs">
+            goopCodecs<span class="tool-year">2026</span>
           </a>
           <p class="tool-desc">
-            A Gaussian-blob image codec and alternate <em>.ooid</em>
-            file format for databending. Encodes images or generated colour fields
-            into oriented blob records, then exposes non-destructive damage sliders,
-            direct byte/hex editing, and <em>PNG</em>/<em>.ooid</em> export. Produces
-            round swelling lesions, fog, teleportation, and recolouring instead of
-            blocks or scanlines.
+            A collection of browser-based codecs and native file formats for
+            databending. Each codec changes the image substrate before corruption:
+            <em>ooid</em> uses Gaussian blob records, <em>scute</em> uses Voronoi
+            seed territories, and <em>vermis</em> uses a Hilbert-thread filament.
+            The tools expose damage controls plus byte, hex, and text editing so
+            loss becomes round, cellular, or flowing instead of generic compression
+            noise.
           </p>
-          <a href="/sgueltch/ooid/" class="tool-cta">open tool →</a>
+          <a href="/sgueltch/goopCodecs/" class="tool-cta">open collection →</a>
         </div>
       </article>
 

@@ -1,0 +1,1812 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ooid · gaussian-blob codec</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@1,9..144,400;1,9..144,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Fraunces:ital,opsz,wght@1,9..144,500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=DynaPuff:wght@500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #071006; 
+    --panel: #0d180d; 
+    --panel2: #152415; 
+    --line: #2a3d21;
+    --ink: #efffd7; 
+    --dim: #9fc285; 
+    --faint: #657d53;
+    --acid: #d8ff36; 
+    --teal: #35f4b8; 
+    --orchid: #ff3df2; 
+    --amber: #ffd35e;
+    --goo-hi: #edff7a; 
+    --goo: #b8ff24; 
+    --goo2: #2cff68; 
+    --cyan: #32f4ff;
+    --violet: #782eff;
+    --pink: #ff3df2;
+    --hazard: #ffd22e;
+    --blackgoo: #070711;
+    --inkline: #061009;
+    --mono: "DM Mono", ui-monospace, Menlo, monospace;
+    --disp: "DynaPuff", system-ui, sans-serif;
+    --play: "DynaPuff", system-ui, sans-serif;
+  }
+
+  * { box-sizing: border-box; scrollbar-width: thin; scrollbar-color: var(--goo) #101018; }
+  ::selection { background: var(--pink); color: #160516; }
+
+  html, body { margin: 0; min-height: 100%; height: 100%; }
+  
+  body {
+    background:
+      radial-gradient(circle at 14% 8%, rgba(234,255,117,.18), transparent 24%),
+      radial-gradient(circle at 88% 12%, rgba(37,244,255,.12), transparent 28%),
+      radial-gradient(circle at 52% 96%, rgba(255,61,242,.12), transparent 36%),
+      linear-gradient(180deg, var(--bg), #05050b 72%);
+    color: var(--ink);
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow-x: hidden;
+    text-rendering: geometricPrecision;
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    opacity: .22;
+    background:
+      radial-gradient(circle at 18% 24%, var(--goo) 0 2px, transparent 3px 42px),
+      radial-gradient(circle at 72% 18%, var(--cyan) 0 1.5px, transparent 3px 54px),
+      radial-gradient(circle at 42% 82%, var(--pink) 0 1.5px, transparent 3px 48px);
+    background-size: 102px 88px, 146px 128px, 118px 96px;
+    mix-blend-mode: screen;
+    animation: slime-float 18s ease-in-out infinite alternate;
+  }
+
+  body::after {
+    content: "GOOPCODECS  •  MUTATION FILE  •  DO NOT COMPRESS  •  ";
+    position: fixed;
+    left: -4vw;
+    right: -4vw;
+    bottom: 18px;
+    z-index: 0;
+    pointer-events: none;
+    color: rgba(234,255,117,.08);
+    font: 700 42px/1 var(--disp);
+    letter-spacing: .08em;
+    white-space: nowrap;
+    transform: rotate(-3deg);
+    text-shadow: 0 0 24px rgba(156,255,27,.16);
+  }
+
+  body > * { position: relative; z-index: 1; }
+
+  @keyframes slime-float {
+    from { transform: translate3d(0,0,0) scale(1); }
+    to { transform: translate3d(-18px,12px,0) scale(1.025); }
+  }
+  @keyframes slime-shift { to { background-position: 300% 0; } }
+  @keyframes goo-pulse {
+    0%, 100% { filter: brightness(1) saturate(1.05); }
+    50% { filter: brightness(1.12) saturate(1.22); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+
+  .irid {
+    height: 7px;
+    border: 0;
+    margin: 0;
+    border-bottom: 2px solid #020402;
+    background:
+      radial-gradient(circle at 20% 100%, rgba(255,255,255,.55), transparent 12%),
+      linear-gradient(90deg, var(--goo-hi), var(--goo2) 22%, var(--cyan) 46%, var(--pink) 72%, var(--hazard), var(--goo-hi));
+    background-size: 160px 100%, 300% 100%;
+    box-shadow: 0 0 22px rgba(156,255,27,.38), inset 0 -3px 0 rgba(0,0,0,.24);
+    animation: slime-shift 16s linear infinite;
+  }
+
+  header {
+    padding: 22px 24px 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 18px;
+    flex-wrap: wrap;
+    background:
+      linear-gradient(180deg, rgba(255,210,46,.055), transparent 72%),
+      linear-gradient(90deg, rgba(156,255,27,.055), transparent 38%);
+  }
+
+  h1 {
+    font-family: var(--disp);
+    font-style: normal;
+    font-weight: 400;
+    font-size: clamp(28px, 4vw, 46px);
+    line-height: .95;
+    margin: 0;
+    letter-spacing: .015em;
+    color: var(--goo-hi);
+    -webkit-text-stroke: 1px #071007;
+    text-shadow:
+      3px 3px 0 #091209,
+      5px 5px 0 rgba(0,0,0,.55),
+      0 0 16px rgba(156,255,27,.45),
+      0 0 34px rgba(37,244,255,.18);
+  }
+
+  h1::before {
+    content: "";
+    display: inline-block;
+    width: 0.55em;
+    height: 0.55em;
+    margin-right: .42em;
+    vertical-align: middle;
+    transform: rotate(-8deg) translateY(-0.05em);
+    background-color: var(--cyan);
+    /* Filter shadow mimics the intense text-shadow glow from the other files */
+    filter: drop-shadow(2px 2px 0 #000) drop-shadow(0 0 6px rgba(255,210,46,.8));
+    /* Procedural multi-lobed vector blob path */
+    mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path d='M25,45 C15,25 35,5 60,15 C80,20 95,45 85,70 C75,90 45,95 30,80 C15,65 35,65 25,45 Z'/></svg>") center/contain no-repeat;
+    -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path d='M25,45 C15,25 35,5 60,15 C80,20 95,45 85,70 C75,90 45,95 30,80 C15,65 35,65 25,45 Z'/></svg>") center/contain no-repeat;
+  }
+
+  h1::after { content: "™"; font: 500 .32em/1 var(--mono); color: var(--hazard); margin-left: .28em; text-shadow: 1px 1px 0 #000; }
+  h1 .dot { color: var(--pink); text-shadow: 0 0 12px rgba(255,61,242,.65); }
+
+  .tag {
+    position: relative;
+    color: var(--dim);
+    font-size: 12px;
+    max-width: 68ch;
+    margin-top: 2px;
+    padding: 13px 14px 13px 16px;
+    border: 2px solid rgba(156,255,27,.34);
+    border-radius: 18px 20px 22px 14px;
+    background:
+      radial-gradient(circle at 12% 0%, rgba(255,255,255,.08), transparent 32%),
+      linear-gradient(180deg, rgba(9,18,9,.78), rgba(8,8,18,.72));
+    box-shadow: inset 0 -4px 0 rgba(0,0,0,.20), 0 0 22px rgba(156,255,27,.09);
+  }
+
+  .tag::before {
+    content: "MUTATION BRIEF";
+    position: absolute;
+    top: -10px;
+    left: 14px;
+    padding: 1px 8px 2px;
+    border-radius: 999px;
+    color: #071007;
+    background: var(--hazard);
+    font: 500 9px/1.5 var(--mono);
+    letter-spacing: .12em;
+    box-shadow: 2px 2px 0 #000;
+  }
+  .tag b { color: var(--cyan); font-weight: 500; text-shadow: 0 0 10px rgba(37,244,255,.25); }
+
+  main { border-top: 2px solid rgba(156,255,27,.35); box-shadow: inset 0 2px 0 rgba(0,0,0,.55); flex: 1; display: grid; grid-template-columns: minmax(0, 1fr) 380px; }
+  @media (max-width: 900px) { main { grid-template-columns: 1fr; } }
+
+  .stage {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 26px;
+    min-height: 390px;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 50% 46%, rgba(156,255,27,.11), transparent 34%),
+      radial-gradient(circle at 70% 22%, rgba(37,244,255,.08), transparent 30%),
+      repeating-linear-gradient(135deg, rgba(255,210,46,.05) 0 8px, transparent 8px 18px),
+      linear-gradient(180deg, rgba(15,24,14,.92), var(--bg));
+  }
+
+
+  .frame {
+    position: relative;
+    padding: 5px;
+    border: 2px solid #020402;
+    border-radius: 38px;
+    background: linear-gradient(90deg, var(--goo-hi), var(--goo2), var(--cyan), var(--pink), var(--hazard), var(--goo-hi));
+    background-size: 300% 100%;
+    box-shadow:
+      0 0 0 3px rgba(0,0,0,.78),
+      0 18px 0 -12px rgba(0,0,0,.7),
+      0 30px 74px -34px #000,
+      0 0 38px rgba(156,255,27,.18);
+    animation: slime-shift 18s linear infinite, goo-pulse 4.5s ease-in-out infinite;
+  }
+
+  canvas {
+    display: block;
+    border-radius: 34px;
+    background: #050805;
+    border: 2px solid rgba(0,0,0,.55);
+    box-shadow: inset 0 0 32px rgba(0,0,0,.32);
+    filter: saturate(1.12) contrast(1.04);
+    max-width: min(64vh, 720px); max-height: min(64vh, 720px); width: 100%; height: auto;
+  }
+
+  .readout {
+    position: absolute;
+    left: 34px;
+    bottom: 34px;
+    padding: 7px 11px;
+    font-size: 11px;
+    color: var(--dim);
+    pointer-events: none;
+    letter-spacing: .02em;
+    border: 2px solid rgba(156,255,27,.32);
+    border-radius: 22px;
+    background: rgba(7,7,17,.76);
+    box-shadow: 0 4px 0 rgba(0,0,0,.45), 0 0 20px rgba(156,255,27,.16);
+    text-transform: uppercase;
+  }
+  .readout b { color: var(--goo-hi); text-shadow: 0 0 10px rgba(156,255,27,.45); font-weight: 500; }
+
+  .drop {
+    position: absolute;
+    inset: 30px;
+    border: 3px dashed rgba(156,255,27,.55);
+    border-radius: 22px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    color: var(--dim);
+    text-align: center;
+    background: radial-gradient(circle at 50% 44%, rgba(156,255,27,.16), transparent 38%), rgba(7,7,17,.88);
+    box-shadow: inset 0 0 28px rgba(156,255,27,.08), 0 0 0 3px rgba(0,0,0,.55);
+    transition: .15s;
+    cursor: pointer;
+  }
+  .drop.hidden { display: none; }
+  .drop.hot { border-color: var(--goo-hi); color: var(--ink); background: rgba(12,25,11,.94); }
+  .drop .big { font-family: var(--play); font-style: normal; font-size: 26px; color: var(--goo-hi); text-shadow: 2px 2px 0 #000, 0 0 14px rgba(156,255,27,.5); }
+  .drop .big::before { content: "☢ "; color: var(--hazard); }
+  .drop .sm { font-size: 11.5px; max-width: 34ch; }
+  .drop .sm b { color: var(--cyan); font-weight: 500; }
+
+  .prog { position: absolute; left: 26px; right: 26px; bottom: 26px; height: 8px; border: 2px solid #020402; border-radius: 999px; background: #0a0d08; box-shadow: inset 0 2px 3px rgba(0,0,0,.55); display: none; }
+  .prog.on { display: block; }
+  .prog i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--goo-hi), var(--goo2), var(--cyan), var(--pink)); box-shadow: 0 0 12px rgba(156,255,27,.45); transition: width .1s linear; }
+
+  .panel {
+    border-left: 2px solid rgba(156,255,27,.28);
+    background: linear-gradient(180deg, rgba(156,255,27,.035), transparent 24%), linear-gradient(90deg, rgba(255,210,46,.035), transparent 24%), var(--panel);
+    overflow-y: auto; max-height: calc(100vh - 96px);
+  }
+  @media (max-width: 900px) { .panel { border-left: 0; border-top: 2px solid rgba(156,255,27,.28); max-height: none; } }
+
+  section { position: relative; border-bottom: 2px solid rgba(156,255,27,.13); padding: 16px 18px; background: linear-gradient(180deg, rgba(255,255,255,.018), transparent 72%); }
+  section::before { content: ""; position: absolute; top: 10px; left: 0; bottom: 10px; width: 5px; border-radius: 0 999px 999px 0; background: linear-gradient(180deg, var(--goo-hi), var(--goo2), var(--cyan), var(--pink)); opacity: .72; box-shadow: 0 0 16px rgba(156,255,27,.22); }
+  section[hidden] { display: none; }
+
+  .eyebrow { font-size: 10.5px; letter-spacing: .22em; text-transform: uppercase; color: var(--hazard); margin: 0 0 13px; display: flex; justify-content: space-between; align-items: center; font-weight: 500; text-shadow: 1px 1px 0 #000; }
+  .eyebrow::before { content: "BLOB-TANK / "; color: var(--goo-hi); letter-spacing: .13em; }
+  .eyebrow .v { color: var(--cyan); text-shadow: 0 0 8px rgba(37,244,255,.28); letter-spacing: .04em; text-transform: none; }
+
+  .modes { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 2px solid #020402; box-shadow: 0 4px 0 rgba(0,0,0,.4); overflow: hidden; border-radius: 22px; }
+  .modes button { font-family: var(--mono); font-size: 12.5px; color: var(--dim); background: linear-gradient(180deg, var(--panel2), #0b0c16); border: 0; padding: 11px; cursor: pointer; transition: .12s; letter-spacing: .04em; font-weight: 500; box-shadow: inset 0 -4px 0 rgba(0,0,0,.24), 0 4px 0 rgba(0,0,0,.45), 0 0 14px rgba(156,255,27,.08); }
+  .modes button+button { border-left: 2px solid #020402; }
+  .modes button[aria-pressed=true] { color: #061006; background: radial-gradient(circle at 34% 18%, rgba(255,255,255,.38), transparent 28%), linear-gradient(180deg, var(--goo-hi), var(--goo2)); font-weight: 500; box-shadow: inset 0 -5px 0 rgba(0,0,0,.28), 0 4px 0 rgba(0,0,0,.55), 0 0 20px rgba(156,255,27,.22); }
+  .modes button[aria-pressed=true]::after { content: "  slime-on"; font-size: 9px; color: #173313; opacity: .78; }
+
+  .row { display: flex; align-items: center; gap: 10px; margin: 11px 0; }
+  .row label { flex: 0 0 92px; color: var(--dim); font-size: 12px; }
+  .row .val { flex: 0 0 50px; text-align: right; color: var(--goo-hi); font-size: 12px; font-variant-numeric: tabular-nums; text-shadow: 0 0 8px rgba(156,255,27,.22); }
+
+  input[type=range] {
+    flex: 1; -webkit-appearance: none; appearance: none; height: 8px; border: 2px solid #020402; border-radius: 999px; outline: none;
+    background: radial-gradient(circle at 16% 45%, rgba(255,255,255,.38), transparent 9px), linear-gradient(90deg, var(--goo-hi), var(--goo2) 32%, var(--cyan) 58%, var(--line));
+    box-shadow: inset 0 2px 4px rgba(0,0,0,.55), 0 0 10px rgba(156,255,27,.08);
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; border: 2px solid #020402;
+    background: radial-gradient(circle at 34% 25%, #fff 0 10%, var(--goo-hi) 13% 42%, var(--goo2) 75%); cursor: pointer;
+    box-shadow: 0 3px 0 rgba(0,0,0,.55), 0 0 0 4px rgba(156,255,27,.16), 0 0 18px rgba(156,255,27,.34);
+  }
+  input[type=range]::-webkit-slider-thumb:hover { box-shadow: 0 3px 0 rgba(0,0,0,.55), 0 0 0 6px rgba(156,255,27,.22), 0 0 20px rgba(156,255,27,.44); }
+  input[type=range]::-moz-range-thumb {
+    width: 20px; height: 20px; border-radius: 50%; border: 2px solid #020402;
+    background: radial-gradient(circle at 34% 25%, #fff 0 10%, var(--goo-hi) 13% 42%, var(--goo2) 75%);
+    box-shadow: 0 3px 0 rgba(0,0,0,.55), 0 0 0 4px rgba(156,255,27,.16), 0 0 18px rgba(156,255,27,.34);
+  }
+  .dmg input[type=range] { background: linear-gradient(90deg, var(--pink), var(--violet) 44%, var(--line)); }
+  .dmg input[type=range]::-webkit-slider-thumb {
+    background: radial-gradient(circle at 34% 25%, #fff 0 10%, #ffb9fb 13% 38%, var(--pink) 72%);
+    box-shadow: 0 3px 0 rgba(0,0,0,.55), 0 0 0 4px rgba(255,61,242,.16), 0 0 18px rgba(255,61,242,.34);
+  }
+  .dmg input[type=range]::-moz-range-thumb { background: radial-gradient(circle at 34% 25%, #fff 0 10%, #ffb9fb 13% 38%, var(--pink) 72%); }
+  .dmg .val { color: var(--pink); text-shadow: 0 0 8px rgba(255,61,242,.3); }
+
+  .seg { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin: 4px 0 2px; }
+  .seg.two { grid-template-columns: 1fr 1fr; }
+  .seg button {
+    font-family: var(--mono); font-size: 11.5px; color: var(--dim); background: linear-gradient(180deg, var(--panel2), #0b0c16);
+    border: 2px solid #020402; border-radius: 22px; padding: 8px 6px; cursor: pointer; transition: .12s; letter-spacing: .01em;
+    font-weight: 500; box-shadow: inset 0 -4px 0 rgba(0,0,0,.24), 0 4px 0 rgba(0,0,0,.45), 0 0 14px rgba(156,255,27,.08);
+  }
+  .seg button:hover { color: var(--goo-hi); border-color: var(--goo-hi); }
+  .seg button[aria-pressed=true] { color: #061006; background: radial-gradient(circle at 34% 18%, rgba(255,255,255,.38), transparent 28%), linear-gradient(180deg, var(--goo-hi), var(--goo2)); border-color: #020402; font-weight: 500; box-shadow: inset 0 -5px 0 rgba(0,0,0,.28), 0 4px 0 rgba(0,0,0,.55), 0 0 20px rgba(156,255,27,.22); }
+  .seg button[aria-pressed=true]::after { content: "  slime-on"; font-size: 9px; color: #173313; opacity: .78; }
+
+  .pal { display: flex; gap: 8px; margin: 2px 0 6px; }
+  .pal label { flex: 1; position: relative; height: 34px; border-radius: 22px; border: 2px solid #020402; overflow: hidden; cursor: pointer; box-shadow: 0 4px 0 rgba(0,0,0,.34), 0 0 12px rgba(255,255,255,.04); }
+  .pal input { position: absolute; inset: -4px; width: 120%; height: 140%; border: 0; padding: 0; cursor: pointer; background: none; }
+  
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+  .chips button {
+    font-family: var(--mono); font-size: 11px; color: var(--dim); background: rgba(0,0,0,.12);
+    border: 2px solid #020402; border-radius: 22px; padding: 5px 11px; cursor: pointer; transition: .12s;
+    font-weight: 500; box-shadow: inset 0 -4px 0 rgba(0,0,0,.24), 0 4px 0 rgba(0,0,0,.45), 0 0 14px rgba(156,255,27,.08);
+  }
+  .chips button::before { content: "● "; color: var(--goo-hi); }
+  .chips button:hover { color: var(--goo-hi); border-color: var(--goo-hi); }
+
+  .btns { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+  .btn, .viewtog button, .tgl {
+    flex: 1; min-width: 118px; font-family: var(--mono); font-size: 12px; cursor: pointer; padding: 10px;
+    border-radius: 22px; border: 2px solid #020402; background: radial-gradient(circle at 30% 18%, rgba(255,255,255,.14), transparent 34%), linear-gradient(180deg, var(--panel2), #0b0c16); color: var(--ink); transition: .12s; letter-spacing: .02em;
+    font-weight: 500; box-shadow: inset 0 -4px 0 rgba(0,0,0,.24), 0 4px 0 rgba(0,0,0,.45), 0 0 14px rgba(156,255,27,.08);
+  }
+  .btn:hover, .viewtog button:hover, .tgl:hover { border-color: var(--goo-hi); color: var(--goo-hi); box-shadow: inset 0 -4px 0 rgba(0,0,0,.24), 0 4px 0 rgba(0,0,0,.45), 0 0 18px rgba(156,255,27,.2); }
+  .btn.warn:hover { border-color: var(--pink); color: var(--pink); box-shadow: 0 4px 0 rgba(0,0,0,.45), 0 0 18px rgba(255,61,242,.18); }
+  .btn.solid, .viewtog button[aria-pressed=true] { color: #061006; background: radial-gradient(circle at 34% 18%, rgba(255,255,255,.38), transparent 28%), linear-gradient(180deg, var(--goo-hi), var(--goo2)); border-color: #020402; box-shadow: inset 0 -5px 0 rgba(0,0,0,.28), 0 4px 0 rgba(0,0,0,.55), 0 0 20px rgba(156,255,27,.22); }
+  .btn.solid::before { content: "✹ "; font-weight: 400; }
+
+  .note { font-size: 11px; color: var(--dim); line-height: 1.55; margin: 0 0 11px; }
+  .note b, .spec dd b, .ascii b { color: var(--cyan); }
+  .dmg.locked { opacity: .38; pointer-events: none; filter: saturate(.4); }
+
+  .spec { font-size: 11px; color: var(--dim); line-height: 1.7; }
+  .spec dt { color: var(--faint); float: left; clear: left; width: 96px; letter-spacing: .04em; }
+  .spec dd { margin: 0 0 0 100px; color: var(--ink); }
+
+  .hex, .hexhead, #hexbody, #textbody, .ascii, .frbar input {
+    margin-top: 12px; background: linear-gradient(180deg, rgba(156,255,27,.035), transparent 60%), #05070a; border: 2px solid rgba(156,255,27,.18); border-radius: 22px; padding: 10px; font-size: 11px; line-height: 1.65; overflow-x: auto; white-space: pre; color: var(--dim); letter-spacing: .02em; box-shadow: inset 0 0 18px rgba(0,0,0,.28);
+  }
+  .hex .b { color: var(--ink); } .hex .h, .hexhead .lk, .frcount b { color: var(--pink); } .hex .m { color: var(--goo-hi); } .hex .lab { color: var(--hazard); }
+  #hexbody:focus, #textbody:focus, .frbar input:focus { border-color: var(--pink); box-shadow: 0 0 0 2px rgba(255,61,242,.16), inset 0 0 18px rgba(0,0,0,.28); }
+  #textbody { color: #d8ffc2; }
+  .ascii b { font-weight: 500; }
+
+  #editor { margin-top: 12px; }
+  .frbar { display: grid; grid-template-columns: 1fr 1fr auto; gap: 6px; align-items: stretch; }
+  .frbar input { margin-top: 0; padding: 8px 9px; min-width: 0; }
+  .frbar input::placeholder { color: var(--faint); }
+  .tgl { min-width: 54px; max-width: 54px; padding: 0 11px; color: var(--orchid); }
+  .tgl:hover { border-color: var(--orchid); }
+  .frgo { margin-top: 6px; width: 100%; }
+  .frcount { font-size: 10.5px; color: var(--faint); margin: 7px 0 2px; min-height: 13px; letter-spacing: .04em; }
+  .hexhead { margin-top: 0; font-size: 10.5px; color: var(--faint); border-bottom: 0; border-radius: 22px 22px 0 0; padding: 7px 9px; }
+  .viewtog { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 10px 0 0; }
+  .viewtog button { border-radius: 22px; padding: 7px; }
+  #hexbody, #textbody { margin-top: 0; display: block; width: 100%; height: 150px; resize: vertical; border-radius: 0; padding: 9px; overflow: auto; }
+  #hexbody { white-space: pre; }
+  #textbody { white-space: pre-wrap; word-break: break-all; }
+  .ascii { margin-top: 0; border-top: 0; border-radius: 0 0 22px 22px; padding: 8px 9px; white-space: pre-wrap; word-break: break-all; max-height: 62px; overflow: auto; }
+
+  footer {
+    padding: 11px 22px; color: var(--dim); font-size: 11px; display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+    border-top: 2px solid rgba(156,255,27,.18); background: repeating-linear-gradient(45deg, rgba(255,210,46,.14) 0 8px, rgba(0,0,0,.05) 8px 16px), #07070d;
+  }
+  footer b, footer span:first-child { color: var(--hazard); }
+  footer span:last-child::before { content: "⚠ "; color: var(--hazard); }
+
+  .row[data-tip] label, .pal label[data-tip] { cursor: help; }
+  .tip-pop {
+    position: fixed; z-index: 60; max-width: 248px; background: #080914; color: var(--ink); border: 2px solid #020402; border-left: 6px solid var(--goo-hi); border-radius: 14px; padding: 8px 11px; font-size: 11.5px; line-height: 1.46; letter-spacing: .01em; box-shadow: 0 7px 0 rgba(0,0,0,.45), 0 18px 34px -18px #000, 0 0 18px rgba(156,255,27,.12); pointer-events: none; opacity: 0; transform: translateY(4px); transition: opacity .12s ease, transform .12s ease;
+  }
+  .tip-pop.show { opacity: 1; transform: translateY(0); }
+  .tip-pop b { color: var(--goo-hi); }
+</style>
+</head>
+<body>
+<hr class="irid">
+<header>
+
+  <h1>ooid<span class="dot">.</span></h1>
+  <div class="tag">A <b>gaussian-blob image codec</b> and alternate image file format made for
+    <b>data corruption</b>. Converts your file to <b>.ooid</b> for you to glitch, and can also
+    generate colour fields.</div>
+</header>
+
+<main>
+  <div class="stage" id="stage">
+    <div class="frame"><canvas id="cv" width="768" height="768"></canvas><div class="drips" aria-hidden="true"><span class="drip d1"></span><span class="drip d2"></span><span class="drip d3"></span><span class="drip d4"></span></div></div>
+    <div class="drop hidden" id="drop">
+      <div class="big">drop an image or video</div>
+      <div class="sm">…and watch it coagulate into blobs. drop a <b>video</b> to blob it frame by frame, or a <b>.ooid</b> file to re-open one.
+        <br>png · jpg · webp · mp4 · webm · ooid</div>
+      <input id="file" type="file" accept="image/*,video/*,.ooid" hidden>
+    </div>
+    <div class="prog" id="prog"><i id="prog_i"></i></div>
+    <div class="readout"><span id="ro_n">0</span> blobs · <span id="ro_b">0</span> B · <b id="ro_state">clean</b></div>
+  </div>
+
+  <div class="panel">
+    <!-- MODE -->
+    <section>
+      <p class="eyebrow">Source</p>
+      <div class="modes" id="modes">
+        <button data-mode="image" data-tip="Upload a photo and fit it into Gaussian blobs you can then corrupt. Drop a .ooid file here to re-open one.">Image</button>
+        <button data-mode="field" aria-pressed="true" data-tip="Generate a colour field from scratch — no image needed.">Field</button>
+      </div>
+    </section>
+
+    <!-- IMAGE MODE -->
+    <section id="m_image" hidden>
+      <p class="eyebrow">Encoder <span class="v" id="img_v">no image</span></p>
+      <div class="row" data-tip="How many Gaussians to fit. More blobs hug the original more closely but take longer to encode. A simple image may use fewer than this — the encoder won't add blobs it doesn't need.">
+        <label>blobs</label>
+        <input id="icount" type="range" min="400" max="20000" step="100" value="3200">
+        <span class="val" id="icount_v">3200</span></div>
+      <div class="row" data-tip="Starting blob size. Left = big soft masses (impressionistic); right = small fine grains (sharper, needs more blobs).">
+        <label>coarse↔fine</label>
+        <input id="grainbias" type="range" min="0" max="100" value="50">
+        <span class="val" id="grainbias_v">50</span></div>
+      <div class="row" data-tip="How strongly blobs stretch and align along edges in the image. 0 keeps them round; high values make brushstroke-like streaks that follow contours.">
+        <label>edge pull</label>
+        <input id="aniso_i" type="range" min="0" max="100" value="60">
+        <span class="val" id="aniso_i_v">60</span></div>
+      <div class="btns">
+        <button class="btn" id="browse" data-tip="Pick an image file to encode.">Choose image…</button>
+        <button class="btn solid" id="refit" disabled data-tip="Run the encoder again with the current settings and a fresh random seed.">Re-fit</button>
+      </div>
+    </section>
+
+    <!-- HIGH FIDELITY (image) -->
+    <section id="m_hq" hidden>
+      <p class="eyebrow">High fidelity <span class="v" id="hq_v">idle</span></p>
+      <p class="note">A slower, offline encode: it fits against a <b>higher-resolution target</b>, then re-solves every blob's colour and alpha over several sweeps — pushing the codec toward the original instead of an impression. The live sliders above stay for quick work.</p>
+      <div class="row" data-tip="The resolution the encoder actually fits against — the real sharpness lever. Higher resolves finer detail but costs roughly the square of this in time.">
+        <label>quality</label>
+        <input id="hqfit" type="range" min="340" max="768" step="16" value="544">
+        <span class="val" id="hqfit_v">544</span></div>
+      <div class="row" data-tip="The most blobs the fit may spend. The .ooid format caps at 65,535. With auto-stop on it often uses fewer, once added blobs stop improving the fit.">
+        <label>budget</label>
+        <input id="hqcount" type="range" min="2000" max="65500" step="500" value="16000">
+        <span class="val" id="hqcount_v">16,000</span></div>
+      <div class="row" data-tip="Refinement passes after placement. Each pass recomposites in record order and re-solves every blob's optimal colour and alpha. 2–4 is usually plenty.">
+        <label>refine</label>
+        <input id="hqsweeps" type="range" min="0" max="6" value="3">
+        <span class="val" id="hqsweeps_v">3</span></div>
+      <p class="eyebrow" style="margin:15px 0 8px">auto-stop</p>
+      <div class="seg two" id="hqadaptive">
+        <button data-v="1" aria-pressed="true" data-tip="Stop adding blobs once the residual stops improving, even below the budget.">on</button>
+        <button data-v="0" data-tip="Always spend the full blob budget, whether or not it keeps helping.">off</button>
+      </div>
+      <p class="eyebrow" style="margin:15px 0 8px">refine geometry · slow</p>
+      <div class="seg two" id="hqgeom">
+        <button data-v="0" aria-pressed="true" data-tip="Leave blob positions and shapes as placed; refine only colour and alpha.">off</button>
+        <button data-v="1" data-tip="Also nudge each blob's position, size, and angle by local search. Sharper, several times slower.">on</button>
+      </div>
+      <div class="btns">
+        <button class="btn solid" id="hqgo" disabled data-tip="Run the high-fidelity encode. Replaces the current blobs with the refined fit when it finishes.">Render HD</button>
+        <button class="btn warn" id="hqstop" hidden data-tip="Stop the encode now and keep whatever has been fitted so far.">Stop</button>
+      </div>
+    </section>
+
+    <!-- QUALITY (image) -->
+    <section id="m_bal" hidden>
+      <p class="eyebrow">Quality fit <span class="v" id="bal_v">idle</span></p>
+      <p class="note">A middle gear. One pass like the fast encoder, but fit against a <b>higher-resolution target</b> with the blob budget trailing it — plus a <b>reach-back</b> step that occasionally drops a large corrective blob where a whole region is off, instead of only fine grains. Between fast and HD in look and cost.</p>
+      <div class="row" data-tip="The master dial. Raises the resolution the fit targets (the real sharpness lever) and lets the blob budget follow it. Higher is sharper but costs roughly the square of this.">
+        <label>quality</label>
+        <input id="balq" type="range" min="0" max="100" value="45">
+        <span class="val" id="balq_v">475</span></div>
+      <div class="frcount" id="bal_est"></div>
+      <p class="eyebrow" style="margin:15px 0 8px">reach-back</p>
+      <div class="seg two" id="balreach">
+        <button data-v="1" aria-pressed="true" data-tip="Periodically offer a large blob scaled to the local error region; the solver keeps it only when it reduces error. Fixes broad mistints in one shot.">on</button>
+        <button data-v="0" data-tip="Coarse-to-fine only — later blobs are all fine grains, the original fast-greedy behaviour.">off</button>
+      </div>
+      <div class="btns">
+        <button class="btn solid" id="balgo" disabled data-tip="Run the quality fit. Replaces the current blobs when it finishes.">Render quality</button>
+        <button class="btn warn" id="balstop" hidden data-tip="Stop and keep the blobs fitted so far.">Stop</button>
+      </div>
+    </section>
+
+    <!-- VIDEO (image) -->
+    <section id="m_video" hidden>
+      <p class="eyebrow">Video <span class="v" id="vid_v">no video</span></p>
+      <p class="note">Blob every frame. The clip is sampled at the rate you pick and each frame is encoded to blobs; damage then re-derives <b>per frame</b>, so corruption shimmers across time. The fast encoder uses the Encoder sliders above; HD uses the High fidelity settings and is slow — Stop keeps the frames already done.</p>
+      <div class="row" data-tip="Frames sampled per second of video. Lower = fewer frames to encode and a choppier result; higher = smoother but far more work.">
+        <label>sample fps</label>
+        <input id="vidfps" type="range" min="1" max="30" value="12">
+        <span class="val" id="vidfps_v">12</span></div>
+      <div class="row" data-tip="A hard cap on how many frames to encode, so a long clip can't run away. Processing stops once it reaches this many.">
+        <label>max frames</label>
+        <input id="vidmax" type="range" min="10" max="1200" step="10" value="300">
+        <span class="val" id="vidmax_v">300</span></div>
+      <p class="eyebrow" style="margin:15px 0 8px">encoder</p>
+      <div class="seg two" id="vidhq">
+        <button data-v="0" aria-pressed="true" data-tip="Fast live encoder with the Encoder sliders above. Seconds per frame.">fast</button>
+        <button data-v="1" data-tip="High-fidelity encoder with the High fidelity settings. Minutes per frame — long clips take a very long time.">HD</button>
+      </div>
+      <div class="frcount" id="vid_est"></div>
+      <div class="btns">
+        <button class="btn solid" id="vidproc" disabled data-tip="Seek through the video and encode every sampled frame to blobs.">Process frames</button>
+        <button class="btn warn" id="vidstop" hidden data-tip="Stop now and keep the frames already encoded.">Stop</button>
+      </div>
+
+      <div id="vidtransport" hidden>
+        <div class="row" style="margin-top:14px">
+          <button class="btn" id="vidplay" style="flex:0 0 72px;min-width:0" data-tip="Play or pause the blobbed video. Damage applies live to every frame as it plays.">play</button>
+          <input id="vidscrub" type="range" min="0" max="0" value="0" data-tip="Scrub through encoded frames. Damage applies to the frame you land on.">
+          <span class="val" id="vidpos">0/0</span>
+        </div>
+        <div class="btns">
+          <button class="btn solid" id="vidrec" data-tip="Play the blobbed, damaged frames in real time and record them to a .webm you can download.">Record .webm</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- FIELD MODE -->
+    <section id="m_field">
+      <p class="eyebrow">Field <span class="v" id="field_v">flow</span></p>
+      <div class="pal" id="pal">
+<label data-tip="First palette colour — the low end of the field."><input type="color" id="c0" value="#071006"></label>
+<label data-tip="Middle palette colour — the field blends through this."><input type="color" id="c1" value="#32f4ff"></label>
+<label data-tip="Last palette colour — the high end of the field."><input type="color" id="c2" value="#b8ff24"></label>
+      </div>
+      <div class="seg" id="shape">
+        <button data-shape="gradient" data-tip="A smooth sweep from one palette colour through the next.">gradient</button>
+        <button data-shape="radial" data-tip="Concentric rings of colour around the centre.">radial</button>
+        <button data-shape="waves" data-tip="Two interfering sine waves — bands and moiré.">waves</button>
+        <button data-shape="flow" aria-pressed="true" data-tip="Organic noise flow. Push scale and warp up for static.">flow</button>
+        <button data-shape="cells" data-tip="Voronoi regions — flat cellular patches with hard borders.">cells</button>
+      </div>
+      <div class="row" data-tip="Feature size of the field. Higher = finer, busier, more repetitions across the frame.">
+        <label>scale</label><input id="fscale" type="range" min="1" max="100" value="22"><span class="val" id="fscale_v">22</span></div>
+      <div class="row" data-tip="Distorts the field with noise — pulls straight lines into organic, liquid shapes.">
+        <label>warp</label><input id="fwarp" type="range" min="0" max="100" value="30"><span class="val" id="fwarp_v">30</span></div>
+      <div class="row" data-tip="Rotates the field direction. Affects gradient and waves; little effect on radial or flow.">
+        <label>angle</label><input id="fangle" type="range" min="0" max="100" value="20"><span class="val" id="fangle_v">20</span></div>
+      <div class="chips" id="recipes" data-tip="Starting points that set the palette and every slider. Tweak freely afterwards — nothing is locked.">
+        <button data-r="sediment">sediment</button>
+        <button data-r="target">target</button>
+        <button data-r="drift">drift</button>
+        <button data-r="membrane">membrane</button>
+        <button data-r="static">static</button>
+      </div>
+    </section>
+
+    <!-- GRAIN (field) -->
+    <section id="m_grain">
+      <p class="eyebrow">Grain</p>
+      <div class="row" data-tip="How many blobs sample the field. More blobs = denser, smoother coverage."><label>blobs</label><input id="fcount" type="range" min="200" max="20000" step="100" value="2800"><span class="val" id="fcount_v">2800</span></div>
+      <div class="row" data-tip="Median blob size. Small grain reads as speckle or noise; large grain as soft washes."><label>grain</label><input id="fgrain" type="range" min="1" max="100" value="40"><span class="val" id="fgrain_v">40</span></div>
+      <div class="row" data-tip="0 = round blobs. Higher = streaky blobs that align to the field's own gradient, so the texture flows."><label>stretch</label><input id="faniso" type="range" min="0" max="100" value="45"><span class="val" id="faniso_v">45</span></div>
+      <div class="row" data-tip="How opaque each blob is. Lower lets blobs layer translucently into deeper colour."><label>opacity</label><input id="falpha" type="range" min="5" max="100" value="55"><span class="val" id="falpha_v">55</span></div>
+      <div class="btns"><button class="btn solid" id="regen" data-tip="Re-sample blob positions with a new random seed, keeping the same field.">Regrow field</button></div>
+    </section>
+
+    <!-- DAMAGE -->
+    <section class="dmg">
+      <p class="eyebrow">Damage <span class="v" id="dmg_v" style="color:var(--orchid)">none</span></p>
+      <div class="row" data-tip="Random byte flips scattered across all records. Reads as speckled round lesions all over."><label>corruption</label><input id="corrupt" type="range" min="0" max="100" value="0"><span class="val" id="corrupt_v">0</span></div>
+      <div class="row" data-tip="Keep only the first share of records and drop the rest. Because big coarse blobs come first, detail dissolves into fog before structure does."><label>truncate</label><input id="trunc" type="range" min="0" max="100" value="100"><span class="val" id="trunc_v">100</span></div>
+      <div class="row" data-tip="Corrupt only the position bytes. Blobs teleport while keeping their colour and size."><label>position</label><input id="pos" type="range" min="0" max="100" value="0"><span class="val" id="pos_v">0</span></div>
+      <div class="row" data-tip="Corrupt only the size bytes. Blobs swell or deflate in place."><label>size</label><input id="size" type="range" min="0" max="100" value="0"><span class="val" id="size_v">0</span></div>
+      <div class="row" data-tip="Corrupt only the orientation byte. Anisotropic blobs spin to new angles."><label>orient</label><input id="orient" type="range" min="0" max="100" value="0"><span class="val" id="orient_v">0</span></div>
+      <div class="row" data-tip="Corrupt only the colour bytes. Blobs recolour while staying put."><label>hue</label><input id="hue" type="range" min="0" max="100" value="0"><span class="val" id="hue_v">0</span></div>
+      <div class="row" data-tip="Heavily corrupt one contiguous run through the middle of the file, the way an audio effect chews a band of samples."><label>audio band</label><input id="band" type="range" min="0" max="100" value="0"><span class="val" id="band_v">0</span></div>
+      <div class="btns">
+        <button class="btn warn" id="shuffle" data-tip="Reorder the records. Because painting is front-to-back, the coarse-over-fine layering scrambles.">Shuffle order</button>
+        <button class="btn" id="randomize" data-tip="Set every damage slider to a random amount.">Randomize</button>
+        <button class="btn" id="reset" data-tip="Clear all damage and return to the clean encoding.">Reset</button>
+      </div>
+    </section>
+
+    <!-- CORRUPT AS DATA -->
+    <section id="m_data">
+      <p class="eyebrow">Corrupt as data <span class="v" id="data_v">locked</span></p>
+      <p class="note">Open the .ooid as raw data and glitch it by hand — find-and-replace cascades through
+        the file the way a text editor would; the hex view lets you target single bytes. The <b>16-byte
+        header stays locked</b> so the file always still decodes. This bakes the sliders above in and pauses them.</p>
+      <div class="btns"><button class="btn solid" id="editbtn" data-tip="Bake the current slider damage into the bytes and edit them directly. Pauses the sliders until you go back or commit.">Edit bytes →</button></div>
+
+      <div id="editor" hidden>
+        <div id="vedit" hidden>
+          <div class="frbar" style="grid-template-columns:auto 1fr auto;align-items:center">
+            <button class="tgl" id="vprev" data-tip="Edit the previous frame. Edits to the current frame are kept.">◀ prev</button>
+            <span class="frcount" id="vedit_pos" style="text-align:center">frame 1/1</span>
+            <button class="tgl" id="vnext" data-tip="Edit the next frame. Edits to the current frame are kept.">next ▶</button>
+          </div>
+          <button class="btn frgo" id="vcascade" data-tip="Push this frame's length change into the rest of the file: its length prefix is left stale, so the edit bleeds past the frame boundary and the following frames wander. Same-length edits stay contained to this frame.">Cascade length into following frames →</button>
+          <div class="frcount" id="vedit_note">editing one frame · same-length edits stay contained · length changes can cascade</div>
+        </div>
+        <div class="frbar">
+          <input id="frfind" placeholder="find" spellcheck="false" data-tip="The text (or hex) to search for in the file body.">
+          <input id="frrepl" placeholder="replace" spellcheck="false" data-tip="What to replace each match with. A different length cascades and shifts everything after it.">
+          <button class="tgl" id="frmode" data-tip="Read the find/replace boxes as text characters, or as hex byte values.">text</button>
+        </div>
+        <button class="btn frgo" id="frgo" data-tip="Replace every match through the body. Header stays untouched.">Replace all</button>
+        <div class="frcount" id="frcount"></div>
+
+        <div class="viewtog" id="viewtog">
+          <button data-view="text" aria-pressed="true" data-tip="Edit the body as text — printable bytes show as characters, control bytes as small glyphs. Type to overwrite, like glitching a file in a text editor.">text</button>
+          <button data-view="hex" data-tip="Edit the body as raw hex byte-pairs. Best for surgical single-byte changes.">hex</button>
+        </div>
+        <div class="hexhead" id="hexhead"></div>
+        <textarea id="textbody" spellcheck="false" data-tip="The file body as editable text. Every byte is shown and round-trips exactly; control bytes appear as ␀-style glyphs."></textarea>
+        <textarea id="hexbody" spellcheck="false" hidden data-tip="The file body as editable hex. Edit pairs to change bytes; change how many pairs there are and the rest cascades."></textarea>
+        <div class="ascii" id="ascii"></div>
+
+        <div class="btns" id="stillbtns">
+          <button class="btn" id="commitbtn" data-tip="Flatten these byte edits into a new base, then re-enable the sliders to damage the glitched version further.">Commit as base</button>
+          <button class="btn warn" id="backbtn" data-tip="Throw away the byte edits and return to the live sliders.">Back to sliders</button>
+        </div>
+        <div class="btns" id="vbtns" hidden>
+          <button class="btn" id="vdone" data-tip="Finish editing and return to the transport. Edits are kept in the frames.">Done</button>
+          <button class="btn warn" id="vrevert" data-tip="Discard every byte edit from this session and restore the frames as they were on entering.">Revert all</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SPECIMEN -->
+    <section>
+      <p class="eyebrow">Specimen · <span style="color:var(--acid)">.ooid</span> <span class="v">v1</span></p>
+      <dl class="spec">
+        <dt>magic</dt><dd><b>OOID</b> · 16-byte header</dd>
+        <dt>record</dt><dd><b>12 B</b> · x y σ₁ σ₂ θ r g b a</dd>
+        <dt>compositing</dt><dd>alpha-over · <b>order is meaning</b></dd>
+      </dl>
+      <div class="hex" id="hex"></div>
+    </section>
+
+    <!-- EXPORT -->
+    <section>
+      <p class="eyebrow">Export</p>
+      <div class="btns">
+        <button class="btn solid" id="png" data-tip="Save the current canvas as a flat PNG image.">Download PNG</button>
+        <button class="btn" id="ooid" data-tip="Save the damaged file in the native .ooid format, with its spec appended as plaintext. Re-openable in Image mode.">Download .ooid</button>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer>
+  <span><b>phase 3</b> · image encoder + field generator on the shared codec.</span>
+  <span>round loss · no grid</span>
+</footer>
+
+
+<script>
+"use strict";
+/* ====================================================================== ooid */
+const SIG_MIN=0.5; let SIG_MAX=320; const EXT=3.0, HEADER=16, REC=12;
+const clamp01=v=>v<0?0:v>1?1:v;
+const lerp=(a,b,t)=>a+(b-a)*t;
+const $=id=>document.getElementById(id);
+const sigToByte=s=>Math.max(0,Math.min(255,Math.round(255*Math.log(Math.max(SIG_MIN,s)/SIG_MIN)/Math.log(SIG_MAX/SIG_MIN))));
+const byteToSig=b=>SIG_MIN*Math.pow(SIG_MAX/SIG_MIN,b/255);
+
+/* ---- codec ---------------------------------------------------------------- */
+function encode(blobs,W,H,base){
+  const buf=new ArrayBuffer(HEADER+REC*blobs.length),dv=new DataView(buf),u8=new Uint8Array(buf);
+  u8[0]=79;u8[1]=79;u8[2]=73;u8[3]=68;
+  dv.setUint16(4,W,true);dv.setUint16(6,H,true);dv.setUint16(8,blobs.length,true);
+  u8[10]=0;u8[11]=1;u8[12]=base[0];u8[13]=base[1];u8[14]=base[2];u8[15]=0;
+  let o=HEADER;
+  for(const b of blobs){
+    dv.setUint16(o,Math.round(clamp01(b.x/W)*65535),true);
+    dv.setUint16(o+2,Math.round(clamp01(b.y/H)*65535),true);
+    u8[o+4]=sigToByte(b.s1);u8[o+5]=sigToByte(b.s2);
+    u8[o+6]=Math.round(((b.th%Math.PI)+Math.PI)%Math.PI/Math.PI*255);
+    u8[o+7]=b.r&255;u8[o+8]=b.g&255;u8[o+9]=b.b&255;
+    u8[o+10]=Math.round(clamp01(b.a)*255);u8[o+11]=0;o+=REC;
+  }
+  return buf;
+}
+function decode(buf){
+  const dv=new DataView(buf),u8=new Uint8Array(buf);
+  const W=dv.getUint16(4,true),H=dv.getUint16(6,true),declared=dv.getUint16(8,true);
+  const base=[u8[12],u8[13],u8[14]];
+  const n=Math.min(declared,Math.max(0,Math.floor((buf.byteLength-HEADER)/REC)));
+  const blobs=new Array(n);let o=HEADER;
+  for(let i=0;i<n;i++){
+    blobs[i]={x:dv.getUint16(o,true)/65535*W,y:dv.getUint16(o+2,true)/65535*H,
+      s1:byteToSig(u8[o+4]),s2:byteToSig(u8[o+5]),th:u8[o+6]/255*Math.PI,
+      r:u8[o+7],g:u8[o+8],b:u8[o+9],a:u8[o+10]/255};o+=REC;
+  }
+  return {blobs,W,H,base};
+}
+/* ---- container (multi-frame) ---------------------------------------------
+   magic "OOIV" · W · H · frameCount · fps · ver, then per frame a uint32
+   byte-length followed by that many bytes of a complete v1 .ooid frame.
+   A still is just a bare "OOID" file (the N=1 case); the length prefixes let
+   the decoder walk frame boundaries and let byte-edits cascade across them.  */
+const VHEADER=16;
+function isContainer(buf){const u8=new Uint8Array(buf);return u8[0]===79&&u8[1]===79&&u8[2]===73&&u8[3]===86;}
+function encodeContainer(frames,W,H,fps){
+  let total=VHEADER;for(const f of frames)total+=4+f.byteLength;
+  const buf=new ArrayBuffer(total),dv=new DataView(buf),u8=new Uint8Array(buf);
+  u8[0]=79;u8[1]=79;u8[2]=73;u8[3]=86;                       // "OOIV"
+  dv.setUint16(4,W,true);dv.setUint16(6,H,true);
+  dv.setUint16(8,Math.min(65535,frames.length),true);
+  u8[10]=Math.max(1,Math.min(255,fps|0));u8[11]=1;u8[12]=0;u8[13]=0;u8[14]=0;u8[15]=0;
+  let o=VHEADER;
+  for(const f of frames){const len=f.byteLength;dv.setUint32(o,len,true);o+=4;
+    u8.set(new Uint8Array(f),o);o+=len;}
+  return buf;
+}
+function decodeContainer(buf){
+  const dv=new DataView(buf),u8=new Uint8Array(buf);
+  const W=dv.getUint16(4,true),H=dv.getUint16(6,true),fc=dv.getUint16(8,true),fps=u8[10];
+  const frames=[];let o=VHEADER;
+  for(let f=0;f<fc&&o+4<=buf.byteLength;f++){
+    let len=dv.getUint32(o,true);o+=4;
+    const rem=buf.byteLength-o;if(rem<=0)break;
+    if(len>rem)len=rem;                                       // corrupted/oversized length → clamp to what's left
+    frames.push(buf.slice(o,o+len));o+=len;
+  }
+  return {W,H,fps,frames};
+}
+
+/* ---- WebGL2 renderer ------------------------------------------------------ */
+const cv=$('cv');
+const gl=cv.getContext('webgl2',{alpha:false,antialias:false,preserveDrawingBuffer:true});
+if(!gl){document.body.innerHTML='<p style="padding:40px;font-family:monospace">WebGL2 unavailable.</p>';}
+const VS=`#version 300 es
+in vec2 a_quad;in vec2 a_center;in vec2 a_sigma;in float a_theta;in vec3 a_color;in float a_alpha;
+uniform vec2 u_res;uniform float u_ext;out vec2 v_local;out vec3 v_color;out float v_alpha;
+void main(){v_local=a_quad;v_color=a_color;v_alpha=a_alpha;
+ vec2 sc=a_quad*a_sigma*u_ext;float c=cos(a_theta),s=sin(a_theta);
+ vec2 rot=vec2(sc.x*c-sc.y*s,sc.x*s+sc.y*c);vec2 px=a_center+rot;
+ vec2 clip=(px/u_res)*2.0-1.0;clip.y=-clip.y;gl_Position=vec4(clip,0.0,1.0);}`;
+const FS=`#version 300 es
+precision highp float;in vec2 v_local;in vec3 v_color;in float v_alpha;uniform float u_ext;out vec4 frag;
+void main(){float d2=dot(v_local,v_local)*u_ext*u_ext;float g=exp(-0.5*d2);float a=g*v_alpha;frag=vec4(v_color*a,a);}`;
+function sh(t,src){const s=gl.createShader(t);gl.shaderSource(s,src);gl.compileShader(s);
+  if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw gl.getShaderInfoLog(s);return s;}
+const prog=gl.createProgram();
+gl.attachShader(prog,sh(gl.VERTEX_SHADER,VS));gl.attachShader(prog,sh(gl.FRAGMENT_SHADER,FS));
+gl.linkProgram(prog);gl.useProgram(prog);
+const quadBuf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,quadBuf);
+gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]),gl.STATIC_DRAW);
+const aQuad=gl.getAttribLocation(prog,'a_quad');gl.enableVertexAttribArray(aQuad);
+gl.vertexAttribPointer(aQuad,2,gl.FLOAT,false,0,0);
+const instBuf=gl.createBuffer();const STRIDE=9*4;
+const L={center:gl.getAttribLocation(prog,'a_center'),sigma:gl.getAttribLocation(prog,'a_sigma'),
+  theta:gl.getAttribLocation(prog,'a_theta'),color:gl.getAttribLocation(prog,'a_color'),alpha:gl.getAttribLocation(prog,'a_alpha')};
+gl.bindBuffer(gl.ARRAY_BUFFER,instBuf);
+function ia(loc,size,off){gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,size,gl.FLOAT,false,STRIDE,off);gl.vertexAttribDivisor(loc,1);}
+ia(L.center,2,0);ia(L.sigma,2,8);ia(L.theta,1,16);ia(L.color,3,20);ia(L.alpha,1,32);
+const uRes=gl.getUniformLocation(prog,'u_res'),uExt=gl.getUniformLocation(prog,'u_ext');
+gl.enable(gl.BLEND);gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
+function render(blobs,W,H,base){
+  if(cv.width!==W||cv.height!==H){cv.width=W;cv.height=H;}
+  gl.viewport(0,0,W,H);gl.uniform2f(uRes,W,H);gl.uniform1f(uExt,EXT);
+  gl.clearColor(base[0]/255,base[1]/255,base[2]/255,1);gl.clear(gl.COLOR_BUFFER_BIT);
+  const n=blobs.length,arr=new Float32Array(n*9);
+  for(let i=0;i<n;i++){const b=blobs[i],o=i*9;
+    arr[o]=b.x;arr[o+1]=b.y;arr[o+2]=b.s1;arr[o+3]=b.s2;arr[o+4]=b.th;
+    arr[o+5]=b.r/255;arr[o+6]=b.g/255;arr[o+7]=b.b/255;arr[o+8]=b.a;}
+  gl.bindBuffer(gl.ARRAY_BUFFER,instBuf);gl.bufferData(gl.ARRAY_BUFFER,arr,gl.DYNAMIC_DRAW);
+  gl.drawArraysInstanced(gl.TRIANGLES,0,6,n);
+}
+
+/* ---- damage --------------------------------------------------------------- */
+const fieldOffsets=k=>({position:[0,1,2,3],size:[4,5],orient:[6],hue:[7,8,9]}[k]);
+function damage(clean,d){
+  const buf=clean.slice(0),u8=new Uint8Array(buf),dv=new DataView(buf);
+  const declared=dv.getUint16(8,true);
+  const n=Math.min(declared,Math.floor((buf.byteLength-HEADER)/REC));
+  for(const [kind,amt] of [['position',d.pos],['size',d.size],['orient',d.orient],['hue',d.hue]]){
+    if(amt<=0)continue;const offs=fieldOffsets(kind);
+    for(let i=0;i<n;i++){const rec=HEADER+i*REC;
+      for(const off of offs){
+        if(kind==='position'){ if(off===1||off===3)continue;
+          const lo=rec+off,v=u8[lo]|(u8[lo+1]<<8);
+          const nv=Math.max(0,Math.min(65535,v+Math.round((Math.random()*2-1)*amt*0.01*9000)));
+          u8[lo]=nv&255;u8[lo+1]=(nv>>8)&255;
+        } else { u8[rec+off]=Math.max(0,Math.min(255,u8[rec+off]+Math.round((Math.random()*2-1)*amt*0.01*200)))&255; }
+      }
+    }
+  }
+  if(d.band>0){const region=buf.byteLength-HEADER,w=Math.floor(region*d.band*0.01*0.6),start=HEADER+Math.floor((region-w)/2);
+    for(let i=start;i<start+w&&i<buf.byteLength;i++) if(Math.random()<0.55) u8[i]=(u8[i]*3+101)&255;}
+  if(d.corrupt>0){const p=d.corrupt*0.01*0.02;for(let i=HEADER;i<buf.byteLength;i++) if(Math.random()<p) u8[i]=(Math.random()*256)|0;}
+  if(d.shuffle){const recs=[];for(let i=0;i<n;i++)recs.push(u8.slice(HEADER+i*REC,HEADER+(i+1)*REC));
+    for(let i=recs.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[recs[i],recs[j]]=[recs[j],recs[i]];}
+    for(let i=0;i<n;i++)u8.set(recs[i],HEADER+i*REC);}
+  if(d.trunc<100){const keep=Math.max(0,Math.round(n*d.trunc*0.01));return buf.slice(0,HEADER+keep*REC);}
+  return buf;
+}
+
+/* ====================================================================== noise */
+let rngState=12345;
+function srng(){rngState=(rngState*1664525+1013904223)>>>0;return rngState/4294967296;}
+const seed=s=>{rngState=s>>>0;};
+function hash2(x,y){let h=Math.imul(x|0,374761393)^Math.imul(y|0,668265263);h=Math.imul(h^(h>>>13),1274126177);h^=h>>>16;return (h>>>0)/4294967296;}
+function vnoise(x,y){const xi=Math.floor(x),yi=Math.floor(y),xf=x-xi,yf=y-yi;
+  const u=xf*xf*(3-2*xf),v=yf*yf*(3-2*yf);
+  const a=hash2(xi,yi),b=hash2(xi+1,yi),c=hash2(xi,yi+1),d=hash2(xi+1,yi+1);
+  return a+(b-a)*u+(c-a)*v+(a-b-c+d)*u*v;}
+function fbm(x,y,oct){let s=0,amp=.5,f=1;for(let i=0;i<oct;i++){s+=amp*vnoise(x*f,y*f);f*=2;amp*=.5;}return s;}
+function voro(x,y){const xi=Math.floor(x),yi=Math.floor(y);let best=1e9,bx=0,by=0;
+  for(let j=-1;j<=1;j++)for(let i=-1;i<=1;i++){const cx=xi+i,cy=yi+j;
+    const fx=cx+hash2(cx,cy),fy=cy+hash2(cy+91,cx+57);const dx=fx-x,dy=fy-y,d=dx*dx+dy*dy;
+    if(d<best){best=d;bx=cx;by=cy;}}
+  return hash2(bx*13+5,by*7+3);}
+
+/* ====================================================================== field */
+const hex2rgb=h=>[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];
+const mixc=(a,b,t)=>[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t];
+function pal3(P,t){t=clamp01(t);return t<.5?mixc(P.c0,P.c1,t*2):mixc(P.c1,P.c2,(t-.5)*2);}
+function fieldColor(P,u,v){
+  if(P.warp>0){const w=P.warp;
+    u+=(fbm(u*P.scale*1.3+11,v*P.scale*1.3+7,3)-.5)*w;
+    v+=(fbm(u*P.scale*1.3+31,v*P.scale*1.3+57,3)-.5)*w;}
+  const ca=Math.cos(P.angle),sa=Math.sin(P.angle);let t;
+  switch(P.shape){
+    case 'gradient': t=(u*ca+v*sa)*0.5+0.25;break;
+    case 'radial':{const dx=u-.5,dy=v-.5;t=Math.hypot(dx,dy)*2*P.scale*0.5;t=t-Math.floor(t);break;}
+    case 'waves':{const t1=0.5+0.5*Math.sin((u*ca+v*sa)*P.scale*Math.PI*2);
+      const t2=0.5+0.5*Math.sin((v*ca-u*sa)*P.scale*Math.PI*2*0.7);t=(t1+t2)/2;break;}
+    case 'cells': t=voro(u*P.scale,v*P.scale);break;
+    case 'flow': default: t=fbm(u*P.scale+5,v*P.scale+9,4);break;
+  }
+  return pal3(P,t);
+}
+function fieldLum(P,u,v){const c=fieldColor(P,u,v);return 0.299*c[0]+0.587*c[1]+0.114*c[2];}
+function generateField(P,W,H){
+  seed((Math.random()*1e9)>>>0);const n=P.count,blobs=[];
+  const gmax=P.grain*0.16*Math.min(W,H), gmin=Math.max(0.8,gmax*0.08);
+  for(let i=0;i<n;i++){
+    const u=srng(),v=srng(),t=i/n;
+    let sbase=lerp(gmax,gmin,t)*(0.55+0.9*srng());
+    let th=srng()*Math.PI,ratio=1;
+    if(P.aniso>0){const e=0.004;
+      const gx=fieldLum(P,u+e,v)-fieldLum(P,u-e,v),gy=fieldLum(P,u,v+e)-fieldLum(P,u,v-e);
+      if(Math.hypot(gx,gy)>0.8){th=Math.atan2(gy,gx)+Math.PI/2;ratio=1+P.aniso*3.2;}}
+    const s1=Math.max(SIG_MIN,sbase*Math.sqrt(ratio)),s2=Math.max(SIG_MIN,sbase/Math.sqrt(ratio));
+    const [r,g,b]=fieldColor(P,u,v);
+    blobs.push({x:u*W,y:v*H,s1,s2,th,r:r&255,g:g&255,b:b&255,a:P.alpha*(0.6+0.5*srng())});
+  }
+  blobs.sort((p,q)=>(q.s1*q.s2)-(p.s1*p.s2));
+  return blobs;
+}
+
+/* ===================================================================== encoder
+   residual-driven greedy fit: importance-sample the error map, seed a blob,
+   orient it by the local structure tensor, solve optimal alpha, composite.   */
+function buildTarget(img,FIT,OUT){
+  FIT=FIT||340; OUT=OUT||1024;
+  const iw=img.width||img.naturalWidth, ih=img.height||img.naturalHeight;
+  const fs=Math.min(1,FIT/Math.max(iw,ih)), Wf=Math.max(2,Math.round(iw*fs)), Hf=Math.max(2,Math.round(ih*fs));
+  const os=Math.min(1,OUT/Math.max(iw,ih)), Wo=Math.max(2,Math.round(iw*os)), Ho=Math.max(2,Math.round(ih*os));
+  const c=document.createElement('canvas');c.width=Wf;c.height=Hf;
+  const cx=c.getContext('2d');cx.drawImage(img,0,0,Wf,Hf);
+  const px=cx.getImageData(0,0,Wf,Hf).data;
+  const target=new Float32Array(Wf*Hf*3);let mr=0,mg=0,mb=0;
+  for(let i=0,j=0;i<Wf*Hf;i++,j+=4){target[i*3]=px[j]/255;target[i*3+1]=px[j+1]/255;target[i*3+2]=px[j+2]/255;
+    mr+=px[j];mg+=px[j+1];mb+=px[j+2];}
+  const np=Wf*Hf,mean=[mr/np/255,mg/np/255,mb/np/255];
+  return {target,Wf,Hf,Wo,Ho,mean};
+}
+function tensorOri(target,W,H,px,py,rad){
+  let Jxx=0,Jxy=0,Jyy=0;rad=Math.max(2,Math.min(18,rad|0));
+  const x0=Math.max(1,px-rad),x1=Math.min(W-2,px+rad),y0=Math.max(1,py-rad),y1=Math.min(H-2,py+rad);
+  const lum=(x,y)=>{const i=(y*W+x)*3;return 0.299*target[i]+0.587*target[i+1]+0.114*target[i+2];};
+  for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){
+    const gx=lum(x+1,y)-lum(x-1,y),gy=lum(x,y+1)-lum(x,y-1);
+    Jxx+=gx*gx;Jyy+=gy*gy;Jxy+=gx*gy;}
+  const th=0.5*Math.atan2(2*Jxy,Jxx-Jyy)+Math.PI/2;     // along the edge
+  const tr=Jxx+Jyy,diff=Math.sqrt((Jxx-Jyy)*(Jxx-Jyy)+4*Jxy*Jxy);
+  const coh=tr>1e-6?diff/tr:0;                            // 0 flat .. 1 strong edge
+  return {th,coh};
+}
+function localMean(target,W,H,px,py,rad){
+  let r=0,g=0,b=0,n=0;rad=Math.max(1,rad|0);
+  const x0=Math.max(0,px-rad),x1=Math.min(W-1,px+rad),y0=Math.max(0,py-rad),y1=Math.min(H-1,py+rad);
+  for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const i=(y*W+x)*3;r+=target[i];g+=target[i+1];b+=target[i+2];n++;}
+  return [r/n,g/n,b/n];
+}
+// composite one blob into acc with least-squares-optimal alpha; returns alpha
+function placeBlob(acc,target,W,H,cx,cy,s1,s2,th,c){
+  const co=Math.cos(th),si=Math.sin(th),R=EXT;
+  const rad=Math.ceil(R*Math.max(s1,s2));
+  const x0=Math.max(0,cx-rad),x1=Math.min(W-1,cx+rad),y0=Math.max(0,cy-rad),y1=Math.min(H-1,cy+rad);
+  let num=0,den=0;
+  for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){
+    const dx=x-cx,dy=y-cy;const lx=(dx*co+dy*si)/s1,ly=(-dx*si+dy*co)/s2;
+    const d2=lx*lx+ly*ly;if(d2>R*R)continue;const g=Math.exp(-0.5*d2);
+    const i=(y*W+x)*3;
+    for(let k=0;k<3;k++){const e=acc[i+k]-target[i+k],d=c[k]-acc[i+k];num+=g*(e*d);den+=g*g*(d*d);}
+  }
+  if(den<1e-9)return 0;
+  let a=-num/den;a=a<0?0:a>1?1:a;if(a<0.012)return 0;
+  for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){
+    const dx=x-cx,dy=y-cy;const lx=(dx*co+dy*si)/s1,ly=(-dx*si+dy*co)/s2;
+    const d2=lx*lx+ly*ly;if(d2>R*R)continue;const g=Math.exp(-0.5*d2),ag=a*g;
+    const i=(y*W+x)*3;
+    acc[i]+=ag*(c[0]-acc[i]);acc[i+1]+=ag*(c[1]-acc[i+1]);acc[i+2]+=ag*(c[2]-acc[i+2]);
+  }
+  return a;
+}
+let fitToken=0;
+function fitImage(T,opts,onBatch,onDone){
+  const myToken=++fitToken;
+  const {target,Wf,Hf,Wo,Ho,mean}=T,N=opts.count;
+  const acc=new Float32Array(Wf*Hf*3);for(let i=0;i<acc.length;i+=3){acc[i]=mean[0];acc[i+1]=mean[1];acc[i+2]=mean[2];}
+  const base=[Math.round(mean[0]*255),Math.round(mean[1]*255),Math.round(mean[2]*255)];
+  const blobs=[];const sStart=lerp(0.06,0.18,opts.bias)*Math.min(Wf,Hf),sEnd=1.05;
+  const aniso=opts.aniso, batch=Math.max(12,Math.round(N/70));let i=0;
+  const cdf=new Float32Array(Wf*Hf);
+  function buildCdf(){let s=0;for(let p=0;p<Wf*Hf;p++){const j=p*3;
+    const er=acc[j]-target[j],eg=acc[j+1]-target[j+1],eb=acc[j+2]-target[j+2];
+    s+=er*er+eg*eg+eb*eb+1e-5;cdf[p]=s;}return s;}
+  function sample(total){let lo=0,hi=Wf*Hf-1,r=Math.random()*total;
+    while(lo<hi){const m=(lo+hi)>>1;if(cdf[m]<r)lo=m+1;else hi=m;}return lo;}
+  function step(){
+    if(myToken!==fitToken)return;            // a newer fit superseded this one
+    const total=buildCdf();let placed=0;
+    while(placed<batch&&i<N){
+      const idx=sample(total),px=idx%Wf,py=(idx/Wf)|0,frac=i/N;
+      let sbase=lerp(sStart,sEnd,frac*frac)*(0.6+0.7*Math.random());
+      const {th,coh}=tensorOri(target,Wf,Hf,px,py,sbase);
+      const ratio=1+aniso*2.4*coh;
+      const s1=Math.max(0.7,sbase*Math.sqrt(ratio)),s2=Math.max(0.7,sbase/Math.sqrt(ratio));
+      const c=localMean(target,Wf,Hf,px,py,Math.max(1,sbase*0.5));
+      const a=placeBlob(acc,target,Wf,Hf,px,py,s1,s2,th,c);
+      if(a>0){const sc=Wo/Wf;blobs.push({x:(px/Wf)*Wo,y:(py/Hf)*Ho,s1:s1*sc,s2:s2*sc,th,
+        r:Math.round(c[0]*255),g:Math.round(c[1]*255),b:Math.round(c[2]*255),a});}
+      i++;placed++;
+    }
+    onBatch(blobs,Wo,Ho,base,i/N);
+    if(i<N)requestAnimationFrame(step);else onDone(blobs,Wo,Ho,base);
+  }
+  step();
+}
+
+/* ============================================================ high-fidelity fit
+   Tier 1 — fit against a higher-resolution target, larger budget, stop early
+            when the residual plateaus.
+   Tier 2 — refinement sweeps: recomposite in record order and re-solve each
+            blob's optimal colour + alpha against the live residual (closed form).
+   Tier 3 — (opt-in) also nudge each blob's position / size / orientation by
+            local search, keeping a change only when squared error drops.
+   All footprint maths reuse the same least-squares logic as placeBlob.        */
+function bestFit(acc,target,W,H,cx,cy,s1,s2,th,sr,sg,sb){
+  const co=Math.cos(th),si=Math.sin(th),R=EXT,rad=Math.ceil(R*Math.max(s1,s2));
+  const x0=Math.max(0,(cx-rad)|0),x1=Math.min(W-1,(cx+rad)|0);
+  const y0=Math.max(0,(cy-rad)|0),y1=Math.min(H-1,(cy+rad)|0);
+  // pass 1 — optimal alpha for the seed colour
+  let num=0,den=0;
+  for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){
+    const dx=x-cx,dy=y-cy,lx=(dx*co+dy*si)/s1,ly=(-dx*si+dy*co)/s2,d2=lx*lx+ly*ly;
+    if(d2>R*R)continue;const g=Math.exp(-0.5*d2),i=(y*W+x)*3;
+    let e,d; e=acc[i]-target[i];d=sr-acc[i];num+=g*e*d;den+=g*g*d*d;
+    e=acc[i+1]-target[i+1];d=sg-acc[i+1];num+=g*e*d;den+=g*g*d*d;
+    e=acc[i+2]-target[i+2];d=sb-acc[i+2];num+=g*e*d;den+=g*g*d*d;
+  }
+  let a=den<1e-9?0:-num/den;a=a<0?0:a>1?1:a;
+  // pass 2 — optimal colour per channel for that alpha
+  let n0=0,n1=0,n2=0,d0=0,d1=0,d2s=0;
+  for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){
+    const dx=x-cx,dy=y-cy,lx=(dx*co+dy*si)/s1,ly=(-dx*si+dy*co)/s2,d2=lx*lx+ly*ly;
+    if(d2>R*R)continue;const g=Math.exp(-0.5*d2),A=a*g,i=(y*W+x)*3,AA=A*A;
+    n0+=A*(acc[i]*(1-A)-target[i]);     d0+=AA;
+    n1+=A*(acc[i+1]*(1-A)-target[i+1]); d1+=AA;
+    n2+=A*(acc[i+2]*(1-A)-target[i+2]); d2s+=AA;
+  }
+  let cr=d0<1e-9?sr:-n0/d0, cg=d1<1e-9?sg:-n1/d1, cb=d2s<1e-9?sb:-n2/d2s;
+  cr=cr<0?0:cr>1?1:cr; cg=cg<0?0:cg>1?1:cg; cb=cb<0?0:cb>1?1:cb;
+  // pass 3 — re-solve alpha for the refined colour
+  num=0;den=0;
+  for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){
+    const dx=x-cx,dy=y-cy,lx=(dx*co+dy*si)/s1,ly=(-dx*si+dy*co)/s2,d2=lx*lx+ly*ly;
+    if(d2>R*R)continue;const g=Math.exp(-0.5*d2),i=(y*W+x)*3;
+    let e,d; e=acc[i]-target[i];d=cr-acc[i];num+=g*e*d;den+=g*g*d*d;
+    e=acc[i+1]-target[i+1];d=cg-acc[i+1];num+=g*e*d;den+=g*g*d*d;
+    e=acc[i+2]-target[i+2];d=cb-acc[i+2];num+=g*e*d;den+=g*g*d*d;
+  }
+  a=den<1e-9?0:-num/den;a=a<0?0:a>1?1:a;
+  // pass 4 — squared-error reduction this blob buys over its footprint
+  let gain=0;
+  for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){
+    const dx=x-cx,dy=y-cy,lx=(dx*co+dy*si)/s1,ly=(-dx*si+dy*co)/s2,d2=lx*lx+ly*ly;
+    if(d2>R*R)continue;const g=Math.exp(-0.5*d2),ag=a*g,i=(y*W+x)*3;
+    let e0,e1;
+    e0=acc[i]-target[i];    e1=e0+ag*(cr-acc[i]);    gain+=e0*e0-e1*e1;
+    e0=acc[i+1]-target[i+1];e1=e0+ag*(cg-acc[i+1]);  gain+=e0*e0-e1*e1;
+    e0=acc[i+2]-target[i+2];e1=e0+ag*(cb-acc[i+2]);  gain+=e0*e0-e1*e1;
+  }
+  return {a,r:cr,g:cg,b:cb,gain};
+}
+function compositeBlob(acc,W,H,cx,cy,s1,s2,th,a,cr,cg,cb){
+  if(a<=0)return;
+  const co=Math.cos(th),si=Math.sin(th),R=EXT,rad=Math.ceil(R*Math.max(s1,s2));
+  const x0=Math.max(0,(cx-rad)|0),x1=Math.min(W-1,(cx+rad)|0);
+  const y0=Math.max(0,(cy-rad)|0),y1=Math.min(H-1,(cy+rad)|0);
+  for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){
+    const dx=x-cx,dy=y-cy,lx=(dx*co+dy*si)/s1,ly=(-dx*si+dy*co)/s2,d2=lx*lx+ly*ly;
+    if(d2>R*R)continue;const g=Math.exp(-0.5*d2),ag=a*g,i=(y*W+x)*3;
+    acc[i]+=ag*(cr-acc[i]);acc[i+1]+=ag*(cg-acc[i+1]);acc[i+2]+=ag*(cb-acc[i+2]);
+  }
+}
+function recolourBlob(acc,target,W,H,bl){
+  const f=bestFit(acc,target,W,H,bl.cx,bl.cy,bl.s1,bl.s2,bl.th,bl.r,bl.g,bl.b);
+  bl.r=f.r;bl.g=f.g;bl.b=f.b;bl.a=f.gain>0?f.a:0;
+  compositeBlob(acc,W,H,bl.cx,bl.cy,bl.s1,bl.s2,bl.th,bl.a,bl.r,bl.g,bl.b);
+}
+function refineGeomBlob(acc,target,W,H,bl){
+  const dp=Math.max(0.6,Math.min(bl.s1,bl.s2)*0.5);
+  const cand=[
+    [bl.cx,bl.cy,bl.s1,bl.s2,bl.th],
+    [bl.cx+dp,bl.cy,bl.s1,bl.s2,bl.th],[bl.cx-dp,bl.cy,bl.s1,bl.s2,bl.th],
+    [bl.cx,bl.cy+dp,bl.s1,bl.s2,bl.th],[bl.cx,bl.cy-dp,bl.s1,bl.s2,bl.th],
+    [bl.cx,bl.cy,bl.s1*1.18,bl.s2*1.18,bl.th],[bl.cx,bl.cy,bl.s1*0.85,bl.s2*0.85,bl.th],
+    [bl.cx,bl.cy,bl.s1,bl.s2,bl.th+0.34],[bl.cx,bl.cy,bl.s1,bl.s2,bl.th-0.34]
+  ];
+  let best=null,bg=-1e9;
+  for(const c of cand){
+    const s1=Math.max(0.6,c[2]),s2=Math.max(0.6,c[3]);
+    const f=bestFit(acc,target,W,H,c[0],c[1],s1,s2,c[4],bl.r,bl.g,bl.b);
+    if(f.gain>bg){bg=f.gain;best={cx:c[0],cy:c[1],s1,s2,th:c[4],f};}
+  }
+  if(best&&bg>0){bl.cx=best.cx;bl.cy=best.cy;bl.s1=best.s1;bl.s2=best.s2;bl.th=best.th;
+    bl.r=best.f.r;bl.g=best.f.g;bl.b=best.f.b;bl.a=best.f.a;
+    compositeBlob(acc,W,H,bl.cx,bl.cy,bl.s1,bl.s2,bl.th,bl.a,bl.r,bl.g,bl.b);
+  } else recolourBlob(acc,target,W,H,bl);
+}
+function fitImageHQ(T,opts,onProgress,onDone){
+  const myToken=++fitToken;
+  const {target,Wf,Hf,Wo,Ho,mean}=T,N=opts.count,sc=Wo/Wf;
+  const acc=new Float32Array(Wf*Hf*3);
+  const resetAcc=()=>{for(let i=0;i<acc.length;i+=3){acc[i]=mean[0];acc[i+1]=mean[1];acc[i+2]=mean[2];}};
+  resetAcc();
+  const base=[Math.round(mean[0]*255),Math.round(mean[1]*255),Math.round(mean[2]*255)];
+  const fb=[];                                       // fit-resolution blobs
+  const sStart=lerp(0.06,0.18,opts.bias)*Math.min(Wf,Hf),sEnd=1.05;
+  const aniso=opts.aniso, batch=Math.max(16,Math.round(N/90)), sweeps=opts.sweeps|0;
+  const cdf=new Float32Array(Wf*Hf);
+  function buildCdf(){let s=0;for(let p=0;p<Wf*Hf;p++){const j=p*3;
+    const er=acc[j]-target[j],eg=acc[j+1]-target[j+1],eb=acc[j+2]-target[j+2];
+    s+=er*er+eg*eg+eb*eb+1e-5;cdf[p]=s;}return s;}
+  function sample(total){let lo=0,hi=Wf*Hf-1,r=Math.random()*total;
+    while(lo<hi){const m=(lo+hi)>>1;if(cdf[m]<r)lo=m+1;else hi=m;}return lo;}
+  function pack(filter){const out=[];for(const b of fb){if(filter&&b.a<=0.004)continue;
+    out.push({x:b.cx*sc,y:b.cy*sc,s1:b.s1*sc,s2:b.s2*sc,th:b.th,
+      r:Math.round(b.r*255),g:Math.round(b.g*255),b:Math.round(b.b*255),a:b.a});}return out;}
+
+  let phase='place',i=0,prevTot=Infinity,flat=0,sweep=0,bi=0;
+  function frame(){
+    if(myToken!==fitToken)return;                    // superseded or stopped
+    const t0=performance.now();
+    if(phase==='place'){
+      while(performance.now()-t0<20 && i<N){
+        const total=buildCdf();
+        if(opts.adaptive && i>batch){
+          const drop=(prevTot-total)/(prevTot+1e-9);
+          if(drop<6e-5){if(++flat>=4){i=N;break;}}else flat=0;
+        }
+        prevTot=total;
+        let placed=0;
+        while(placed<batch&&i<N){
+          const idx=sample(total),px=idx%Wf,py=(idx/Wf)|0,frac=i/N;
+          const sbase=lerp(sStart,sEnd,frac*frac)*(0.6+0.7*Math.random());
+          const {th,coh}=tensorOri(target,Wf,Hf,px,py,sbase);
+          const ratio=1+aniso*2.4*coh;
+          const s1=Math.max(0.7,sbase*Math.sqrt(ratio)),s2=Math.max(0.7,sbase/Math.sqrt(ratio));
+          const c=localMean(target,Wf,Hf,px,py,Math.max(1,sbase*0.5));
+          const f=bestFit(acc,target,Wf,Hf,px,py,s1,s2,th,c[0],c[1],c[2]);
+          if(f.a>0.012&&f.gain>0){
+            compositeBlob(acc,Wf,Hf,px,py,s1,s2,th,f.a,f.r,f.g,f.b);
+            fb.push({cx:px,cy:py,s1,s2,th,r:f.r,g:f.g,b:f.b,a:f.a});
+          }
+          i++;placed++;
+        }
+      }
+      onProgress(pack(false),Wo,Ho,base,sweeps>0?0.5*(i/N):(i/N));
+      if(i<N){requestAnimationFrame(frame);return;}
+      if(sweeps>0){phase='refine';sweep=0;bi=0;resetAcc();requestAnimationFrame(frame);return;}
+      onDone(pack(true),Wo,Ho,base);return;
+    }
+    // refine
+    const M=fb.length,step=Math.max(64,Math.round(M/40));
+    while(performance.now()-t0<20 && bi<M){
+      const end=Math.min(M,bi+step);
+      if(opts.geom)for(;bi<end;bi++)refineGeomBlob(acc,target,Wf,Hf,fb[bi]);
+      else for(;bi<end;bi++)recolourBlob(acc,target,Wf,Hf,fb[bi]);
+    }
+    onProgress(pack(false),Wo,Ho,base,0.5+0.5*((sweep+bi/M)/sweeps));
+    if(bi>=M){sweep++;bi=0;
+      if(sweep<sweeps){resetAcc();requestAnimationFrame(frame);return;}
+      onDone(pack(true),Wo,Ho,base);return;}
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+}
+
+/* ============================================================== quality fit
+   A single greedy pass like the fast encoder, but placing with the optimal
+   colour/alpha solver against a higher-resolution target — and periodically
+   offering a REACH-BACK candidate: a large blob, scale-laddered to the local
+   error region, kept only when its closed-form gain beats the alternatives.
+   This restores coarse correction the fine-only schedule can't reach.        */
+function fitImageQ(T,opts,onBatch,onDone){
+  const myToken=++fitToken;
+  const {target,Wf,Hf,Wo,Ho,mean}=T,N=opts.count,sc=Wo/Wf;
+  const acc=new Float32Array(Wf*Hf*3);for(let i=0;i<acc.length;i+=3){acc[i]=mean[0];acc[i+1]=mean[1];acc[i+2]=mean[2];}
+  const base=[Math.round(mean[0]*255),Math.round(mean[1]*255),Math.round(mean[2]*255)];
+  const blobs=[];const sStart=lerp(0.06,0.18,opts.bias)*Math.min(Wf,Hf),sEnd=1.05;
+  const aniso=opts.aniso, batch=Math.max(12,Math.round(N/70));let i=0;
+  const reach=opts.reach, every=Math.max(3,opts.reachEvery|0), RBMAX=0.30*Math.min(Wf,Hf);
+  const cdf=new Float32Array(Wf*Hf);
+  function buildCdf(){let s=0;for(let p=0;p<Wf*Hf;p++){const j=p*3;
+    const er=acc[j]-target[j],eg=acc[j+1]-target[j+1],eb=acc[j+2]-target[j+2];
+    s+=er*er+eg*eg+eb*eb+1e-5;cdf[p]=s;}return s;}
+  function sample(total){let lo=0,hi=Wf*Hf-1,r=Math.random()*total;
+    while(lo<hi){const m=(lo+hi)>>1;if(cdf[m]<r)lo=m+1;else hi=m;}return lo;}
+  function emit(px,py,s1,s2,th,f){
+    compositeBlob(acc,Wf,Hf,px,py,s1,s2,th,f.a,f.r,f.g,f.b);
+    blobs.push({x:px*sc,y:py*sc,s1:s1*sc,s2:s2*sc,th,
+      r:Math.round(f.r*255),g:Math.round(f.g*255),b:Math.round(f.b*255),a:f.a});
+  }
+  function placeNormal(px,py,frac){
+    const sb=lerp(sStart,sEnd,frac*frac)*(0.6+0.7*Math.random());
+    const {th,coh}=tensorOri(target,Wf,Hf,px,py,sb);
+    const ratio=1+aniso*2.4*coh;
+    const s1=Math.max(0.7,sb*Math.sqrt(ratio)),s2=Math.max(0.7,sb/Math.sqrt(ratio));
+    const c=localMean(target,Wf,Hf,px,py,Math.max(1,sb*0.5));
+    const f=bestFit(acc,target,Wf,Hf,px,py,s1,s2,th,c[0],c[1],c[2]);
+    if(f.a>0.012&&f.gain>0)emit(px,py,s1,s2,th,f);
+  }
+  function placeReach(px,py,frac){
+    const baseS=lerp(sStart,sEnd,frac*frac);
+    let best=null,bg=0;
+    for(const mul of [3,6,11]){
+      const sb=Math.min(RBMAX,baseS*mul);
+      const {th,coh}=tensorOri(target,Wf,Hf,px,py,sb);
+      const ratio=1+aniso*2.4*coh;
+      const s1=Math.max(0.7,sb*Math.sqrt(ratio)),s2=Math.max(0.7,sb/Math.sqrt(ratio));
+      const c=localMean(target,Wf,Hf,px,py,Math.max(1,sb*0.5));
+      const f=bestFit(acc,target,Wf,Hf,px,py,s1,s2,th,c[0],c[1],c[2]);
+      if(f.a>0.012&&f.gain>bg){bg=f.gain;best={s1,s2,th,f};}
+    }
+    if(best){emit(px,py,best.s1,best.s2,best.th,best.f);return true;}
+    return false;                                   // region already solved → nothing earned
+  }
+  function step(){
+    if(myToken!==fitToken)return;
+    const total=buildCdf();let placed=0;
+    while(placed<batch&&i<N){
+      const idx=sample(total),px=idx%Wf,py=(idx/Wf)|0,frac=i/N;
+      if(reach&&frac>0.28&&(i%every===0)){
+        if(!placeReach(px,py,frac))placeNormal(px,py,frac);   // fall back so the attempt isn't wasted
+      } else placeNormal(px,py,frac);
+      i++;placed++;
+    }
+    onBatch(blobs,Wo,Ho,base,i/N);
+    if(i<N)requestAnimationFrame(step);else onDone(blobs,Wo,Ho,base);
+  }
+  step();
+}
+
+/* ====================================================================== state */
+let mode='field', cleanBuf=null, curTarget=null, curImg=null;
+const FW=768,FH=768;
+const D={corrupt:0,trunc:100,pos:0,size:0,orient:0,hue:0,band:0,shuffle:false};
+const FP={shape:'flow',c0:[28,79,110],c1:[52,223,198],c2:[207,92,255],
+  scale:11,warp:.6,angle:1.2,count:2800,grain:.4,aniso:.45,alpha:.55};
+
+function readFieldParams(){
+  FP.c0=hex2rgb($('c0').value);FP.c1=hex2rgb($('c1').value);FP.c2=hex2rgb($('c2').value);
+  FP.scale=lerp(0.5,14,$('fscale').value/100);
+  FP.warp=lerp(0,1.1,$('fwarp').value/100);
+  FP.angle=$('fangle').value/100*Math.PI*2;
+  FP.count=+$('fcount').value;FP.grain=$('fgrain').value/100;
+  FP.aniso=$('faniso').value/100;FP.alpha=$('falpha').value/100;
+}
+function buildField(){
+  if(editing)exitEdit(false);
+  readFieldParams();SIG_MAX=0.45*Math.min(FW,FH);
+  const blobs=generateField(FP,FW,FH);
+  const lums=[FP.c0,FP.c1,FP.c2].map(c=>0.299*c[0]+0.587*c[1]+0.114*c[2]);
+  const dk=[FP.c0,FP.c1,FP.c2][lums.indexOf(Math.min(...lums))];
+  const base=[Math.round(dk[0]*0.5),Math.round(dk[1]*0.5),Math.round(dk[2]*0.5)];
+  cleanBuf=encode(blobs,FW,FH,base);apply();
+}
+
+/* ---- byte-edit state ---- */
+let editing=false, editHeader=null, editBody=null, hexDebounce=0, editOrigLen=0, vsnap=null;
+const strToBytes=s=>Uint8Array.from(s.split('').map(c=>c.charCodeAt(0)&255));
+const hexToBytes=s=>{const h=s.replace(/[^0-9a-fA-F]/g,'');const n=h.length>>1,o=new Uint8Array(n);
+  for(let i=0;i<n;i++)o[i]=parseInt(h.substr(i*2,2),16);return o;};
+const bytesToHex=b=>{let s='';for(let i=0;i<b.length;i++){s+=b[i].toString(16).padStart(2,'0');s+=(i%16===15)?'\n':' ';}return s.trim();};
+// mojibake: printable bytes as chars, control bytes as reversible Control-Pictures glyphs (no newline normalisation)
+const bytesToText=b=>{let s='';for(let i=0;i<b.length;i++){const c=b[i];
+  s+= c<0x20?String.fromCharCode(0x2400+c) : c===0x7f?'\u2421' : String.fromCharCode(c);}return s;};
+const textToBytes=s=>{const o=new Uint8Array(s.length);let n=0;
+  for(const ch of s){const cp=ch.codePointAt(0);
+    o[n++]= (cp>=0x2400&&cp<=0x2420)?cp-0x2400 : cp===0x2421?0x7f : cp&0xff;}
+  return o.subarray(0,n);};
+function editBuffer(){const out=new Uint8Array(16+editBody.length);out.set(editHeader,0);out.set(editBody,16);return out.buffer;}
+function currentBuf(){if(editing)return editBuffer();if(hasVideo())return cleanBuf;return damage(cleanBuf,D);}
+function refreshSliderLock(){setSlidersLocked(editing||hasVideo());}
+
+function apply(){
+  if(!cleanBuf)return;
+  const buf=currentBuf();const {blobs,W,H,base}=decode(buf);
+  render(blobs,W,H,base);
+  $('ro_n').textContent=blobs.length;$('ro_b').textContent=buf.byteLength.toLocaleString();
+  let state,col;
+  if(editing){state='edited';col='var(--orchid)';}
+  else if(hasVideo()){state='frame';col='var(--acid)';$('dmg_v').textContent='video';}
+  else{const dirty=D.corrupt||D.pos||D.size||D.orient||D.hue||D.band||D.shuffle||D.trunc<100;
+    state=dirty?'damaged':'clean';col=dirty?'var(--orchid)':'var(--acid)';$('dmg_v').textContent=dirty?'active':'none';}
+  $('ro_state').textContent=state;$('ro_state').style.color=col;drawHex(buf);refreshSliderLock();
+}
+function drawHex(buf){
+  const u8=new Uint8Array(buf),hx=b=>b.toString(16).padStart(2,'0');
+  const cls=i=>i<4?'m':i<16?'h':'b';let l1='',l2='';
+  for(let i=0;i<16;i++)l1+=`<span class="${cls(i)}">${hx(u8[i])}</span> `;
+  for(let i=16;i<Math.min(28,u8.length);i++)l2+=`<span class="b">${hx(u8[i])}</span> `;
+  $('hex').innerHTML=`<span class="lab">header  · magic dims n mode ver base</span>\n`+l1.trim()+
+    `\n\n<span class="lab">record 0 · x y σ₁ σ₂ θ r g b a</span>\n`+(l2.trim()||'—');
+}
+
+/* ===================================================================== image  */
+function ingestFile(file){
+  if(!file)return;
+  if(editing)exitEdit(false);
+  if(/^video\//.test(file.type)||/\.(mp4|webm|mov|m4v|ogv|ogg)$/i.test(file.name)){ingestVideo(file);return;}
+  clearVideo();
+  const isOoid=/\.ooid$/i.test(file.name);
+  const fr=new FileReader();
+  if(isOoid){
+    fr.onload=()=>{const buf=fr.result.slice(0);const u8=new Uint8Array(buf);
+      if(isContainer(buf)){openContainer(buf);return;}
+      if(u8[0]!==79||u8[1]!==79||u8[2]!==73||u8[3]!==68){alert('Not an ooid file.');return;}
+      const dv=new DataView(buf);SIG_MAX=0.45*Math.min(dv.getUint16(4,true),dv.getUint16(6,true));
+      cleanBuf=buf;$('drop').classList.add('hidden');$('m_video').hidden=true;$('m_hq').hidden=false;$('m_bal').hidden=false;$('img_v').textContent='reopened';apply();};
+    fr.readAsArrayBuffer(file);return;
+  }
+  fr.onload=()=>{const img=new Image();img.onload=()=>{curImg=img;curTarget=buildTarget(img);
+      $('drop').classList.add('hidden');$('m_hq').hidden=false;$('m_bal').hidden=false;$('m_video').hidden=true;runFit();};
+    img.onerror=()=>alert('Could not read that image.');img.src=fr.result;};
+  fr.readAsDataURL(file);
+}
+function runFit(){
+  if(!curTarget)return;
+  if(editing)exitEdit(false);
+  hqBusy=false;$('hqstop').hidden=true;$('balstop').hidden=true;$('hq_v').textContent='idle';$('bal_v').textContent='idle';
+  SIG_MAX=0.45*Math.min(curTarget.Wo,curTarget.Ho);
+  encBusy(false);$('img_v').textContent='fitting…';
+  $('prog').classList.add('on');
+  const opts={count:+$('icount').value,bias:$('grainbias').value/100,aniso:$('aniso_i').value/100};
+  fitImage(curTarget,opts,
+    (blobs,W,H,base,p)=>{cleanBuf=encode(blobs,W,H,base);render(blobs,W,H,base);
+      $('prog_i').style.width=(p*100).toFixed(1)+'%';$('ro_n').textContent=blobs.length;},
+    (blobs,W,H,base)=>{cleanBuf=encode(blobs,W,H,base);
+      $('img_v').textContent=blobs.length+' blobs';$('prog').classList.remove('on');$('prog_i').style.width='0';apply();});
+}
+
+let hqBusy=false;
+function segVal(id){const b=$(id).querySelector('[aria-pressed="true"]');return b?+b.dataset.v:0;}
+function encBusy(on){                              // shared lock across the image encoders
+  $('refit').disabled=on||!curTarget;
+  $('hqgo').disabled =on||!curImg;
+  $('balgo').disabled=on||!curImg;
+}
+function runFitHQ(){
+  if(!curImg||hqBusy)return;
+  if(editing)exitEdit(false);
+  const FIT=+$('hqfit').value, OUT=2048;
+  const count=Math.min(65535,+$('hqcount').value), sweeps=+$('hqsweeps').value;
+  const adaptive=segVal('hqadaptive')===1, geom=segVal('hqgeom')===1;
+  const T=buildTarget(curImg,FIT,OUT);
+  SIG_MAX=0.45*Math.min(T.Wo,T.Ho);
+  hqBusy=true;encBusy(true);$('hqstop').hidden=false;
+  $('hq_v').textContent='fitting…';$('img_v').textContent='HD fit…';$('prog').classList.add('on');
+  const opts={count,bias:$('grainbias').value/100,aniso:$('aniso_i').value/100,sweeps,adaptive,geom};
+  fitImageHQ(T,opts,
+    (blobs,W,H,base,p)=>{cleanBuf=encode(blobs,W,H,base);render(blobs,W,H,base);
+      $('prog_i').style.width=(p*100).toFixed(1)+'%';$('ro_n').textContent=blobs.length;
+      $('hq_v').textContent=(p<0.5?'placing ':'refining ')+Math.round(p*100)+'%';},
+    (blobs,W,H,base)=>{cleanBuf=encode(blobs,W,H,base);
+      hqBusy=false;encBusy(false);$('hqstop').hidden=true;
+      $('hq_v').textContent=blobs.length.toLocaleString()+' blobs';$('img_v').textContent=blobs.length+' blobs';
+      $('prog').classList.remove('on');$('prog_i').style.width='0';apply();});
+}
+function stopHQ(keep){
+  if(!hqBusy)return;fitToken++;hqBusy=false;encBusy(false);$('hqstop').hidden=true;
+  $('prog').classList.remove('on');$('prog_i').style.width='0';
+  $('hq_v').textContent=keep?'stopped':'idle';if(keep)apply();
+}
+function balParams(){
+  const q=+$('balq').value/100;
+  const FIT=Math.round(lerp(340,640,q));
+  const count=Math.min(65535,Math.round(3200*(FIT/340)*(FIT/340)));
+  const OUT=Math.min(2048,Math.round(FIT*3));
+  return {FIT,count,OUT};
+}
+function updateBalEst(){const {FIT,count}=balParams();
+  $('balq_v').textContent=FIT;
+  $('bal_est').innerHTML='fit <b>'+FIT+'px</b> · ~<b>'+count.toLocaleString()+'</b> blobs';}
+function runFitQ(){
+  if(!curImg||hqBusy)return;
+  if(editing)exitEdit(false);
+  const {FIT,count,OUT}=balParams(), reach=segVal('balreach')===1;
+  const T=buildTarget(curImg,FIT,OUT);
+  SIG_MAX=0.45*Math.min(T.Wo,T.Ho);
+  hqBusy=true;encBusy(true);$('balstop').hidden=false;
+  $('bal_v').textContent='fitting…';$('img_v').textContent='quality fit…';$('prog').classList.add('on');
+  const opts={count,bias:$('grainbias').value/100,aniso:$('aniso_i').value/100,reach,reachEvery:7};
+  fitImageQ(T,opts,
+    (blobs,W,H,base,p)=>{cleanBuf=encode(blobs,W,H,base);render(blobs,W,H,base);
+      $('prog_i').style.width=(p*100).toFixed(1)+'%';$('ro_n').textContent=blobs.length;
+      $('bal_v').textContent=Math.round(p*100)+'%';},
+    (blobs,W,H,base)=>{cleanBuf=encode(blobs,W,H,base);
+      hqBusy=false;encBusy(false);$('balstop').hidden=true;
+      $('bal_v').textContent=blobs.length.toLocaleString()+' blobs';$('img_v').textContent=blobs.length+' blobs';
+      $('prog').classList.remove('on');$('prog_i').style.width='0';apply();});
+}
+function stopBal(keep){
+  if(!hqBusy)return;fitToken++;hqBusy=false;encBusy(false);$('balstop').hidden=true;
+  $('prog').classList.remove('on');$('prog_i').style.width='0';
+  $('bal_v').textContent=keep?'stopped':'idle';if(keep)apply();
+}
+
+/* ===================================================================== video
+   A clip is sampled to frames; each frame is encoded to a clean .ooid buffer.
+   "Current frame" just swaps cleanBuf, so damage / byte-edit / export all work
+   on it unchanged, and damage re-derives per frame for a temporal shimmer.    */
+let vid=null,vidUrl=null,vidDur=0,vidNatW=0,vidNatH=0,vidFrames=[],vidFps=12,
+    vidOutW=0,vidOutH=0,vidIndex=0,vidBusy=false,vidAbort=false,vidPlayTimer=null,vidFrameResolve=null;
+const hasVideo=()=>mode==='image'&&(vidFrames.length>0||!!vid);
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function seekTo(v,t){return new Promise(res=>{let done=false;
+  const on=()=>{if(done)return;done=true;v.removeEventListener('seeked',on);res();};
+  v.addEventListener('seeked',on);try{v.currentTime=t;}catch(e){}setTimeout(on,500);});}
+function clearVideo(){
+  pauseVideo();vidAbort=true;if(vidFrameResolve){const r=vidFrameResolve;vidFrameResolve=null;r(null);}
+  vidFrames=[];vidIndex=0;
+  if(vidUrl){URL.revokeObjectURL(vidUrl);vidUrl=null;}
+  vid=null;$('m_video').hidden=true;$('vidtransport').hidden=true;$('vid_v').textContent='no video';
+}
+function openContainer(buf){
+  const dec=decodeContainer(buf);
+  if(!dec.frames.length){alert('That .ooid has no readable frames.');return;}
+  clearVideo();curImg=null;curTarget=null;
+  vidFrames=dec.frames;vidFps=dec.fps||12;vidOutW=dec.W;vidOutH=dec.H;vidIndex=0;
+  SIG_MAX=0.45*Math.min(dec.W,dec.H);
+  mode='image';[...$('modes').children].forEach(x=>x.setAttribute('aria-pressed',x.dataset.mode==='image'));
+  $('m_image').hidden=false;$('m_field').hidden=true;$('m_grain').hidden=true;
+  $('m_hq').hidden=true;$('m_bal').hidden=true;$('m_video').hidden=false;$('drop').classList.add('hidden');
+  $('vidproc').disabled=true;                                  // no source clip to (re)sample from
+  $('vidtransport').hidden=false;$('vidscrub').max=dec.frames.length-1;
+  $('vid_v').textContent=dec.frames.length+' frames'+(dec.fps?(' · '+dec.fps+'fps'):'');
+  $('img_v').textContent='reopened video';$('vid_est').innerHTML='';
+  encBusy(false);showVideoFrame(0);
+}
+function ingestVideo(file){
+  clearVideo();curImg=null;curTarget=null;$('m_hq').hidden=true;$('m_bal').hidden=true;
+  vidUrl=URL.createObjectURL(file);
+  const v=document.createElement('video');
+  v.muted=true;v.playsInline=true;v.preload='auto';v.crossOrigin='anonymous';v.src=vidUrl;
+  v.addEventListener('error',()=>alert('Could not read that video.'),{once:true});
+  v.addEventListener('loadedmetadata',()=>{
+    vid=v;vidDur=v.duration||0;vidNatW=v.videoWidth;vidNatH=v.videoHeight;
+    $('drop').classList.add('hidden');$('m_video').hidden=false;$('vidproc').disabled=false;
+    $('img_v').textContent='video';$('vid_v').textContent='ready';updateVideoEstimate();
+  },{once:true});
+}
+function updateVideoEstimate(){
+  if(!vid){$('vid_est').innerHTML='';return;}
+  const n=Math.max(1,Math.min(+$('vidmax').value,Math.floor(vidDur*+$('vidfps').value)));
+  $('vid_est').innerHTML='<b>'+n+'</b> frames · '+vidDur.toFixed(1)+'s · '+vidNatW+'×'+vidNatH;
+}
+function fitFramePromise(T,useHQ,opts){
+  return new Promise(resolve=>{
+    vidFrameResolve=resolve;
+    const done=(blobs,W,H,base)=>{if(vidFrameResolve){vidFrameResolve=null;resolve({blobs,W,H,base});}};
+    if(useHQ)fitImageHQ(T,opts,()=>{},done);else fitImage(T,opts,()=>{},done);
+  });
+}
+async function processVideo(){
+  if(!vid||vidBusy)return;
+  if(editing)exitEdit(false);
+  pauseVideo();vidBusy=true;vidAbort=false;
+  const fps=+$('vidfps').value,cap=+$('vidmax').value,useHQ=segVal('vidhq')===1;
+  const total=Math.max(1,Math.min(cap,Math.floor(vidDur*fps)));
+  vidFps=fps;vidFrames=[];$('vidtransport').hidden=true;
+  const fc=document.createElement('canvas');fc.width=vidNatW;fc.height=vidNatH;
+  const fctx=fc.getContext('2d',{willReadFrequently:true});
+  $('vidproc').disabled=true;$('vidstop').hidden=false;$('prog').classList.add('on');
+  for(let f=0;f<total&&!vidAbort;f++){
+    await seekTo(vid,Math.min(Math.max(0,vidDur-1e-3),f/fps));
+    if(vidAbort)break;
+    fctx.drawImage(vid,0,0,vidNatW,vidNatH);
+    const FIT=useHQ?+$('hqfit').value:340,OUT=useHQ?2048:1024;
+    const T=buildTarget(fc,FIT,OUT);
+    if(!vidFrames.length){SIG_MAX=0.45*Math.min(T.Wo,T.Ho);vidOutW=T.Wo;vidOutH=T.Ho;}
+    const opts=useHQ
+      ?{count:Math.min(65535,+$('hqcount').value),bias:$('grainbias').value/100,aniso:$('aniso_i').value/100,sweeps:+$('hqsweeps').value,adaptive:segVal('hqadaptive')===1,geom:segVal('hqgeom')===1}
+      :{count:+$('icount').value,bias:$('grainbias').value/100,aniso:$('aniso_i').value/100};
+    $('vid_v').textContent='frame '+(f+1)+'/'+total;
+    const res=await fitFramePromise(T,useHQ,opts);
+    if(!res||vidAbort)break;
+    const buf=encode(res.blobs,res.W,res.H,res.base);
+    vidFrames.push(buf);cleanBuf=buf;render(res.blobs,res.W,res.H,res.base);
+    $('ro_n').textContent=res.blobs.length;$('ro_b').textContent=buf.byteLength.toLocaleString();
+    $('prog_i').style.width=(((f+1)/total)*100).toFixed(1)+'%';
+  }
+  vidBusy=false;$('vidproc').disabled=false;$('vidstop').hidden=true;$('prog').classList.remove('on');$('prog_i').style.width='0';
+  if(vidFrames.length){
+    $('vidtransport').hidden=false;$('vidscrub').max=vidFrames.length-1;
+    $('vid_v').textContent=vidFrames.length+' frames';showVideoFrame(0);
+  } else $('vid_v').textContent='stopped';
+}
+function stopVideo(){
+  vidAbort=true;fitToken++;
+  if(vidFrameResolve){const r=vidFrameResolve;vidFrameResolve=null;r(null);}
+}
+function showVideoFrame(i){
+  if(!vidFrames.length)return;
+  const len=vidFrames.length,k=(i%len+len)%len;
+  SIG_MAX=0.45*Math.min(vidOutW,vidOutH);
+  if(editing&&hasVideo()){                    // navigating while byte-editing → keep edits, load next frame
+    commitCurrentFrame();vidIndex=k;
+    $('vidscrub').value=k;$('vidpos').textContent=(k+1)+'/'+len;loadFrameIntoEditor(k);return;
+  }
+  vidIndex=k;cleanBuf=vidFrames[k];
+  $('vidscrub').value=k;$('vidpos').textContent=(k+1)+'/'+len;apply();
+}
+function pauseVideo(){if(vidPlayTimer){clearInterval(vidPlayTimer);vidPlayTimer=null;}$('vidplay').textContent='play';}
+function playVideo(){
+  if(!vidFrames.length)return;
+  if(vidPlayTimer){pauseVideo();return;}
+  $('vidplay').textContent='pause';
+  vidPlayTimer=setInterval(()=>showVideoFrame(vidIndex+1),1000/(vidFps||12));
+}
+async function recordVideo(){
+  if(!vidFrames.length||vidBusy)return;
+  if(editing)exitEdit(false);
+  pauseVideo();vidBusy=true;vidAbort=false;
+  let mime='video/webm;codecs=vp9';
+  if(!(window.MediaRecorder&&MediaRecorder.isTypeSupported(mime)))mime='video/webm;codecs=vp8';
+  if(!(window.MediaRecorder&&MediaRecorder.isTypeSupported(mime)))mime='video/webm';
+  if(!window.MediaRecorder){alert('This browser can\u2019t record video. Use the .ooid / PNG export instead.');vidBusy=false;return;}
+  const stream=cv.captureStream(0),track=stream.getVideoTracks()[0];
+  const rec=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:16000000});
+  const chunks=[];rec.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data);};
+  const stopped=new Promise(r=>{rec.onstop=r;});
+  $('vidrec').disabled=true;$('vidstop').hidden=false;$('prog').classList.add('on');
+  rec.start();
+  const dt=1000/(vidFps||12);
+  for(let f=0;f<vidFrames.length&&!vidAbort;f++){
+    SIG_MAX=0.45*Math.min(vidOutW,vidOutH);
+    const buf=damage(vidFrames[f],D),dec=decode(buf);
+    render(dec.blobs,dec.W,dec.H,dec.base);
+    if(track.requestFrame)track.requestFrame();
+    $('vid_v').textContent='rec '+(f+1)+'/'+vidFrames.length;
+    $('prog_i').style.width=(((f+1)/vidFrames.length)*100).toFixed(1)+'%';
+    await sleep(dt);
+  }
+  rec.stop();await stopped;
+  vidBusy=false;$('vidrec').disabled=false;$('vidstop').hidden=true;$('prog').classList.remove('on');$('prog_i').style.width='0';
+  $('vid_v').textContent=vidFrames.length+' frames';
+  if(chunks.length)dl(new Blob(chunks,{type:'video/webm'}),'ooid-video.webm');
+  showVideoFrame(vidIndex);
+}
+
+/* ===================================================================== wiring */
+let cleanBufFromImage=false;
+
+// mode buttons
+$('modes').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  if(editing)exitEdit(false);
+  if(b.dataset.mode==='image'){mode='image';[...$('modes').children].forEach(x=>x.setAttribute('aria-pressed',x===b));
+    $('m_image').hidden=false;$('m_field').hidden=true;$('m_grain').hidden=true;
+    $('m_hq').hidden=hasVideo();$('m_bal').hidden=hasVideo();$('m_video').hidden=!hasVideo();encBusy(hqBusy);
+    if(!curTarget&&!hasVideo()){$('drop').classList.remove('hidden');}else{$('drop').classList.add('hidden');}
+    if(hasVideo()&&vidFrames.length)showVideoFrame(vidIndex);else refreshSliderLock();
+  } else {mode='field';[...$('modes').children].forEach(x=>x.setAttribute('aria-pressed',x===b));
+    stopBal(false);stopHQ(false);hqBusy=false;$('hqstop').hidden=true;$('balstop').hidden=true;$('hq_v').textContent='idle';$('bal_v').textContent='idle';
+    pauseVideo();stopVideo();$('m_image').hidden=true;$('m_field').hidden=false;$('m_grain').hidden=false;
+    $('m_hq').hidden=true;$('m_bal').hidden=true;$('m_video').hidden=true;$('drop').classList.add('hidden');buildField();refreshSliderLock();}
+});
+
+// field controls
+$('shape').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  FP.shape=b.dataset.shape;$('field_v').textContent=FP.shape;
+  [...$('shape').children].forEach(x=>x.setAttribute('aria-pressed',x===b));buildField();});
+['fscale','fwarp','fangle','fgrain','faniso','falpha'].forEach(id=>{
+  $(id).addEventListener('input',()=>{$(id+'_v').textContent=$(id).value;buildField();});});
+$('fcount').addEventListener('input',()=>{$('fcount_v').textContent=$('fcount').value;});
+$('fcount').addEventListener('change',()=>buildField());
+['c0','c1','c2'].forEach(id=>$(id).addEventListener('input',buildField));
+$('regen').addEventListener('click',buildField);
+
+const RECIPES={
+  sediment:{shape:'flow',c:['#123b4f','#2f8f7e','#c7f23e'],scale:14,warp:55,angle:10,grain:55,aniso:30,alpha:50,count:3000},
+  target:{shape:'radial',c:['#0b1f4f','#34dfc6','#cf5cff'],scale:60,warp:8,angle:0,grain:38,aniso:20,alpha:65,count:2600},
+  drift:{shape:'waves',c:['#1c4f6e','#9ad24a','#cf5cff'],scale:30,warp:35,angle:24,grain:42,aniso:60,alpha:55,count:2800},
+  membrane:{shape:'cells',c:['#102a22','#34dfc6','#e0a23a'],scale:34,warp:40,angle:0,grain:30,aniso:25,alpha:62,count:3200},
+  static:{shape:'flow',c:['#0c2230','#cf5cff','#c7f23e'],scale:92,warp:80,angle:50,grain:14,aniso:10,alpha:45,count:5000}
+};
+$('recipes').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  const R=RECIPES[b.dataset.r];if(!R)return;
+  $('c0').value=R.c[0];$('c1').value=R.c[1];$('c2').value=R.c[2];
+  const set=(id,v)=>{$(id).value=v;$(id+'_v').textContent=v;};
+  set('fscale',R.scale);set('fwarp',R.warp);set('fangle',R.angle);
+  set('fgrain',R.grain);set('faniso',R.aniso);set('falpha',R.alpha);set('fcount',R.count);
+  FP.shape=R.shape;$('field_v').textContent=R.shape;
+  [...$('shape').children].forEach(x=>x.setAttribute('aria-pressed',x.dataset.shape===R.shape));
+  buildField();});
+
+// image controls
+$('browse').addEventListener('click',()=>$('file').click());
+$('drop').addEventListener('click',()=>$('file').click());
+$('file').addEventListener('change',e=>{if(e.target.files[0]){curTarget=null;cleanBufFromImage=true;ingestFile(e.target.files[0]);}});
+$('refit').addEventListener('click',runFit);
+['icount','grainbias','aniso_i'].forEach(id=>$(id).addEventListener('input',()=>{$(id+'_v').textContent=$(id).value;}));
+
+// high-fidelity controls
+$('hqfit').addEventListener('input',()=>{$('hqfit_v').textContent=$('hqfit').value;});
+$('hqcount').addEventListener('input',()=>{$('hqcount_v').textContent=(+$('hqcount').value).toLocaleString();});
+$('hqsweeps').addEventListener('input',()=>{$('hqsweeps_v').textContent=$('hqsweeps').value;});
+['hqadaptive','hqgeom'].forEach(id=>$(id).addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  [...$(id).children].forEach(x=>x.setAttribute('aria-pressed',x===b));}));
+$('hqgo').addEventListener('click',runFitHQ);
+$('hqstop').addEventListener('click',()=>stopHQ(true));
+
+// quality controls
+$('balq').addEventListener('input',updateBalEst);
+$('balreach').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  [...$('balreach').children].forEach(x=>x.setAttribute('aria-pressed',x===b));});
+$('balgo').addEventListener('click',runFitQ);
+$('balstop').addEventListener('click',()=>stopBal(true));
+updateBalEst();
+
+// video controls
+['vidfps','vidmax'].forEach(id=>$(id).addEventListener('input',()=>{$(id+'_v').textContent=$(id).value;updateVideoEstimate();}));
+$('vidhq').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  [...$('vidhq').children].forEach(x=>x.setAttribute('aria-pressed',x===b));});
+$('vidproc').addEventListener('click',processVideo);
+$('vidstop').addEventListener('click',stopVideo);
+$('vidplay').addEventListener('click',playVideo);
+$('vidscrub').addEventListener('input',()=>{pauseVideo();showVideoFrame(+$('vidscrub').value);});
+$('vidrec').addEventListener('click',recordVideo);
+
+// drag-drop on stage
+const stage=$('stage');
+['dragenter','dragover'].forEach(ev=>stage.addEventListener(ev,e=>{e.preventDefault();
+  if(mode!=='image'){mode='image';$('modes').children[0].click();}
+  $('drop').classList.remove('hidden');$('drop').classList.add('hot');}));
+['dragleave','drop'].forEach(ev=>stage.addEventListener(ev,e=>{e.preventDefault();$('drop').classList.remove('hot');}));
+stage.addEventListener('drop',e=>{const f=e.dataTransfer.files[0];if(f){curTarget=null;cleanBufFromImage=true;ingestFile(f);}});
+
+// damage controls
+['corrupt','trunc','pos','size','orient','hue','band'].forEach(id=>{
+  $(id).addEventListener('input',()=>{D[id]=+$(id).value;$(id+'_v').textContent=id==='trunc'?D[id]+'%':D[id];apply();});});
+$('shuffle').addEventListener('click',()=>{D.shuffle=!D.shuffle;
+  $('shuffle').style.color=D.shuffle?'var(--orchid)':'';$('shuffle').style.borderColor=D.shuffle?'var(--orchid)':'';apply();});
+$('randomize').addEventListener('click',()=>{
+  const s=(id,v)=>{$(id).value=v;D[id]=v;$(id+'_v').textContent=id==='trunc'?v+'%':v;};
+  s('corrupt',Math.random()*45|0);s('pos',Math.random()*60|0);s('size',Math.random()*55|0);
+  s('orient',Math.random()*70|0);s('hue',Math.random()*60|0);s('band',Math.random()*40|0);
+  s('trunc',60+(Math.random()*40|0));apply();});
+$('reset').addEventListener('click',()=>{
+  Object.assign(D,{corrupt:0,trunc:100,pos:0,size:0,orient:0,hue:0,band:0,shuffle:false});
+  ['corrupt','pos','size','orient','hue','band'].forEach(id=>{$(id).value=0;$(id+'_v').textContent=0;});
+  $('trunc').value=100;$('trunc_v').textContent='100%';
+  $('shuffle').style.color='';$('shuffle').style.borderColor='';apply();});
+
+// export
+function dl(blob,name){const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),1500);}
+$('png').addEventListener('click',()=>cv.toBlob(b=>dl(b,'ooid-render.png')));
+$('ooid').addEventListener('click',()=>{
+  if(hasVideo()&&vidFrames.length){
+    const buf=encodeContainer(vidFrames,vidOutW,vidOutH,vidFps);
+    const manifest=`\n\n--- OOIV v1 · gaussian-blob video container ----------------------
+header 16B: "OOIV"[4] W:u16 H:u16 frames:u16 fps:u8 ver:u8 rsv[4]
+then per frame: len:u32 + that many bytes of a complete "OOID" v1 still
+each frame is an independent .ooid (no inter-frame prediction) — corruption
+stays round and frame-local, so loss reads as flicker, not motion smear
+editing a frame's len cascades the rest forward · trailing text ignored
+------------------------------------------------------------------\n`;
+    const txt=new TextEncoder().encode(manifest);
+    const out=new Uint8Array(buf.byteLength+txt.length);out.set(new Uint8Array(buf),0);out.set(txt,buf.byteLength);
+    dl(new Blob([out],{type:'application/octet-stream'}),'specimen.ooid');return;
+  }
+  if(!cleanBuf)return;const buf=currentBuf();
+  const manifest=`\n\n--- OOID v1 · gaussian-blob codec ---------------------------------
+header 16B: "OOID"[4] W:u16 H:u16 N:u16 mode:u8 ver:u8 base[3] rsv
+record 12B: x:u16 y:u16 s1:u8 s2:u8 theta:u8 r:u8 g:u8 b:u8 a:u8 rsv
+position normalised 0..65535 across W/H · sigma log-scale · theta 0..pi
+compositing alpha-over, record order = paint order · trailing text ignored
+------------------------------------------------------------------\n`;
+  const txt=new TextEncoder().encode(manifest);
+  const out=new Uint8Array(buf.byteLength+txt.length);out.set(new Uint8Array(buf),0);out.set(txt,buf.byteLength);
+  dl(new Blob([out],{type:'application/octet-stream'}),'specimen.ooid');});
+
+/* ---- byte editor: find/replace + hex, sliders paused while active ---- */
+function setSlidersLocked(on){
+  document.querySelector('.dmg').classList.toggle('locked',on);
+  ['corrupt','trunc','pos','size','orient','hue','band'].forEach(id=>$(id).disabled=on);
+  ['shuffle','randomize','reset'].forEach(id=>$(id).disabled=on);
+}
+function renderHexHead(){
+  const hx=b=>b.toString(16).padStart(2,'0');
+  let s='';for(let i=0;i<16;i++)s+=hx(editHeader[i])+' ';
+  $('hexhead').innerHTML='<span class="lk">header · locked  </span>'+s.trim();
+}
+function renderAscii(){
+  const b=editBody,lim=Math.min(b.length,512);let s='';
+  for(let i=0;i<lim;i++){const c=b[i];s+=(c>=32&&c<=126)?String.fromCharCode(c):'·';}
+  $('ascii').innerHTML='<b>body as text · </b>'+s.replace(/[<>&]/g,m=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[m]))+(b.length>lim?' …':'');
+}
+let editView='text';
+function syncEditViews(origin){
+  if(origin!=='hex')$('hexbody').value=bytesToHex(editBody);
+  if(origin!=='text')$('textbody').value=bytesToText(editBody);
+  renderAscii();$('ro_b').textContent=(16+editBody.length).toLocaleString();
+}
+function showView(v){
+  editView=v;
+  $('textbody').hidden=(v!=='text');$('hexbody').hidden=(v!=='hex');
+  $('ascii').style.display=(v==='hex')?'':'none';   // text view is already legible
+  [...$('viewtog').children].forEach(b=>b.setAttribute('aria-pressed',b.dataset.view===v));
+}
+function enterEdit(){
+  if(!cleanBuf)return;
+  const baked=new Uint8Array(damage(cleanBuf,D));    // bake current slider damage
+  editHeader=baked.slice(0,16);editBody=baked.slice(16);
+  editing=true;
+  $('editbtn').hidden=true;$('editor').hidden=false;$('data_v').textContent='editing';
+  refreshSliderLock();renderHexHead();showView('text');syncEditViews();$('frcount').innerHTML='';apply();
+}
+function exitEdit(commit){
+  if(!editing)return;
+  if(hasVideo()){teardownVideoEdit();return;}    // video has its own teardown (commit keeps in-place edits)
+  if(commit){const buf=editBuffer();cleanBuf=buf.slice(0);   // promote glitched bytes to new base
+    Object.assign(D,{corrupt:0,trunc:100,pos:0,size:0,orient:0,hue:0,band:0,shuffle:false});
+    ['corrupt','pos','size','orient','hue','band'].forEach(id=>{$(id).value=0;$(id+'_v').textContent=0;});
+    $('trunc').value=100;$('trunc_v').textContent='100%';
+    $('shuffle').style.color='';$('shuffle').style.borderColor='';}
+  editing=false;editHeader=editBody=null;
+  $('editbtn').hidden=false;$('editor').hidden=true;$('data_v').textContent='locked';
+  refreshSliderLock();apply();
+}
+
+/* ---- video byte editor: per-frame, reusing the still body widgets -------- */
+function loadFrameIntoEditor(k){
+  const fb=new Uint8Array(vidFrames[k]);
+  editHeader=fb.slice(0,16);editBody=fb.slice(16);editOrigLen=fb.length;
+  cleanBuf=vidFrames[k];
+  renderHexHead();showView(editView);syncEditViews();
+  $('vedit_pos').textContent='frame '+(k+1)+'/'+vidFrames.length;
+  apply();
+}
+function commitCurrentFrame(){if(editing&&hasVideo()&&editHeader&&editBody)vidFrames[vidIndex]=editBuffer();}
+function enterEditVideo(){
+  if(!vidFrames.length)return;
+  pauseVideo();
+  vsnap=vidFrames.map(b=>b.slice(0));               // snapshot for revert-all
+  editing=true;
+  $('editbtn').hidden=true;$('editor').hidden=false;$('data_v').textContent='editing video';
+  $('vedit').hidden=false;$('stillbtns').hidden=true;$('vbtns').hidden=false;$('vidplay').disabled=true;
+  refreshSliderLock();$('frcount').innerHTML='';
+  loadFrameIntoEditor(vidIndex);
+}
+function teardownVideoEdit(){
+  commitCurrentFrame();
+  editing=false;editHeader=editBody=null;vsnap=null;
+  $('editbtn').hidden=false;$('editor').hidden=true;$('data_v').textContent='locked';
+  $('vedit').hidden=true;$('stillbtns').hidden=false;$('vbtns').hidden=true;$('vidplay').disabled=false;
+  refreshSliderLock();
+}
+function doneVideoEdit(){if(!editing)return;teardownVideoEdit();showVideoFrame(vidIndex);}
+function veditNav(d){if(!editing)return;commitCurrentFrame();
+  vidIndex=(vidIndex+d+vidFrames.length)%vidFrames.length;
+  $('vidscrub').value=vidIndex;$('vidpos').textContent=(vidIndex+1)+'/'+vidFrames.length;
+  loadFrameIntoEditor(vidIndex);}
+function revertVideoEdits(){if(!editing||!vsnap)return;
+  vidFrames=vsnap.map(b=>b.slice(0));vidIndex=Math.min(vidIndex,vidFrames.length-1);
+  $('vidscrub').max=vidFrames.length-1;loadFrameIntoEditor(vidIndex);$('frcount').innerHTML='reverted to entry state';}
+function cascadeFrame(){
+  if(!editing||!hasVideo())return;
+  commitCurrentFrame();
+  const k=vidIndex,W=vidOutW,H=vidOutH,fps=vidFps;
+  let total=16;for(const f of vidFrames)total+=4+f.byteLength;
+  const buf=new ArrayBuffer(total),dv=new DataView(buf),u8=new Uint8Array(buf);
+  u8[0]=79;u8[1]=79;u8[2]=73;u8[3]=86;dv.setUint16(4,W,true);dv.setUint16(6,H,true);
+  dv.setUint16(8,Math.min(65535,vidFrames.length),true);u8[10]=Math.max(1,Math.min(255,fps|0));u8[11]=1;
+  let o=16;
+  for(let j=0;j<vidFrames.length;j++){const fb=new Uint8Array(vidFrames[j]);
+    const declared=(j===k)?editOrigLen:fb.byteLength;     // stale prefix on the edited frame → ripple downstream
+    dv.setUint32(o,declared,true);o+=4;u8.set(fb,o);o+=fb.byteLength;}
+  const dec=decodeContainer(buf);
+  if(!dec.frames.length){$('frcount').innerHTML='cascade left nothing readable';return;}
+  vidFrames=dec.frames;vidIndex=Math.min(vidIndex,vidFrames.length-1);
+  $('vidscrub').max=vidFrames.length-1;loadFrameIntoEditor(vidIndex);
+  $('frcount').innerHTML='cascaded · now <b>'+vidFrames.length+'</b> frame'+(vidFrames.length===1?'':'s');
+}
+$('editbtn').addEventListener('click',()=>{hasVideo()?enterEditVideo():enterEdit();});
+$('backbtn').addEventListener('click',()=>exitEdit(false));
+$('commitbtn').addEventListener('click',()=>exitEdit(true));
+$('vprev').addEventListener('click',()=>veditNav(-1));
+$('vnext').addEventListener('click',()=>veditNav(1));
+$('vcascade').addEventListener('click',cascadeFrame);
+$('vdone').addEventListener('click',doneVideoEdit);
+$('vrevert').addEventListener('click',revertVideoEdits);
+
+// view toggle
+$('viewtog').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  showView(b.dataset.view);syncEditViews(b.dataset.view);});
+
+// hex typing -> bytes (debounced; don't rewrite the hex view mid-type)
+$('hexbody').addEventListener('input',()=>{clearTimeout(hexDebounce);hexDebounce=setTimeout(()=>{
+  editBody=hexToBytes($('hexbody').value);syncEditViews('hex');apply();},160);});
+// mojibake typing -> bytes
+$('textbody').addEventListener('input',()=>{clearTimeout(hexDebounce);hexDebounce=setTimeout(()=>{
+  editBody=textToBytes($('textbody').value);syncEditViews('text');apply();},160);});
+
+// find/replace mode toggle
+let frHex=false;
+$('frmode').addEventListener('click',()=>{frHex=!frHex;$('frmode').textContent=frHex?'hex':'text';});
+$('frgo').addEventListener('click',()=>{
+  if(!editing)return;
+  const f=$('frfind').value,r=$('frrepl').value;
+  const find=frHex?hexToBytes(f):strToBytes(f),repl=frHex?hexToBytes(r):strToBytes(r);
+  if(find.length===0){$('frcount').innerHTML='nothing to find';return;}
+  const out=[];let i=0,count=0;const b=editBody;
+  while(i<b.length){
+    let m=i+find.length<=b.length;
+    if(m)for(let k=0;k<find.length;k++)if(b[i+k]!==find[k]){m=false;break;}
+    if(m){for(let k=0;k<repl.length;k++)out.push(repl[k]);i+=find.length;count++;}
+    else{out.push(b[i]);i++;}
+  }
+  editBody=Uint8Array.from(out);syncEditViews();apply();
+  const delta=repl.length-find.length;
+  $('frcount').innerHTML=count?`<b>${count}</b> replaced · body ${delta===0?'same length':(delta>0?'+':'')+delta*count+' bytes'}`:'no matches';
+});
+
+/* ---- tooltips: one floating element, positioned in viewport coords ---- */
+const tipPop=document.createElement('div');tipPop.className='tip-pop';document.body.appendChild(tipPop);
+function showTip(el){
+  const t=el.getAttribute('data-tip');if(!t)return;
+  tipPop.textContent=t;tipPop.style.left='-9999px';tipPop.style.top='0px';
+  const r=el.getBoundingClientRect(),tr=tipPop.getBoundingClientRect();
+  let left=Math.min(r.left,window.innerWidth-tr.width-8);left=Math.max(8,left);
+  let top=r.top-tr.height-8;if(top<8)top=r.bottom+8;
+  tipPop.style.left=left+'px';tipPop.style.top=top+'px';tipPop.classList.add('show');
+}
+const hideTip=()=>tipPop.classList.remove('show');
+document.querySelectorAll('[data-tip]').forEach(el=>{
+  el.addEventListener('mouseenter',()=>showTip(el));
+  el.addEventListener('mouseleave',hideTip);
+  el.addEventListener('focusin',()=>showTip(el));
+  el.addEventListener('focusout',hideTip);
+});
+window.addEventListener('scroll',hideTip,true);
+
+/* ---- go: start in field mode ---- */
+[...$('shape').children].forEach(x=>x.setAttribute('aria-pressed',x.dataset.shape==='flow'));
+buildField();
+</script>
+</body>
+</html>
