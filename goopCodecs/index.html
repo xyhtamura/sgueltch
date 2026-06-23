@@ -9,6 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DynaPuff:wght@500;700&family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Fraunces:ital,opsz,wght@1,9..144,500;1,9..144,650&display=swap" rel="stylesheet">
 <style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne+Mono&display=swap');
   :root{
     --bg:#071006;
     --bg2:#05050b;
@@ -29,7 +30,7 @@
     --worm:#ff83d2;
     --mono:"DM Mono", ui-monospace, Menlo, Consolas, monospace;
     --disp:"DynaPuff", system-ui, sans-serif;
-    --serif:"Fraunces", Georgia, serif;
+    --serif:"Syne Mono", ui-monospace, "DM Mono", monospace;
   }
 
   *{box-sizing:border-box; scrollbar-width:thin; scrollbar-color:var(--goo) #101018;}
@@ -215,24 +216,25 @@
   }
 
   h1{
-    margin:0;
+    margin:0 0 -0.12em;
+    padding:0.14em 0.12em 0.18em;
     font-family:var(--disp);
-    font-size:clamp(50px,10vw,118px);
-    line-height:.86;
+    font-size:clamp(50px,7vw,118px);
+    line-height:1;
     letter-spacing:.01em;
     color:var(--goo-hi);
-    -webkit-text-stroke:1px #071007;
-    text-shadow:
-      4px 4px 0 #091209,
-      7px 7px 0 rgba(0,0,0,.58),
-      0 0 18px rgba(156,255,27,.50),
-      0 0 42px rgba(50,244,255,.18);
+	word-break: break-word; /* Safety net if viewport gets extremely narrow */
+    background:linear-gradient(94deg,var(--goo-hi),var(--goo2) 16%,var(--cyan) 36%,var(--worm) 56%,var(--rust) 74%,var(--hazard) 90%,var(--goo-hi));
+    background-size:280% 100%;
+    -webkit-background-clip:text;
+    background-clip:text;
+    -webkit-text-fill-color:transparent;
+    filter:drop-shadow(4px 4px 0 #071007) drop-shadow(0 0 22px rgba(156,255,27,.34)) drop-shadow(0 0 42px rgba(50,244,255,.18));
+    animation:slime-shift 14s linear infinite;
   }
   h1 .dot{
-    color:var(--pink);
-    text-shadow:
-      4px 4px 0 #091209,
-      0 0 16px rgba(255,61,242,.72);
+    -webkit-text-fill-color:var(--pink);
+    filter:drop-shadow(3px 3px 0 #091209) drop-shadow(0 0 16px rgba(255,61,242,.72));
   }
 
   .subtitle{
@@ -250,13 +252,14 @@
     border-left:2px solid rgba(156,255,27,.20);
     background:
       radial-gradient(circle at 50% 46%,rgba(156,255,27,.13),transparent 38%),
-      repeating-linear-gradient(135deg,rgba(255,210,46,.045) 0 8px,transparent 8px 18px),
+      radial-gradient(circle at 24% 80%,rgba(255,210,46,.06),transparent 44%),
+      radial-gradient(circle at 80% 18%,rgba(50,244,255,.07),transparent 40%),
       linear-gradient(180deg,rgba(15,24,14,.88),rgba(5,5,11,.82));
     display:grid;
     place-items:center;
     overflow:hidden;
   }
-  @media (max-width:850px){
+  @media (max-width:1024px){
     .hero-panel{border-left:0; border-top:2px solid rgba(156,255,27,.20);}
   }
 
@@ -305,11 +308,14 @@
   .cell{
     position:absolute;
     inset:10%;
-    opacity:.20;
+    opacity:.42;
     background:
-      linear-gradient(34deg,transparent 0 46%,var(--hazard) 47% 48%,transparent 49%),
-      linear-gradient(146deg,transparent 0 47%,var(--goo-hi) 48% 49%,transparent 50%);
-    background-size:62px 56px,82px 72px;
+      radial-gradient(ellipse 38% 44% at 28% 32%,rgba(63,227,234,.55),transparent 62%),
+      radial-gradient(ellipse 42% 38% at 70% 30%,rgba(217,139,66,.42),transparent 60%),
+      radial-gradient(ellipse 46% 40% at 36% 74%,rgba(51,201,214,.40),transparent 62%),
+      radial-gradient(ellipse 36% 42% at 76% 72%,rgba(181,97,43,.34),transparent 60%);
+    mix-blend-mode:screen;
+    filter:blur(2px);
   }
   .thread{
     position:absolute;
@@ -364,7 +370,8 @@
       linear-gradient(90deg,rgba(255,210,46,.035),transparent 24%),
       rgba(13,24,13,.86);
     box-shadow:0 0 0 3px rgba(0,0,0,.38), 0 18px 52px -38px #000;
-    overflow:hidden;
+	    overflow:hidden;
+
   }
   .panel + .panel{margin-top:18px;}
 
@@ -384,16 +391,40 @@
   }
   .panel-head .v{color:var(--cyan); letter-spacing:.05em; text-transform:none;}
 
+  /* ── collection sampler: each region wears a different specimen's colour ── */
+  /* aside · 1 — cyan/worm */
+  main > aside .panel:first-child{border-color:rgba(50,244,255,.32);
+    box-shadow:0 0 0 3px rgba(0,0,0,.38), 0 18px 52px -38px #000, 0 0 30px rgba(50,244,255,.09);}
+  main > aside .panel:first-child .panel-head{color:var(--cyan); border-bottom-color:rgba(50,244,255,.22);}
+  main > aside .panel:first-child .panel-head .v{color:var(--worm);}
+  main > aside .panel:first-child h2{color:var(--cyan); text-shadow:0 0 14px rgba(50,244,255,.22);}
+  main > aside .panel:first-child h3{color:var(--worm);}
+  main > aside .panel:first-child .spec-list li{border-top-color:rgba(50,244,255,.16);}
+
+  /* aside · 2 — rust/amber (scute) */
+  main > aside .panel:last-child{border-color:rgba(230,161,92,.34);
+    box-shadow:0 0 0 3px rgba(0,0,0,.38), 0 18px 52px -38px #000, 0 0 30px rgba(230,161,92,.09);}
+  main > aside .panel:last-child .panel-head{color:#e6a15c; border-bottom-color:rgba(230,161,92,.24);}
+  main > aside .panel:last-child .panel-head .v{color:var(--hazard);}
+  main > aside .panel:last-child h2{color:#e6a15c; text-shadow:0 0 14px rgba(230,161,92,.24);}
+  main > aside .panel:last-child h3{color:#e6a15c;}
+  main > aside .panel:last-child .spec-list li{border-top-color:rgba(230,161,92,.16);}
+  main > aside .panel:last-child .spec-list b{color:#ffe6cf;}
+
+  /* main column — lime collection core, with a worm-pink readout */
+  main > .panel .panel-head .v{color:var(--worm);}
+
   .panel-body{padding:18px;}
   h2,h3,p{margin-top:0;}
   h2{
-    margin-bottom:10px;
+    margin-bottom:12px;
     font-family:var(--serif);
-    font-style:italic;
-    font-weight:650;
+    font-style:normal;
+    font-weight:400;
+    letter-spacing:0;
     color:var(--goo-hi);
-    font-size:25px;
-    line-height:1.1;
+    font-size:21px;
+    line-height:1.18;
     text-shadow:0 0 14px rgba(156,255,27,.18);
   }
   h3{
@@ -470,14 +501,17 @@
     animation:slime-shift 18s linear infinite;
     border-bottom:2px solid #020402;
   }
+  .codec-card.ooid::before{background:linear-gradient(90deg,var(--goo-hi),var(--goo2),var(--cyan),var(--goo-hi));background-size:220% 100%;}
+  .codec-card.scute::before{background:linear-gradient(90deg,#3fe3ea,#33c9d6,#d98b42,#b5612b,#3fe3ea);background-size:220% 100%;}
+  .codec-card.vermis::before{background:linear-gradient(90deg,var(--worm),var(--cyan),var(--pink),var(--worm));background-size:220% 100%;}
 
   .codec-card.scute{
-    border-color:rgba(230,161,92,.34);
+    border-color:rgba(217,139,66,.40);
     background:
-      linear-gradient(34deg,transparent 0 46%,rgba(230,161,92,.10) 47% 48%,transparent 49%),
-      linear-gradient(146deg,transparent 0 47%,rgba(244,196,124,.08) 48% 49%,transparent 50%),
-      linear-gradient(180deg,rgba(36,30,26,.94),rgba(13,12,10,.92));
-    background-size:112px 86px,156px 132px,auto;
+      radial-gradient(ellipse 40% 34% at 24% 14%,rgba(63,227,234,.16),transparent 60%),
+      radial-gradient(ellipse 44% 30% at 78% 30%,rgba(217,139,66,.16),transparent 58%),
+      radial-gradient(ellipse 50% 36% at 40% 88%,rgba(51,201,214,.12),transparent 62%),
+      linear-gradient(180deg,rgba(28,30,32,.94),rgba(11,13,14,.92));
   }
   .codec-card.vermis{
     border-color:rgba(255,131,210,.36);
@@ -510,7 +544,7 @@
     -webkit-text-stroke:.5px #071007;
     text-shadow:2px 2px 0 #091209,0 0 16px rgba(156,255,27,.30);
   }
-  .scute .codec-name h2{color:#fff0d4; text-shadow:2px 2px 0 #1a1410,0 0 16px rgba(230,161,92,.24);}
+  .scute .codec-name h2{color:#ffe6cf; text-shadow:2px 2px 0 #17120c,0 0 16px rgba(217,139,66,.30);}
   .vermis .codec-name h2{color:#ffb5e8; text-shadow:2px 2px 0 #17051a,0 0 16px rgba(255,131,210,.28);}
   .ext{
     color:#071007;
@@ -523,7 +557,7 @@
     box-shadow:2px 2px 0 #000;
     white-space:nowrap;
   }
-  .scute .ext{background:#ffd22e;}
+  .scute .ext{background:#d98b42;}
   .vermis .ext{background:#6bffd5;}
 
   .motif{
@@ -637,7 +671,7 @@
       <section class="panel tight">
         <div class="panel-head">test <span class="v">what makes one good?</span></div>
         <div class="panel-body">
-          <h2>Databending criteria</h2>
+          <h2>Databending Criteria</h2>
           <p>
             A good codec made for databending should allow for more meaningful moves in databending. It should keep a small protected header, leave the body vulnerable,
             and make many edits produce visible consequences.

@@ -73,12 +73,14 @@
     inset: 0;
     z-index: 0;
     pointer-events: none;
-    opacity: .18;
+    opacity: .22;
     background:
-      linear-gradient(34deg, transparent 0 46%, rgba(230,161,92,.2) 47% 48%, transparent 49%),
-      linear-gradient(146deg, transparent 0 47%, rgba(244,196,124,.15) 48% 49%, transparent 50%),
-      radial-gradient(circle at 30% 20%, var(--pink) 0 1px, transparent 2px 36px);
-    background-size: 112px 86px, 156px 132px, 120px 100px;
+      radial-gradient(ellipse 30% 26% at 22% 18%, rgba(230,161,92,.16), transparent 60%),
+      radial-gradient(ellipse 34% 22% at 80% 30%, rgba(244,196,124,.12), transparent 58%),
+      radial-gradient(ellipse 40% 30% at 60% 84%, rgba(166,75,42,.12), transparent 60%),
+      radial-gradient(circle at 30% 20%, var(--pink) 0 1px, transparent 2px 38px);
+    background-size: auto, auto, auto, 120px 100px;
+    mix-blend-mode: screen;
   }
 
   body::after {
@@ -101,10 +103,6 @@
 
   /* ─── ANIMATIONS ─── */
   @keyframes drift { to { background-position: 300% 0; } }
-  @keyframes slime-float {
-    from { transform: translate3d(0,0,0) scale(1); }
-    to { transform: translate3d(-18px,12px,0) scale(1.025); }
-  }
   @keyframes goo-pulse {
     0%, 100% { filter: brightness(1) saturate(1.05); }
     50% { filter: brightness(1.08) saturate(1.15); }
@@ -211,9 +209,10 @@
     min-height: 390px;
     overflow: hidden;
     background:
-      radial-gradient(circle at 50% 45%, rgba(223,255,69,.10), transparent 38%),
-      repeating-linear-gradient(60deg, rgba(255,210,46,.04) 0 9px, transparent 9px 19px),
-      repeating-linear-gradient(120deg, rgba(244,196,124,.04) 0 8px, transparent 8px 25px),
+      radial-gradient(circle at 50% 45%, rgba(230,161,92,.11), transparent 38%),
+      radial-gradient(circle at 74% 24%, rgba(244,196,124,.07), transparent 34%),
+      radial-gradient(circle at 24% 80%, rgba(166,75,42,.08), transparent 42%),
+      radial-gradient(ellipse 80% 60% at 50% 120%, rgba(230,161,92,.06), transparent 60%),
       linear-gradient(180deg, #161310, var(--bg));
   }
 
@@ -389,7 +388,7 @@
   /* ─── FOOTER & INTERACTIVES ─── */
   footer {
     padding: 11px 22px; color: var(--dim); font-size: 11px; display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
-    border-top: 2px solid rgba(230,161,92,.18); background: repeating-linear-gradient(45deg, rgba(212,155,85,.1) 0 8px, rgba(0,0,0,.05) 8px 16px), #0e0b0a;
+    border-top: 2px solid rgba(230,161,92,.18); background: radial-gradient(ellipse 120% 180% at 12% 140%, rgba(230,161,92,.12), transparent 55%), linear-gradient(180deg, rgba(212,155,85,.05), transparent 70%), #0e0b0a;
   }
   footer b, footer span:first-child { color: var(--hazard); }
   footer span:last-child::before { content: "☢ ANNEXATION EVENT · "; color: var(--hazard); }
