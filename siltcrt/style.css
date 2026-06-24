@@ -44,6 +44,24 @@
     --tube-edge:    #07060a;
 }
 
+/* ==========================================
+   1. CUSTOM FONT REGISTRATION (@font-face)
+   ========================================== */
+@font-face {
+    font-family: 'Benida Rough';
+    src: url('fonts/BenidaRough-Regular.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Navalie Rough';
+    src: url('fonts/NavalieRough-Regular_demo.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+
 * { box-sizing: border-box; }
 
 body {
@@ -162,11 +180,11 @@ body {
         drop-shadow(2px 4px 4px rgba(0, 0, 0, 0.2));
 }
 .b-silt {                       
-    font-family: 'Rozha One', serif; font-weight: 400;
+    font-family: 'Benida Rough', 'Rozha One', serif; font-weight: 400;
 }
 
 .b-crt {                        
-    font-family: 'Audiowide', sans-serif; font-weight: 400;
+    font-family: 'Navalie Rough','Audiowide', sans-serif; font-weight: 400;
     margin-left: 0.06em; letter-spacing: 0.01em;
     font-size: clamp(1.85rem, 5.9vw, 2.75rem);
 }

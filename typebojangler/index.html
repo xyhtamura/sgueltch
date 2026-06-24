@@ -750,7 +750,20 @@ type</textarea>
 
           </div>
         </div>
-
+<div class="ctrl-section">
+          <div class="ctrl-section-header">
+            <span class="ctrl-section-title">HTML Output</span>
+            <span class="ctrl-chevron">▾</span>
+          </div>
+          <div class="ctrl-body">
+            <div class="ctrl">
+              <button class="btn btn-primary" id="btn-copy-html" style="width:100%; justify-content:center; margin-bottom: 5px;">
+                Copy HTML Code
+              </button>
+              <textarea id="html-output" readonly style="font-family:'Fragment Mono', monospace; font-size:0.65rem; min-height:120px; background:var(--surface-3); color:var(--acid);"></textarea>
+            </div>
+          </div>
+        </div>
       </div><!-- end sidebar-scroll -->
 
       <div class="sidebar-actions">
@@ -910,7 +923,7 @@ type</textarea>
       $('depth-jitter-val').textContent  = depthJitterEl.value;
     }
 
-    // ── Main render ───────────────────────────────────────────────────────
+// ── Main render ───────────────────────────────────────────────────────
     function render() {
       const s = getSettings();
       updateLabels(s);
@@ -918,14 +931,19 @@ type</textarea>
       renderCanvas.style.textAlign = s.textAlign;
 
       const lines = s.text.split('\n');
-      let html = '';
+      let canvasHtml = '';
+      let exportHtml = ''; // Holds the clean raw code string for the user
       let vi = 0;
 
       lines.forEach(line => {
-        html += `<span class="glyph-line" style="display:block; line-height:${s.lineHeight}; letter-spacing:${s.letterSpacing}px; font-family:${s.font};">`;
+        // Base line wrapper for the interactive canvas
+        canvasHtml += `<span class="glyph-line" style="display:block; line-height:${s.lineHeight}; letter-spacing:${s.letterSpacing}px; font-family:${s.font};">`;
+        
+        // Base block wrapper for the exportable markup code (<p> per line break)
+        exportHtml += `<p style="display:block; line-height:${s.lineHeight}; letter-spacing:${s.letterSpacing}px; text-align:${s.textAlign}; margin:0; min-height:${(s.baseSize * s.lineHeight).toFixed(1)}px;">`;
 
         if (line.length === 0) {
-          html += `<span style="display:block; height:${(s.baseSize * s.lineHeight * 0.45).toFixed(1)}px;"></span>`;
+          canvasHtml += `<span style="display:block; height:${(s.baseSize * s.lineHeight * 0.45).toFixed(1)}px;"></span>`;
         } else {
           const tokens = line.split(/(\s+)/);
           tokens.forEach(token => {
@@ -933,22 +951,22 @@ type</textarea>
             if (/^\s+$/.test(token)) {
               for (let i = 0; i < token.length; i++) {
                 const sw = (0.22 + hashUnit(s.seed, vi, 33) * (0.18 + s.spacingChaos * 0.35)).toFixed(3);
-                html += `<span class="glyph" style="width:${sw}em;">&nbsp;</span>`;
+                const spaceSpan = `<span style="display:inline-block; width:${sw}em;">&nbsp;</span>`;
+                canvasHtml += spaceSpan;
+                exportHtml += spaceSpan;
                 vi++;
               }
             } else {
-              html += `<span class="glyph-word">`;
+              canvasHtml += `<span class="glyph-word">`;
               [...token].forEach(char => {
                 const irr = s.irr;
                 const localSm = smoothNoise(s.seed, vi, 1);
 
-                // blur: jitter = per-char independent, drift = smooth flowing
                 const blurJitterRaw = hashUnit(s.seed, vi, 30);
                 const blurDriftRaw  = (smoothNoise(s.seed, vi, 31) + 1) / 2;
                 const blurAmt  = Math.min(1, blurJitterRaw * s.depthJitter + blurDriftRaw * s.depthDrift);
                 const depthBlur = (blurAmt * 0.09 * s.baseSize).toFixed(2);
 
-                // geometry — size: independent ±jitter + optional smooth drift, both additive
                 const sizeRaw   = signedNoise(s.seed, vi, 20) * s.sizeJitter * irr;
                 const sizeDrift = localSm * s.sizeDrift * irr;
                 const scale   = 1 + sizeRaw + sizeDrift;
@@ -960,16 +978,12 @@ type</textarea>
                 const rot     = signedNoise(s.seed, vi, 5) * s.rotation * irr;
                 const mrgr    = (signedNoise(s.seed, vi, 11) * s.spacingChaos * irr * 0.08).toFixed(3);
 
-                // color — all three axes drift symmetrically around the base color
                 const hue   = s.baseHsl.h + localSm * s.driftHue + signedNoise(s.seed, vi, 6) * s.driftHue * 0.5;
                 const sat   = Math.max(0, Math.min(100, s.baseHsl.s + signedNoise(s.seed, vi, 7) * s.driftSat));
                 const light = Math.max(0, Math.min(100, s.baseHsl.l + signedNoise(s.seed, vi, 8) * s.driftLight));
 
-                // opacity
-                const opDelta = signedNoise(s.seed, vi, 9) * s.opJitter;
-                const opacity = Math.max(0.01, Math.min(1, s.baseOpacity + opDelta));
+                const opacity = Math.max(0.01, Math.min(1, s.baseOpacity + signedNoise(s.seed, vi, 9) * s.opJitter));
 
-                // chromatic ghosting
                 const gDist  = s.ghosting * irr * (0.025 + hashUnit(s.seed, vi, 12) * 0.055);
                 const gAlpha = s.ghosting * (0.09 + irr * 0.28);
                 const gY     = signedNoise(s.seed, vi, 16);
@@ -978,51 +992,38 @@ type</textarea>
                   ? `${gDist.toFixed(4)}em ${(gDist * gY).toFixed(4)}em 0 hsla(${(hue+58).toFixed(1)},95%,62%,${gAlpha.toFixed(3)}), ${(-gDist*0.8).toFixed(4)}em ${(-gDist*0.8*gY2).toFixed(4)}em 0 hsla(${(hue-72).toFixed(1)},95%,62%,${(gAlpha*0.7).toFixed(3)})`
                   : 'none';
 
-                // breathing
                 const bSpeed  = (2.8 + hashUnit(s.seed, vi, 13) * 3.5).toFixed(2);
                 const bY      = (signedNoise(s.seed, vi, 14) * s.breathing * irr * 0.17 * s.baseSize).toFixed(2);
                 const bDelay  = (-hashUnit(s.seed, vi, 15) * 5).toFixed(2);
-                const anim = s.breathing > 0
-                  ? `breathe ${bSpeed}s ease-in-out infinite alternate ${bDelay}s`
-                  : 'none';
+                
+                // Canvas includes keyframe animation, exported static snippet drops it for compatibility unless defined globally
+                const anim = s.breathing > 0 ? `breathe ${bSpeed}s ease-in-out infinite alternate ${bDelay}s` : 'none';
 
                 const fz   = (s.baseSize * scale).toFixed(1);
                 const col  = `hsl(${hue.toFixed(1)},${sat.toFixed(1)}%,${light.toFixed(1)}%)`;
                 const op   = opacity.toFixed(2);
                 const rotS = rot.toFixed(1);
 
-                html += `<span class="glyph"`
-                  + ` data-char="${escapeChar(char)}"`
-                  + ` data-font="${escapeChar(s.font)}"`
-                  + ` data-size="${fz}"`
-                  + ` data-color="${col}"`
-                  + ` data-opacity="${op}"`
-                  + ` data-rotation="${rotS}"`
-                  + ` style="`
-                  + `font-family:${s.font};`
-                  + `font-size:${fz}px;`
-                  + `color:${col};`
-                  + `opacity:${op};`
-                  + `transform:translate(${xDrift.toFixed(1)}px,${yDrift.toFixed(1)}px) rotate(${rotS}deg) scaleX(${scaleX.toFixed(4)});`
-                  + `text-shadow:${textShadow};`
-                  + `filter:${+depthBlur > 0 ? `blur(${depthBlur}px)` : 'none'};`
-                  + `animation:${anim};`
-                  + `--breath-y:${bY}px;`
-                  + `margin-right:${mrgr}em;`
-                  + `">${escapeChar(char)}</span>`;
+                // Inline styles shared across canvas display and exported snippet
+                const sharedStyles = `display:inline-block; font-family:${s.font}; font-size:${fz}px; color:${col}; opacity:${op}; transform:translate(${xDrift.toFixed(1)}px,${yDrift.toFixed(1)}px) rotate(${rotS}deg) scaleX(${scaleX.toFixed(4)}); transform-origin:50% 65%; text-shadow:${textShadow}; filter:${+depthBlur > 0 ? `blur(${depthBlur}px)` : 'none'}; margin-right:${mrgr}em;`;
+
+                canvasHtml += `<span class="glyph" data-char="${escapeChar(char)}" data-font="${escapeChar(s.font)}" data-size="${fz}" data-color="${col}" data-opacity="${op}" data-rotation="${rotS}" style="${sharedStyles} animation:${anim}; --breath-y:${bY}px;">${escapeChar(char)}</span>`;
+                
+                exportHtml += `<span style="${sharedStyles}">${escapeChar(char)}</span>`;
 
                 vi++;
               });
-              html += `</span>`;
+              canvasHtml += `</span>`;
             }
           });
         }
-        html += `</span>`;
+        canvasHtml += `</span>`;
+        exportHtml += `</p>\n`;
       });
 
-      renderCanvas.innerHTML = html;
+      renderCanvas.innerHTML = canvasHtml;
+      $('html-output').value = exportHtml.trim();
     }
-
     // ── SVG Export ────────────────────────────────────────────────────────
     function exportSvg() {
       const glyphs = renderCanvas.querySelectorAll('.glyph[data-char]');
@@ -1204,6 +1205,22 @@ ${svgEls}</svg>`;
         fontUploadName.textContent = 'Could not load font';
         fontUploadName.style.display = 'block';
       }
+    });
+
+$('btn-copy-html').addEventListener('click', () => {
+      const copyText = $('html-output');
+      copyText.select();
+      copyText.setSelectionRange(0, 99999); // For mobile devices
+      navigator.clipboard.writeText(copyText.value).then(() => {
+        const btn = $('btn-copy-html');
+        const origText = btn.textContent;
+        btn.textContent = 'Copied!';
+        btn.style.background = 'var(--ice)';
+        setTimeout(() => {
+          btn.textContent = origText;
+          btn.style.background = '';
+        }, 1200);
+      });
     });
 
     // ── Init ──────────────────────────────────────────────────────────────
