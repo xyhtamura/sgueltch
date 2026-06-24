@@ -49,14 +49,14 @@
    ========================================== */
 @font-face {
     font-family: 'Benida Rough';
-    src: url('fonts/BenidaRough-Regular.otf') format('opentype');
+    src: url('/fonts/BenidaRough-Regular.otf') format('opentype');
     font-weight: normal;
     font-style: normal;
 }
 
 @font-face {
     font-family: 'Navalie Rough';
-    src: url('fonts/NavalieRough-Regular_demo.otf') format('opentype');
+    src: url('/fonts/NavalieRough-Regular_demo.otf') format('opentype');
     font-weight: normal;
     font-style: normal;
 }
