@@ -10,8 +10,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Fraunces:ital,opsz,wght@1,9..144,500&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Bungee&family=DynaPuff:wght@500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-
- @import url('https://fonts.googleapis.com/css2?family=Syne+Mono&display=swap');
   :root {
     --bg: #100713; 
     --panel: #170d1a; 
@@ -32,20 +30,10 @@
     --hazard: #ffd22e;
     --blackgoo: #070711;
     --inkline: #061009;
-    --mono: "Syne Mono", ui-monospace, Menlo, monospace;
-    --disp: "Grinder", "DynaPuff", system-ui, sans-serif;
+    --mono: "DM Mono", ui-monospace, Menlo, monospace;
+    --disp: "DynaPuff", system-ui, sans-serif;
     --play: "DynaPuff", system-ui, sans-serif;
   }
-  
-  
-@font-face {
-  font-family: 'Grinder';
-  src: url('../Grinder.otf') format('opentype');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-
 
   * { box-sizing: border-box; scrollbar-width: thin; scrollbar-color: var(--goo) #101018; }
   ::selection { background: var(--pink); color: #160516; }
@@ -216,6 +204,15 @@
       linear-gradient(180deg, #190c1c, var(--bg));
   }
 
+  .stage::after {
+    content: "";
+    position: absolute;
+    inset: 10%;
+    pointer-events: none;
+    opacity: .16;
+    background: repeating-linear-gradient(108deg, transparent 0 18px, rgba(255,131,210,.55) 19px, transparent 22px 46px);
+    filter: blur(5px);
+  }
 
   .frame {
     position: relative;
@@ -580,16 +577,14 @@
       <p class="note">The image is sampled along the selected matrix path and stored as a <b>delta</b> from the
         previous sample. On decode it isn't a grid of cells — it's a <b>single painted worm</b>. No image loaded yet shows a procedural sample.</p>
       
-<div class="row" data-tip="The matrix path morphology. 'teleporter' maps via an erratic self-avoiding random walk that leaps over blind-alleys. 'hilbert' maps a classic regular fractal ribbon.">
-  <label>morphology</label>
-  <select id="modesel" class="modesel">
-    <option value="teleporter" selected>burrowing random walk</option>
-    <option value="hilbert">hilbert curve</option>
-    <option value="morton">morton (z-order) curve</option>
-    <option value="boustrophedon">boustrophedon snake</option>
-    <option value="spiral">concentric ooze spiral</option>
-  </select>
-</div>
+      <div class="row" data-tip="The matrix path morphology. 'teleporter' maps via an erratic self-avoiding random walk that leaps over blind-alleys. 'hilbert' maps a classic regular fractal ribbon.">
+        <label>morphology</label>
+        <select id="modesel" class="modesel">
+          <option value="teleporter" selected>burrowing random walk</option>
+          <option value="hilbert">hilbert curve</option>
+        </select>
+      </div>
+
       <div class="row" data-tip="How densely the worm samples the image (grid density). Finer thread resolves the picture; coarser thread reads as a visible snaking worm.">
         <label>thread</label>
         <input id="res" type="range" min="4" max="8" step="1" value="7">
@@ -746,61 +741,11 @@ function generateTeleporterPath(order, seed) {
 
 function ensureCurve(order, type, seed = 12345){
   if(order===CURVE_ORDER && type===CURVE_TYPE) return;
-  const n = 1 << order, N = n * n;
-  const c = new Int32Array(N), xy = new Float32Array(N * 2);
-
   if (type === 'teleporter') {
     const path = generateTeleporterPath(order, seed);
     CURVE = path.c; CURVE_XY = path.xy;
-    CURVE_ORDER = order; CURVE_TYPE = type;
-    return;
-  }
-
-  if (type === 'morton') {
-    // Z-Order Curve using classic bit-interleaving
-    for (let d = 0; d < N; d++) {
-      let x = 0, y = 0;
-      for (let bit = 0; bit < order; bit++) {
-        x |= ((d >> (bit * 2)) & 1) << bit;
-        y |= ((d >> (bit * 2 + 1)) & 1) << bit;
-      }
-      c[d] = y * n + x; xy[d * 2] = (x + 0.5) / n; xy[d * 2 + 1] = (y + 0.5) / n;
-    }
-  } else if (type === 'boustrophedon') {
-    // Alternating rows creating an elegant continuous snaking line
-    let d = 0;
-    for (let y = 0; y < n; y++) {
-      const reverse = (y % 2 === 1);
-      for (let x = 0; x < n; x++) {
-        const actualX = reverse ? (n - 1 - x) : x;
-        c[d] = y * n + actualX; xy[d * 2] = (actualX + 0.5) / n; xy[d * 2 + 1] = (y + 0.5) / n;
-        d++;
-      }
-    }
-} else if (type === 'spiral') {
-    // Inward-winding concentric shell paths toward the center
-    let left = 0, right = n - 1, top = 0, bottom = n - 1;
-    let d = 0;
-    while (left <= right && top <= bottom) {
-      // 1. Move Right across top row
-      for (let x = left; x <= right; x++) { c[d] = top * n + x; xy[d * 2] = (x + 0.5) / n; xy[d * 2 + 1] = (top + 0.5) / n; d++; }
-      top++;
-      // 2. Move Down along right column
-      for (let y = top; y <= bottom; y++) { c[d] = y * n + right; xy[d * 2] = (right + 0.5) / n; xy[d * 2 + 1] = (y + 0.5) / n; d++; }
-      right--;
-      // 3. Move Left across bottom row
-      if (top <= bottom) {
-        for (let x = right; x >= left; x--) { c[d] = bottom * n + x; xy[d * 2] = (x + 0.5) / n; xy[d * 2 + 1] = (bottom + 0.5) / n; d++; }
-        bottom--;
-      }
-      // 4. Move Up along left column
-      if (left <= right) {
-        for (let y = bottom; y >= top; y--) { c[d] = y * n + left; xy[d * 2] = (left + 0.5) / n; xy[d * 2 + 1] = (y + 0.5) / n; d++; }
-        left++;
-      }
-    }
   } else {
-    // Default: Hilbert curve
+    const n=1<<order, N=n*n, c=new Int32Array(N), xy=new Float32Array(N*2);
     for(let d=0; d<N; d++){
       let rx,ry,t=d,x=0,y=0;
       for(let s=1; s<n; s<<=1){
@@ -810,10 +755,9 @@ function ensureCurve(order, type, seed = 12345){
       }
       c[d]=y*n+x; xy[d*2]=(x+0.5)/n; xy[d*2+1]=(y+0.5)/n;
     }
+    CURVE=c; CURVE_XY=xy;
   }
-
-  CURVE = c; CURVE_XY = xy;
-  CURVE_ORDER = order; CURVE_TYPE = type;
+  CURVE_ORDER=order; CURVE_TYPE=type;
 }
 
 /* ---- codec using u8[9] as type marker (0=hilbert, 1=teleporter) ---- */
@@ -827,12 +771,9 @@ function encodeFromRGBA(rgba,S){
   const buf=new ArrayBuffer(HEADER+N*3),dv=new DataView(buf),u8=new Uint8Array(buf);
   u8[0]=0x56;u8[1]=0x45;u8[2]=0x52;u8[3]=0x4D; // "VERM"
   dv.setUint16(4,S,true);dv.setUint16(6,S,true);
-u8[8]=order;
-u8[9]=(currentMode==='teleporter')?1:
-      (currentMode==='morton')?2:
-      (currentMode==='boustrophedon')?3:
-      (currentMode==='spiral')?4:0; 
-u8[10]=ar;u8[11]=ag;u8[12]=ab;
+  u8[8]=order;
+  u8[9]=(currentMode==='teleporter')?1:0; 
+  u8[10]=ar;u8[11]=ag;u8[12]=ab;
   u8[13]=girthByte();u8[14]=Math.round(R.bleed*2.55);u8[15]=Math.round(R.relax*2.55);
   let pr=ar,pg=ag,pb=ab,o=HEADER;
   for(let d=0;d<N;d++){ const p=CURVE[d]*4;
@@ -843,13 +784,10 @@ u8[10]=ar;u8[11]=ag;u8[12]=ab;
 }
 
 function decode(buf){
-const u8=new Uint8Array(buf);
-const order=Math.max(1,Math.min(12,u8[8])), S=1<<order; 
-const modeMarker=u8[9];
-const decMode=(modeMarker===1)?'teleporter':
-              (modeMarker===2)?'morton':
-              (modeMarker===3)?'boustrophedon':
-              (modeMarker===4)?'spiral':'hilbert';
+  const u8=new Uint8Array(buf);
+  const order=Math.max(1,Math.min(12,u8[8])), S=1<<order; 
+  const modeMarker=u8[9];
+  const decMode=(modeMarker===1)?'teleporter':'hilbert';
   
   if(!editing) {
     currentMode = decMode;

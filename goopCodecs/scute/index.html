@@ -12,6 +12,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Fraunces:ital,opsz,wght@1,9..144,500&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Bungee&family=DynaPuff:wght@500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
+
+ @import url('https://fonts.googleapis.com/css2?family=Syne+Mono&display=swap');
   :root {
     /* THEMATIC COLOR CHANGE: Sewer-Mutant Carapace & Iron Soil (Browns/Earth/Rust) */
     --bg: #0d0c0a; 
@@ -39,10 +41,19 @@
     --blackgoo: #110e0c;
     --inkline: #14100e;
 
-    --mono: "DM Mono", ui-monospace, Menlo, monospace;
-    --disp: "DynaPuff", Georgia, serif;
-    --play: "DynaPuff", Georgia, serif;
+    --mono: "Syne Mono", ui-monospace, Menlo, monospace;
+    --disp: "Grinder", "DynaPuff", system-ui, sans-serif;
+    --play: "DynaPuff", system-ui, sans-serif;
   }
+  
+  
+@font-face {
+  font-family: 'Grinder';
+  src: url('../Grinder.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
 
   /* ─── BASE STRUCTURE ─── */
   * { box-sizing: border-box; scrollbar-width: thin; scrollbar-color: var(--goo) #181410; }
@@ -431,7 +442,7 @@
         flat — and each cell takes its local colour. No image loaded yet shows a procedural sample field.</p>
       <div class="row" data-tip="How many Voronoi cells to scatter. More cells hug the source more closely but render slower (each pixel tests every seed). A simple image needs far fewer than a blob image.">
         <label>cells</label>
-        <input id="cells" type="range" min="200" max="4000" step="50" value="1200">
+        <input id="cells" type="range" min="200" max="10000" step="50" value="2000">
         <span class="val" id="cells_v">1200</span></div>
       <div class="row" data-tip="How strongly seeds cluster on edges and detail. 0 = even coverage (uniform cells, low-poly look); high = tiny cells on detail, big flat cells elsewhere. Only affects images.">
         <label>detail bias</label>
@@ -847,7 +858,7 @@ stage.addEventListener('drop',e=>{const f=e.dataTransfer.files[0];if(f)ingestFil
 function dl(blob,name){const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),1500);}
 $('png').addEventListener('click',()=>{
   if(!cleanBuf)return;const buf=currentBuf(),{seeds,W,H,bg,warp}=decode(buf);
-  renderVoronoi(seeds,W,H,bg,2,warp);                              // cells are resolution-independent → 2× crisp
+  renderVoronoi(seeds,W,H,bg,4,warp);                              // Changed from 2 to 4 for ultra-high-res output
   cv.toBlob(b=>{dl(b,'scute-render.png');renderVoronoi(seeds,W,H,bg,1,warp);});
 });
 $('scute').addEventListener('click',()=>{
