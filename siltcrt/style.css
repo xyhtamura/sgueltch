@@ -48,15 +48,15 @@
    1. CUSTOM FONT REGISTRATION (@font-face)
    ========================================== */
 @font-face {
-    font-family: 'Benida Rough';
-    src: url('/fonts/BenidaRough-Regular.otf') format('opentype');
+    font-family: 'Badoney Rough';
+    src: url('BadoneyRough-Regular.otf') format('opentype');
     font-weight: normal;
     font-style: normal;
 }
 
 @font-face {
     font-family: 'Navalie Rough';
-    src: url('/fonts/NavalieRough-Regular_demo.otf') format('opentype');
+    src: url('NavalieRough-Regular_demo.otf') format('opentype');
     font-weight: normal;
     font-style: normal;
 }
@@ -180,11 +180,12 @@ body {
         drop-shadow(2px 4px 4px rgba(0, 0, 0, 0.2));
 }
 .b-silt {                       
-    font-family: 'Benida Rough', 'Rozha One', serif; font-weight: 400;
+    font-family: 'Badoney Rough', 'Rozha One', serif; font-weight: normal;
+	
 }
 
 .b-crt {                        
-    font-family: 'Navalie Rough','Audiowide', sans-serif; font-weight: 400;
+    font-family: 'Navalie Rough','Audiowide', sans-serif; font-weight: normal;
     margin-left: 0.06em; letter-spacing: 0.01em;
     font-size: clamp(1.85rem, 5.9vw, 2.75rem);
 }
