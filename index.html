@@ -33,6 +33,34 @@
   --gap:      1rem;
 }
 
+@font-face {
+  font-family: 'Grinder';
+  src: url('goopCodecs/Grinder.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+
+	@font-face{
+  font-family:"Biceps";
+  src:url("/fonts/BicepsGrotesk-Regular.otf") format("opentype");
+}
+
+@font-face {
+    font-family: 'Badoney Rough';
+    src: url('siltcrt/BadoneyRough-Regular.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Navalie Rough';
+    src: url('siltcrt/NavalieRough-Regular_demo.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+}
+
     * { box-sizing: border-box; margin: 0; padding: 0 }
     html, body { min-height: 100% }
 
@@ -172,7 +200,10 @@
     .f-fugaz      { font-family: "Fugaz One",       system-ui }
     .f-metal      { font-family: "Metal Mania",     system-ui }
     .f-hanalei    { font-family: "Hanalei",         system-ui }
+	.f-badoney    { font-family: "Badoney Rough",         system-ui }
+	.f-navalie    { font-family: "Navalie Rough",         system-ui }
 	.f-microbe { font-family: "Rubik Microbe", system-ui }
+	.f-biceps { font-family: "Biceps", system-ui }
     .f-typebojangle {
       font-family: "Averia Sans Libre", system-ui;
       font-weight: 700;
@@ -181,7 +212,7 @@
         -.03em -.02em 0 rgba(61,216,200,.38);
     }
     .f-goopcodecs {
-      font-family: "DynaPuff", "Averia Sans Libre", system-ui;
+      font-family: "Grinder", "Averia Sans Libre", system-ui;
       font-style: normal;
       font-weight: 700;
       letter-spacing: .005em;
@@ -300,11 +331,43 @@
       --tool-a: #ffe040; --tool-b: #ff3d8f; --tool-c: #3dd8c8;
       --tool-a-rgb: 255,224,64; --tool-b-rgb: 255,61,143; --tool-c-rgb: 61,216,200;
     }
-    [data-tool="goopcodecs"] {
-      grid-column: 2 / 10;
-      --tool-a: #c7f23e; --tool-b: #34dfc6; --tool-c: #cf5cff;
-      --tool-a-rgb: 199,242,62; --tool-b-rgb: 52,223,198; --tool-c-rgb: 207,92,255;
-    }
+[data-tool="goopcodecs"] {
+  grid-column: 1 / 6;
+  --tool-a: #c7f23e; --tool-b: #34dfc6; --tool-c: #cf5cff;
+  --tool-a-rgb: 199,242,62; --tool-b-rgb: 52,223,198; --tool-c-rgb: 207,92,255;
+}
+
+[data-tool="bakezuri"] {
+  grid-column: 6 / 11;
+  --tool-a: #2fe0c0; --tool-b: #ff3d86; --tool-c: #e9c24a;
+  --tool-a-rgb: 47,224,192; --tool-b-rgb: 255,61,134; --tool-c-rgb: 233,194,74;
+}
+
+
+[data-tool="goopcodecs"] .preview-slot,
+[data-tool="bakezuri"] .preview-slot {
+  aspect-ratio: 16 / 6;
+}
+
+.f-bakezuri {
+  font-family: "Fraunces", "Averia Sans Libre", serif;
+  font-style: italic;
+  font-weight: 600;
+  letter-spacing: .01em;
+  text-shadow:
+    0 0 .32em rgba(47,224,192,.18),
+    .04em .03em 0 rgba(123,111,240,.24),
+    -.025em -.018em 0 rgba(255,61,134,.22);
+}
+.f-bakezuri .jp {
+  font-style: normal;
+  margin-right: .18em;
+  color: var(--tool-a);
+}
+
+@media (max-width: 720px) {
+  [data-tool="bakezuri"] { grid-column: auto }
+}
 
     /* ─── CARDS ─── */
     .tool-card {
@@ -483,11 +546,12 @@
     /* ─── RESPONSIVE ─── */
     @media (max-width: 720px) {
       .tools-grid { grid-template-columns: 1fr }
-      [data-tool="lesions"],
-      [data-tool="siltcrt"],
-      [data-tool="gurgulator"],
-      [data-tool="typebojangler"],
-      [data-tool="goopcodecs"] { grid-column: auto }
+[data-tool="lesions"],
+[data-tool="siltcrt"],
+[data-tool="gurgulator"],
+[data-tool="typebojangler"],
+[data-tool="goopcodecs"],
+[data-tool="bakezuri"] { grid-column: auto }
       .preview-slot { aspect-ratio: 16 / 8 }
     }
 	
@@ -576,42 +640,94 @@
 
         <!-- Animated SVG placeholder — remove .placeholder-anim div when preview is ready -->
         <div class="preview-slot">
-          <div class="placeholder-anim" aria-hidden="true">
-            <svg viewBox="0 0 480 210" xmlns="http://www.w3.org/2000/svg"
-                 preserveAspectRatio="xMidYMid slice">
-              <rect width="480" height="210" fill="#060e08"/>
-              <!-- spreading lesion blobs — SMIL-animated r + position for organic feel -->
-              <g filter="url(#gooey)">
-                <circle cx="185" cy="105" r="52" fill="rgba(143,191,74,.22)">
-                  <animate attributeName="r" values="52;64;48;52" dur="5s" repeatCount="indefinite"/>
-                  <animate attributeName="cx" values="185;190;180;185" dur="7s" repeatCount="indefinite"/>
-                </circle>
-                <circle cx="305" cy="78" r="35" fill="rgba(176,204,100,.18)">
-                  <animate attributeName="r" values="35;44;31;35" dur="4.2s" repeatCount="indefinite"/>
-                  <animate attributeName="cy" values="78;70;83;78" dur="5.5s" repeatCount="indefinite"/>
-                </circle>
-                <circle cx="368" cy="158" r="26" fill="rgba(74,114,24,.28)">
-                  <animate attributeName="r" values="26;33;22;26" dur="3.5s" repeatCount="indefinite"/>
-                </circle>
-                <circle cx="112" cy="162" r="20" fill="rgba(47,138,116,.22)">
-                  <animate attributeName="r" values="20;27;17;20" dur="4.9s" repeatCount="indefinite"/>
-                  <animate attributeName="cy" values="162;154;167;162" dur="6.2s" repeatCount="indefinite"/>
-                </circle>
-                <circle cx="248" cy="38" r="15" fill="rgba(143,191,74,.15)">
-                  <animate attributeName="r" values="15;21;12;15" dur="3.8s" repeatCount="indefinite"/>
-                </circle>
-                <circle cx="420" cy="60" r="12" fill="rgba(74,114,24,.18)">
-                  <animate attributeName="r" values="12;17;10;12" dur="4.5s" repeatCount="indefinite"/>
-                </circle>
-              </g>
-              <!-- pixel-noise marks suggesting sorted pixel artifacts -->
-              <rect x="148" y="82"  width="2" height="2" fill="rgba(176,204,100,.22)"/>
-              <rect x="196" y="132" width="1.5" height="1.5" fill="rgba(176,204,100,.18)"/>
-              <rect x="268" y="68"  width="2" height="2" fill="rgba(176,204,100,.2)"/>
-              <rect x="322" y="118" width="1.5" height="1.5" fill="rgba(176,204,100,.16)"/>
-              <rect x="88"  y="48"  width="2" height="2" fill="rgba(176,204,100,.14)"/>
-            </svg>
-          </div>
+<div class="placeholder-anim" aria-hidden="true">
+  <svg viewBox="0 0 480 210" xmlns="http://www.w3.org/2000/svg"
+       preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <filter id="lesionSoft">
+        <feGaussianBlur stdDeviation="4"/>
+      </filter>
+
+      <filter id="lesionGoo">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur"/>
+        <feColorMatrix in="blur" mode="matrix"
+          values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -8" result="goo"/>
+        <feBlend in="SourceGraphic" in2="goo"/>
+      </filter>
+
+      <linearGradient id="lesionWash" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="rgba(168,255,62,.12)"/>
+        <stop offset="45%" stop-color="rgba(201,79,255,.10)"/>
+        <stop offset="100%" stop-color="rgba(255,191,56,.10)"/>
+      </linearGradient>
+
+      <pattern id="lesionPixels" width="18" height="14" patternUnits="userSpaceOnUse">
+        <rect x="2" y="3" width="2" height="2" fill="rgba(168,255,62,.20)">
+          <animate attributeName="opacity" values=".08;.34;.10" dur="2.6s" repeatCount="indefinite"/>
+        </rect>
+        <rect x="11" y="8" width="1.5" height="1.5" fill="rgba(70,255,226,.16)">
+          <animate attributeName="opacity" values=".20;.04;.26" dur="3.1s" repeatCount="indefinite"/>
+        </rect>
+      </pattern>
+    </defs>
+
+    <rect width="480" height="210" fill="#06090a"/>
+    <rect width="480" height="210" fill="url(#lesionWash)"/>
+    <rect width="480" height="210" fill="url(#lesionPixels)" opacity=".58"/>
+
+    <!-- low fungal glow -->
+    <g filter="url(#lesionSoft)">
+      <ellipse cx="150" cy="118" rx="118" ry="40" fill="rgba(168,255,62,.16)">
+        <animate attributeName="rx" values="118;150;104;118" dur="7.5s" repeatCount="indefinite"/>
+        <animate attributeName="cy" values="118;110;124;118" dur="8.4s" repeatCount="indefinite"/>
+      </ellipse>
+      <ellipse cx="332" cy="92" rx="90" ry="34" fill="rgba(201,79,255,.13)">
+        <animate attributeName="rx" values="90;68;112;90" dur="6.6s" repeatCount="indefinite"/>
+      </ellipse>
+      <ellipse cx="270" cy="158" rx="84" ry="22" fill="rgba(255,191,56,.12)">
+        <animate attributeName="cx" values="270;292;254;270" dur="5.8s" repeatCount="indefinite"/>
+      </ellipse>
+    </g>
+
+    <!-- lesion bodies -->
+    <g filter="url(#lesionGoo)">
+      <circle cx="190" cy="108" r="52" fill="rgba(168,255,62,.34)">
+        <animate attributeName="r" values="52;66;47;52" dur="5.2s" repeatCount="indefinite"/>
+        <animate attributeName="cx" values="190;198;181;190" dur="7.1s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="296" cy="78" r="34" fill="rgba(201,79,255,.26)">
+        <animate attributeName="r" values="34;44;29;34" dur="4.5s" repeatCount="indefinite"/>
+        <animate attributeName="cy" values="78;68;86;78" dur="5.6s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="350" cy="150" r="28" fill="rgba(255,191,56,.24)">
+        <animate attributeName="r" values="28;37;22;28" dur="3.8s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="104" cy="158" r="22" fill="rgba(70,255,226,.22)">
+        <animate attributeName="r" values="22;30;18;22" dur="4.9s" repeatCount="indefinite"/>
+        <animate attributeName="cy" values="158;146;166;158" dur="6.4s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="248" cy="38" r="15" fill="rgba(255,79,163,.28)">
+        <animate attributeName="r" values="15;23;12;15" dur="3.4s" repeatCount="indefinite"/>
+      </circle>
+    </g>
+
+    <!-- sorted pixel streaks -->
+    <g opacity=".62">
+      <rect x="150" y="80" width="78" height="2" fill="rgba(168,255,62,.28)">
+        <animate attributeName="width" values="22;112;44;78" dur="2.8s" repeatCount="indefinite"/>
+      </rect>
+      <rect x="196" y="132" width="132" height="1.5" fill="rgba(201,79,255,.24)">
+        <animate attributeName="x" values="196;170;210;196" dur="3.4s" repeatCount="indefinite"/>
+      </rect>
+      <rect x="265" y="64" width="92" height="2" fill="rgba(255,191,56,.22)">
+        <animate attributeName="width" values="92;38;118;92" dur="2.3s" repeatCount="indefinite"/>
+      </rect>
+      <rect x="68" y="48" width="44" height="1.5" fill="rgba(70,255,226,.20)">
+        <animate attributeName="x" values="68;92;56;68" dur="3.9s" repeatCount="indefinite"/>
+      </rect>
+    </g>
+  </svg>
+</div>
 
           <!--
           ══════════════════════════════════════
@@ -639,8 +755,8 @@
         </div>
 
         <div class="card-body">
-          <span class="tool-type">pixel sorter</span>
-          <a href="/sgueltch/pixel-lesions/" class="tool-name f-microbe">Pixel Lesions</a>
+          <span class="tool-type" style="border:0;">pixel sorter</span>
+          <a href="/sgueltch/pixel-lesions/" class="tool-name f-Biceps">Pixel Lesions</a>
           <p class="tool-desc">
             Reimagines pixel sorting as a biological process. Instead of the rigid
             linear artifacts of traditional sorting mechanisms, Pixel Lesions lets you infect
@@ -655,47 +771,95 @@
       <article class="tool-card" data-tool="siltcrt">
 
         <div class="preview-slot">
-          <div class="placeholder-anim" aria-hidden="true">
-            <svg viewBox="0 0 280 210" xmlns="http://www.w3.org/2000/svg"
-                 preserveAspectRatio="xMidYMid slice">
-              <defs>
-                <!-- scanline pattern -->
-                <pattern id="scan" width="4" height="4" patternUnits="userSpaceOnUse">
-                  <rect y="0" width="4" height="1" fill="rgba(143,191,74,.035)"/>
-                </pattern>
-              </defs>
-              <rect width="280" height="210" fill="#050e09"/>
-              <!-- Voronoi-ish cell suggestion -->
-              <g stroke="rgba(143,191,74,.16)" stroke-width=".6" fill-rule="evenodd">
-                <polygon points="8,8 118,4 138,78 58,93"   fill="rgba(143,191,74,.055)"/>
-                <polygon points="118,4 218,18 208,88 138,78"  fill="rgba(143,191,74,.038)"/>
-                <polygon points="218,18 274,48 258,118 208,88" fill="rgba(143,191,74,.065)"/>
-                <polygon points="58,93 138,78 148,163 68,173"  fill="rgba(143,191,74,.045)"/>
-                <polygon points="138,78 208,88 198,168 148,163" fill="rgba(47,138,116,.055)"/>
-                <polygon points="208,88 258,118 248,200 198,168" fill="rgba(143,191,74,.038)"/>
-                <polygon points="4,138 58,93 68,173 8,200"   fill="rgba(47,138,116,.048)"/>
-                <polygon points="68,173 148,163 138,210 48,210"  fill="rgba(143,191,74,.030)"/>
-              </g>
-              <!-- Kawase bloom — bright node -->
-              <circle cx="195" cy="52" r="26" fill="rgba(176,204,100,.14)" filter="url(#gooey)">
-                <animate attributeName="r"       values="26;33;24;26" dur="4s"  repeatCount="indefinite"/>
-                <animate attributeName="opacity" values=".8;1;.65;.8"  dur="3s"  repeatCount="indefinite"/>
-              </circle>
-              <!-- Umbra — subtractive dark bloom (inverse of CRT bloom) -->
-              <circle cx="78" cy="162" r="20" fill="rgba(0,0,0,.4)" filter="url(#gooey)"/>
-              <!-- animated scanlines -->
-              <rect width="280" height="210" fill="url(#scan)">
-                <animateTransform attributeName="transform" type="translate"
-                  from="0,0" to="0,-4" dur="0.4s" repeatCount="indefinite"/>
-              </rect>
-              <!-- chromatic bleed hint -->
-              <line x1="0" y1="88"  x2="280" y2="88"
-                    stroke="rgba(255,80,80,.04)" stroke-width="1"/>
-              <line x1="0" y1="91"  x2="280" y2="91"
-                    stroke="rgba(80,80,255,.04)" stroke-width="1"/>
-            </svg>
-          </div>
+<div class="placeholder-anim" aria-hidden="true">
+  <svg viewBox="0 0 280 210" xmlns="http://www.w3.org/2000/svg"
+       preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <pattern id="siltScan" width="4" height="4" patternUnits="userSpaceOnUse">
+        <rect y="0" width="4" height="1" fill="rgba(70,255,226,.045)"/>
+        <rect y="2" width="4" height=".6" fill="rgba(93,124,255,.030)"/>
+      </pattern>
 
+      <linearGradient id="siltWash" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="rgba(70,255,226,.18)"/>
+        <stop offset="52%" stop-color="rgba(93,124,255,.12)"/>
+        <stop offset="100%" stop-color="rgba(228,255,99,.12)"/>
+      </linearGradient>
+
+      <filter id="siltBlur">
+        <feGaussianBlur stdDeviation="5"/>
+      </filter>
+    </defs>
+
+    <rect width="280" height="210" fill="#050911"/>
+    <rect width="280" height="210" fill="url(#siltWash)" opacity=".65"/>
+
+    <!-- soft phosphor cloud -->
+    <g filter="url(#siltBlur)">
+      <circle cx="206" cy="54" r="34" fill="rgba(70,255,226,.20)">
+        <animate attributeName="r" values="34;45;28;34" dur="4.6s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values=".65;.95;.45;.65" dur="3.8s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="76" cy="158" r="30" fill="rgba(93,124,255,.18)">
+        <animate attributeName="r" values="30;22;38;30" dur="5.3s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="132" cy="102" r="22" fill="rgba(228,255,99,.16)">
+        <animate attributeName="cx" values="132;146;120;132" dur="6.2s" repeatCount="indefinite"/>
+      </circle>
+    </g>
+
+    <!-- Voronoi phosphor cells -->
+    <g stroke-width=".7" fill-rule="evenodd">
+      <polygon points="8,8 112,4 136,72 54,94"
+               fill="rgba(70,255,226,.080)" stroke="rgba(70,255,226,.22)">
+        <animate attributeName="opacity" values=".8;.45;.9;.8" dur="4.7s" repeatCount="indefinite"/>
+      </polygon>
+      <polygon points="112,4 218,18 207,88 136,72"
+               fill="rgba(93,124,255,.075)" stroke="rgba(93,124,255,.20)">
+        <animate attributeName="opacity" values=".55;.9;.48;.55" dur="5.2s" repeatCount="indefinite"/>
+      </polygon>
+      <polygon points="218,18 274,48 258,118 207,88"
+               fill="rgba(228,255,99,.070)" stroke="rgba(228,255,99,.18)"/>
+      <polygon points="54,94 136,72 150,162 66,174"
+               fill="rgba(70,255,226,.060)" stroke="rgba(70,255,226,.16)"/>
+      <polygon points="136,72 207,88 198,168 150,162"
+               fill="rgba(93,124,255,.065)" stroke="rgba(93,124,255,.18)">
+        <animate attributeName="opacity" values=".7;.4;.85;.7" dur="3.9s" repeatCount="indefinite"/>
+      </polygon>
+      <polygon points="207,88 258,118 248,200 198,168"
+               fill="rgba(228,255,99,.050)" stroke="rgba(228,255,99,.15)"/>
+      <polygon points="4,138 54,94 66,174 8,200"
+               fill="rgba(70,255,226,.050)" stroke="rgba(70,255,226,.13)"/>
+      <polygon points="66,174 150,162 138,210 48,210"
+               fill="rgba(93,124,255,.050)" stroke="rgba(93,124,255,.13)"/>
+    </g>
+
+    <!-- moving chromatic signal tear -->
+    <g opacity=".55">
+      <line x1="0" y1="86" x2="280" y2="86" stroke="rgba(255,79,163,.20)" stroke-width="1">
+        <animate attributeName="y1" values="86;92;84;86" dur="2.6s" repeatCount="indefinite"/>
+        <animate attributeName="y2" values="86;92;84;86" dur="2.6s" repeatCount="indefinite"/>
+      </line>
+      <line x1="0" y1="90" x2="280" y2="90" stroke="rgba(70,255,226,.24)" stroke-width="1">
+        <animate attributeName="y1" values="90;83;96;90" dur="3.1s" repeatCount="indefinite"/>
+        <animate attributeName="y2" values="90;83;96;90" dur="3.1s" repeatCount="indefinite"/>
+      </line>
+      <line x1="0" y1="94" x2="280" y2="94" stroke="rgba(228,255,99,.13)" stroke-width="1"/>
+    </g>
+
+    <!-- animated scanlines -->
+    <rect width="280" height="210" fill="url(#siltScan)" opacity=".85">
+      <animateTransform attributeName="transform" type="translate"
+        from="0,0" to="0,-4" dur="0.42s" repeatCount="indefinite"/>
+    </rect>
+
+    <!-- umbra / tube darkening -->
+    <ellipse cx="72" cy="164" rx="34" ry="22" fill="rgba(0,0,0,.38)">
+      <animate attributeName="rx" values="34;43;28;34" dur="5.7s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values=".38;.56;.30;.38" dur="4.8s" repeatCount="indefinite"/>
+    </ellipse>
+  </svg>
+</div>
           <!--
           ══════════════════════════════════════
           SILTCRT PREVIEW
@@ -723,7 +887,7 @@
 
         <div class="card-body">
           <span class="tool-type">shader · phosphor emulator</span>
-          <a href="/sgueltch/siltcrt/" class="tool-name f-fruktur">SiltCRT</a>
+          <a href="/sgueltch/siltcrt/" class="tool-name"><span class="f-badoney">Silt</span><span class="f-navalie">CRT</span></a>
           <p class="tool-desc">
             Emulates the decay of analog phosphor screens using Voronoi
             tessellated phosphor cells instead of a regular grid. Has settings for turbulence, chromatic bleed, current flow. Features a dual light-bleed system for
@@ -738,53 +902,107 @@
       <article class="tool-card" data-tool="gurgulator">
 
         <div class="preview-slot">
-          <div class="placeholder-anim" aria-hidden="true">
-            <svg viewBox="0 0 280 210" xmlns="http://www.w3.org/2000/svg"
-                 preserveAspectRatio="xMidYMid slice">
-              <rect width="280" height="210" fill="#050d08"/>
-              <!-- animated waveforms via SMIL path morphing -->
-              <g fill="none">
-                <path stroke="rgba(143,191,74,.62)" stroke-width="1.5"
-                      d="M 0 105 Q 35 75 70 105 Q 105 135 140 105 Q 175 75 210 105 Q 245 135 280 105">
-                  <animate attributeName="d" dur="2.4s" repeatCount="indefinite"
-                    values="M 0 105 Q 35 75 70 105 Q 105 135 140 105 Q 175 75 210 105 Q 245 135 280 105;
-                            M 0 105 Q 35 132 70 105 Q 105 78 140 105 Q 175 132 210 105 Q 245 78 280 105;
-                            M 0 105 Q 35 75 70 105 Q 105 135 140 105 Q 175 75 210 105 Q 245 135 280 105"/>
-                </path>
-                <path stroke="rgba(176,204,100,.28)" stroke-width="1"
-                      d="M 0 105 Q 46 65 92 105 Q 138 145 184 105 Q 230 65 280 105">
-                  <animate attributeName="d" dur="3.2s" repeatCount="indefinite"
-                    values="M 0 105 Q 46 65 92 105 Q 138 145 184 105 Q 230 65 280 105;
-                            M 0 105 Q 46 143 92 105 Q 138 67 184 105 Q 230 143 280 105;
-                            M 0 105 Q 46 65 92 105 Q 138 145 184 105 Q 230 65 280 105"/>
-                </path>
-                <path stroke="rgba(47,138,116,.22)" stroke-width="2"
-                      d="M 0 105 Q 70 55 140 105 Q 210 155 280 105">
-                  <animate attributeName="d" dur="1.9s" repeatCount="indefinite"
-                    values="M 0 105 Q 70 55 140 105 Q 210 155 280 105;
-                            M 0 105 Q 70 150 140 105 Q 210 60 280 105;
-                            M 0 105 Q 70 55 140 105 Q 210 155 280 105"/>
-                </path>
-              </g>
-              <!-- rising bubbles -->
-              <g filter="url(#gooey)">
-                <circle cx="54" cy="78" r="9" fill="rgba(143,191,74,.14)">
-                  <animate attributeName="cy" values="78;62;78" dur="2s"   repeatCount="indefinite"/>
-                  <animate attributeName="r"  values="9;11;9"  dur="2s"   repeatCount="indefinite"/>
-                </circle>
-                <circle cx="158" cy="148" r="6" fill="rgba(143,191,74,.18)">
-                  <animate attributeName="cy" values="148;133;148" dur="1.6s" repeatCount="indefinite"/>
-                </circle>
-                <circle cx="228" cy="68" r="13" fill="rgba(74,114,24,.12)">
-                  <animate attributeName="cy" values="68;50;68"  dur="2.9s" repeatCount="indefinite"/>
-                  <animate attributeName="r"  values="13;16;13" dur="2.9s" repeatCount="indefinite"/>
-                </circle>
-                <circle cx="108" cy="165" r="5" fill="rgba(47,138,116,.15)">
-                  <animate attributeName="cy" values="165;154;165" dur="2.2s" repeatCount="indefinite"/>
-                </circle>
-              </g>
-            </svg>
-          </div>
+<div class="placeholder-anim" aria-hidden="true">
+  <svg viewBox="0 0 280 210" xmlns="http://www.w3.org/2000/svg"
+       preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <filter id="gurgSoft">
+        <feGaussianBlur stdDeviation="4"/>
+      </filter>
+
+      <filter id="gurgGoo">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="2.8" result="blur"/>
+        <feColorMatrix in="blur" mode="matrix"
+          values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 17 -8" result="goo"/>
+        <feBlend in="SourceGraphic" in2="goo"/>
+      </filter>
+
+      <linearGradient id="gurgBroth" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="rgba(255,191,56,.16)"/>
+        <stop offset="52%" stop-color="rgba(32,224,192,.11)"/>
+        <stop offset="100%" stop-color="rgba(221,107,56,.15)"/>
+      </linearGradient>
+    </defs>
+
+    <rect width="280" height="210" fill="#080708"/>
+    <rect width="280" height="210" fill="url(#gurgBroth)"/>
+
+    <!-- fermenting background -->
+    <g filter="url(#gurgSoft)">
+      <ellipse cx="84" cy="132" rx="72" ry="28" fill="rgba(255,191,56,.18)">
+        <animate attributeName="rx" values="72;96;58;72" dur="6.2s" repeatCount="indefinite"/>
+      </ellipse>
+      <ellipse cx="200" cy="72" rx="64" ry="24" fill="rgba(32,224,192,.16)">
+        <animate attributeName="cx" values="200;216;188;200" dur="7.4s" repeatCount="indefinite"/>
+      </ellipse>
+      <ellipse cx="176" cy="160" rx="78" ry="20" fill="rgba(221,107,56,.15)">
+        <animate attributeName="rx" values="78;52;92;78" dur="5.1s" repeatCount="indefinite"/>
+      </ellipse>
+    </g>
+
+    <!-- peristaltic audio paths -->
+    <g fill="none" stroke-linecap="round">
+      <path stroke="rgba(255,191,56,.78)" stroke-width="2"
+            d="M 0 105 Q 35 75 70 105 Q 105 135 140 105 Q 175 75 210 105 Q 245 135 280 105">
+        <animate attributeName="d" dur="2.25s" repeatCount="indefinite"
+          values="M 0 105 Q 35 75 70 105 Q 105 135 140 105 Q 175 75 210 105 Q 245 135 280 105;
+                  M 0 105 Q 35 134 70 105 Q 105 76 140 105 Q 175 134 210 105 Q 245 76 280 105;
+                  M 0 105 Q 35 75 70 105 Q 105 135 140 105 Q 175 75 210 105 Q 245 135 280 105"/>
+      </path>
+
+      <path stroke="rgba(32,224,192,.52)" stroke-width="1.4"
+            d="M 0 122 Q 46 80 92 122 Q 138 164 184 122 Q 230 80 280 122">
+        <animate attributeName="d" dur="3.15s" repeatCount="indefinite"
+          values="M 0 122 Q 46 80 92 122 Q 138 164 184 122 Q 230 80 280 122;
+                  M 0 122 Q 46 164 92 122 Q 138 80 184 122 Q 230 164 280 122;
+                  M 0 122 Q 46 80 92 122 Q 138 164 184 122 Q 230 80 280 122"/>
+      </path>
+
+      <path stroke="rgba(221,107,56,.54)" stroke-width="2.6"
+            d="M 0 86 Q 70 46 140 86 Q 210 126 280 86">
+        <animate attributeName="d" dur="1.85s" repeatCount="indefinite"
+          values="M 0 86 Q 70 46 140 86 Q 210 126 280 86;
+                  M 0 86 Q 70 130 140 86 Q 210 42 280 86;
+                  M 0 86 Q 70 46 140 86 Q 210 126 280 86"/>
+      </path>
+    </g>
+
+    <!-- burps / bubbles -->
+    <g filter="url(#gurgGoo)">
+      <circle cx="54" cy="84" r="9" fill="rgba(255,191,56,.28)">
+        <animate attributeName="cy" values="84;60;84" dur="2.2s" repeatCount="indefinite"/>
+        <animate attributeName="r" values="9;13;8;9" dur="2.2s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="156" cy="148" r="7" fill="rgba(32,224,192,.24)">
+        <animate attributeName="cy" values="148;128;148" dur="1.7s" repeatCount="indefinite"/>
+        <animate attributeName="r" values="7;10;6;7" dur="1.7s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="224" cy="70" r="13" fill="rgba(221,107,56,.22)">
+        <animate attributeName="cy" values="70;48;70" dur="2.9s" repeatCount="indefinite"/>
+        <animate attributeName="r" values="13;18;11;13" dur="2.9s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="110" cy="168" r="5" fill="rgba(255,79,163,.24)">
+        <animate attributeName="cy" values="168;150;168" dur="2.45s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="198" cy="112" r="4" fill="rgba(255,191,56,.30)">
+        <animate attributeName="r" values="4;8;3;4" dur="1.35s" repeatCount="indefinite"/>
+      </circle>
+    </g>
+
+    <!-- tiny spectral ticks -->
+    <g opacity=".55">
+      <rect x="34" y="34" width="28" height="1.5" fill="rgba(255,191,56,.28)">
+        <animate attributeName="x" values="34;48;26;34" dur="3.2s" repeatCount="indefinite"/>
+      </rect>
+      <rect x="176" y="42" width="44" height="1.5" fill="rgba(32,224,192,.24)">
+        <animate attributeName="width" values="44;18;62;44" dur="2.4s" repeatCount="indefinite"/>
+      </rect>
+      <rect x="210" y="176" width="32" height="1.5" fill="rgba(221,107,56,.28)">
+        <animate attributeName="x" values="210;194;224;210" dur="3.7s" repeatCount="indefinite"/>
+      </rect>
+    </g>
+  </svg>
+</div>
 
           <!--
           ══════════════════════════════════════
@@ -993,8 +1211,7 @@
                     <animate attributeName="r" values="24;31;20;24" dur="4.9s" repeatCount="indefinite"/>
                   </circle>
                 </g>
-                <text x="75" y="178" text-anchor="middle" font-family="DM Mono, monospace" font-size="14" fill="#c7f23e">ooid</text>
-                <text x="75" y="195" text-anchor="middle" font-family="DM Mono, monospace" font-size="9" fill="rgba(215,223,201,.56)">round loss</text>
+
               </g>
 
               <g transform="translate(245 46)">
@@ -1012,8 +1229,7 @@
                 <circle cx="96" cy="104" r="3" fill="#ffd22e">
                   <animate attributeName="cy" values="104;96;110;104" dur="5.2s" repeatCount="indefinite"/>
                 </circle>
-                <text x="75" y="178" text-anchor="middle" font-family="DM Mono, monospace" font-size="14" fill="#34dfc6">scute</text>
-                <text x="75" y="195" text-anchor="middle" font-family="DM Mono, monospace" font-size="9" fill="rgba(215,223,201,.56)">cellular loss</text>
+
               </g>
 
               <g transform="translate(436 46)">
@@ -1025,8 +1241,7 @@
                             M20 112 C42 24, 68 126, 92 44 S128 80, 136 30"/>
                 </path>
                 <path d="M20 112 C42 24, 68 126, 92 44 S128 80, 136 30" fill="none" stroke="rgba(107,255,213,.36)" stroke-width="4" stroke-linecap="round"/>
-                <text x="75" y="178" text-anchor="middle" font-family="DM Mono, monospace" font-size="14" fill="#cf5cff">vermis</text>
-                <text x="75" y="195" text-anchor="middle" font-family="DM Mono, monospace" font-size="9" fill="rgba(215,223,201,.56)">flowing loss</text>
+
               </g>
 
               <path d="M206 120 C224 112 230 112 245 120" stroke="rgba(215,223,201,.24)" stroke-width="1" stroke-dasharray="5 8" fill="none"/>
@@ -1075,7 +1290,143 @@
           </p>
           <a href="/sgueltch/goopCodecs/" class="tool-cta">open collection →</a>
         </div>
+		
+		
       </article>
+	  
+	  <!-- ══════════ BAKEZURI ══════════ -->
+<article class="tool-card" data-tool="bakezuri">
+
+  <div class="preview-slot">
+    <div class="placeholder-anim" aria-hidden="true">
+      <svg viewBox="0 0 640 280" xmlns="http://www.w3.org/2000/svg"
+           preserveAspectRatio="xMidYMid slice">
+        <defs>
+          <filter id="bakeSoft">
+            <feGaussianBlur stdDeviation="4"/>
+          </filter>
+          <linearGradient id="bakeTube" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="rgba(47,224,192,.12)"/>
+            <stop offset="48%" stop-color="rgba(234,255,243,.58)"/>
+            <stop offset="100%" stop-color="rgba(255,61,134,.12)"/>
+          </linearGradient>
+          <pattern id="bakeDots" width="18" height="18" patternUnits="userSpaceOnUse">
+            <circle cx="8" cy="8" r="2.2" fill="rgba(255,61,134,.24)">
+              <animate attributeName="r" values="2.2;3.2;1.8;2.2" dur="4.2s" repeatCount="indefinite"/>
+            </circle>
+          </pattern>
+        </defs>
+
+        <rect width="640" height="280" fill="#090a0d"/>
+        <rect x="0" y="0" width="640" height="44" fill="url(#bakeTube)" opacity=".42"/>
+        <rect x="0" y="44" width="640" height="236" fill="rgba(12,14,18,.92)"/>
+
+        <!-- print bed / bath -->
+        <g transform="translate(58 58)">
+          <rect x="0" y="0" width="372" height="166" rx="8"
+                fill="#0c0e12" stroke="rgba(47,224,192,.28)" stroke-width="1.2"/>
+          <rect x="18" y="18" width="336" height="130" rx="4"
+                fill="#100c0a" stroke="rgba(233,194,74,.10)"/>
+
+          <!-- wet ink field -->
+          <g filter="url(#bakeSoft)">
+            <path d="M48 86 C78 38, 126 122, 170 70 S248 44, 296 98 S330 124, 350 82"
+                  fill="none" stroke="rgba(47,224,192,.42)" stroke-width="26" stroke-linecap="round">
+              <animate attributeName="d" dur="6.4s" repeatCount="indefinite"
+                values="M48 86 C78 38, 126 122, 170 70 S248 44, 296 98 S330 124, 350 82;
+                        M46 92 C86 52, 120 110, 176 78 S250 58, 292 90 S326 112, 350 76;
+                        M48 86 C78 38, 126 122, 170 70 S248 44, 296 98 S330 124, 350 82"/>
+            </path>
+            <path d="M60 112 C110 78, 156 142, 208 106 S284 70, 330 128"
+                  fill="none" stroke="rgba(123,111,240,.34)" stroke-width="22" stroke-linecap="round">
+              <animate attributeName="d" dur="5.2s" repeatCount="indefinite"
+                values="M60 112 C110 78, 156 142, 208 106 S284 70, 330 128;
+                        M58 104 C112 88, 158 134, 212 98 S286 84, 326 122;
+                        M60 112 C110 78, 156 142, 208 106 S284 70, 330 128"/>
+            </path>
+            <ellipse cx="216" cy="86" rx="78" ry="28" fill="rgba(255,61,134,.20)" transform="rotate(-8 216 86)">
+              <animate attributeName="rx" values="78;92;68;78" dur="5.8s" repeatCount="indefinite"/>
+            </ellipse>
+          </g>
+
+          <!-- riso screen overlay -->
+          <rect x="18" y="18" width="336" height="130" fill="url(#bakeDots)" opacity=".48"/>
+          <g opacity=".7" stroke="rgba(233,194,74,.40)" stroke-width="1">
+            <path d="M0 0 H24 M0 0 V24"/>
+            <path d="M372 0 H348 M372 0 V24"/>
+            <path d="M0 166 H24 M0 166 V142"/>
+            <path d="M372 166 H348 M372 166 V142"/>
+          </g>
+        </g>
+
+        <!-- console -->
+        <g transform="translate(466 62)">
+          <rect x="0" y="0" width="126" height="154" rx="14"
+                fill="rgba(22,24,30,.92)" stroke="rgba(86,93,104,.75)"/>
+          <text x="18" y="26" font-family="DM Mono, monospace" font-size="10" fill="#9fe8c4">浸</text>
+          <text x="102" y="26" font-family="DM Mono, monospace" font-size="10" fill="#ff3d86">装</text>
+          <rect x="18" y="38" width="90" height="5" rx="3" fill="rgba(123,111,240,.30)"/>
+          <circle cx="42" cy="40.5" r="10" fill="#eafff3" stroke="#3b424e">
+            <animate attributeName="cx" values="42;70;42" dur="6s" repeatCount="indefinite"/>
+          </circle>
+
+          <circle cx="28" cy="80" r="14" fill="rgba(47,224,192,.55)"/>
+          <circle cx="64" cy="80" r="14" fill="rgba(255,61,134,.55)"/>
+          <circle cx="100" cy="80" r="14" fill="rgba(233,194,74,.55)"/>
+
+          <rect x="18" y="112" width="90" height="24" rx="5" fill="rgba(9,10,13,.9)" stroke="rgba(47,224,192,.24)"/>
+          <text x="63" y="128" text-anchor="middle" font-family="DM Mono, monospace" font-size="9" fill="#9fe8c4">BLEED / HOLD</text>
+        </g>
+
+        <!-- hanko -->
+        <g transform="translate(410 190)">
+          <circle cx="0" cy="0" r="30" fill="rgba(212,69,44,.88)" stroke="rgba(126,37,22,.9)" stroke-width="3"/>
+          <text x="0" y="10" text-anchor="middle" font-family="serif" font-size="30" font-weight="800" fill="#fff3ee">摺</text>
+        </g>
+
+        <text x="58" y="248" font-family="DM Mono, monospace" font-size="13" fill="rgba(215,223,201,.62)">
+        </text>
+      </svg>
+    </div>
+
+    <!--
+    ══════════════════════════════════════
+    BAKEZURI PREVIEW
+    When ready: comment out .placeholder-anim above, uncomment one option below.
+    ══════════════════════════════════════
+
+    <img src="/sgueltch/bakezuri/preview.gif"
+         alt="Bakezuri — wet riso marbling print engine preview"
+         class="tool-preview-img">
+
+    <video autoplay loop muted playsinline class="tool-preview-vid">
+      <source src="/sgueltch/bakezuri/preview.mp4" type="video/mp4">
+      <source src="/sgueltch/bakezuri/preview.webm" type="video/webm">
+    </video>
+
+    <iframe src="/sgueltch/bakezuri/"
+            class="tool-preview-frame"
+            title="Bakezuri live preview"
+            loading="lazy"></iframe>
+    -->
+  </div>
+
+  <div class="card-body">
+    <span class="tool-type">wet print engine · process codec</span>
+    <a href="/sgueltch/bakezuri/" class="tool-name f-bakezuri">
+      <span class="jp">化け摺り</span>Bakezuri<span class="tool-year">2026</span>
+    </a>
+    <p class="tool-desc">
+      A marbling-printer where riso reproduction and
+      suminagashi flow share one wet ink-field. Images are separated into
+      quantized ink grids, deposited wet, then allowed to bleed, repel, fix,
+      misregister, and re-perform. Exports <em>.png</em> pulls,
+      seedless <em>.bakezuri</em> recipes, and vulnerable
+      <em>.urumizuri</em> wet-state matrices for databending.
+    </p>
+    <a href="/sgueltch/bakezuri/" class="tool-cta">open instrument →</a>
+  </div>
+</article>
 
     </div><!-- .tools-grid -->
   </section>

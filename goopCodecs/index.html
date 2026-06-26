@@ -517,6 +517,7 @@
   .codec-card.ooid::before{background:linear-gradient(90deg,var(--goo-hi),var(--goo2),var(--cyan),var(--goo-hi));background-size:220% 100%;}
   .codec-card.scute::before{background:linear-gradient(90deg,#3fe3ea,#33c9d6,#d98b42,#b5612b,#3fe3ea);background-size:220% 100%;}
   .codec-card.vermis::before{background:linear-gradient(90deg,var(--worm),var(--cyan),var(--pink),var(--worm));background-size:220% 100%;}
+  .codec-card.urumizuri::before{background:linear-gradient(90deg,#7b6ff0,#2fe0c0,var(--cyan),#eafff3,#7b6ff0);background-size:220% 100%;}
 
   .codec-card.scute{
     border-color:rgba(217,139,66,.40);
@@ -559,6 +560,21 @@
   }
   .scute .codec-name h2{color:#ffe6cf; text-shadow:2px 2px 0 #17120c,0 0 16px rgba(217,139,66,.30);}
   .vermis .codec-name h2{color:#ffb5e8; text-shadow:2px 2px 0 #17051a,0 0 16px rgba(255,131,210,.28);}
+  .codec-card.urumizuri {
+    border-color: rgba(47, 224, 192, 0.34); /* Verdigris border */
+    background:
+      radial-gradient(ellipse at 50% 0%, rgba(123, 111, 240, 0.15), transparent 50%),
+      repeating-linear-gradient(90deg, rgba(47, 224, 192, 0.03) 0 4px, transparent 4px 12px),
+      linear-gradient(180deg, rgba(22, 24, 30, 0.94), rgba(11, 13, 17, 0.92));
+  }
+  .urumizuri .codec-name h2 {
+    color: #eafff3; /* Pure tube-core white text */
+    text-shadow: 2px 2px 0 #0a060d, 0 0 16px rgba(47, 224, 192, 0.35);
+  }
+  .urumizuri .ext {
+    background: var(--cyan); /* Verdigris token badge */
+  }
+  
   .ext{
     color:#071007;
     background:var(--goo-hi);
@@ -581,6 +597,7 @@
     text-transform:uppercase;
   }
 
+
   .codec-card p{font-size:13px;}
   .codec-card .small{
     margin-top:auto;
@@ -589,6 +606,36 @@
     font-size:12px;
     border-top:1px solid rgba(156,255,27,.13);
   }
+
+  .inline-link,
+  .card-open{
+    color:var(--cyan);
+    text-decoration:underline;
+    text-underline-offset:3px;
+    text-decoration-thickness:1px;
+  }
+
+  .card-open{
+    display:inline-flex;
+    align-items:center;
+    gap:.35em;
+    font-weight:500;
+  }
+
+  .card-open::after{
+    content:"↗";
+    font-size:.9em;
+    transform:translateY(-.04em);
+  }
+
+  .inline-link:hover,
+  .card-open:hover{
+    color:var(--goo-hi);
+  }
+
+  .scute .card-open{color:#ffe6cf;}
+  .vermis .card-open{color:#6bffd5;}
+  .urumizuri .card-open{color:#eafff3;}
 
   .button-row{
     display:flex;
@@ -713,7 +760,7 @@
         </p>
 
         <div id="codecs" class="cards" aria-label="goopCodec links">
-          <a class="codec-card ooid" href="./ooid/">
+          <article class="codec-card ooid">
             <div class="card-body">
               <div class="codec-name">
                 <h2>ooid</h2>
@@ -728,11 +775,11 @@
                 Corruption produces swelling blobs, relayering, fog, teleports, recolouring, and soft lesions.
                 Video uses independent ooid frames in an OOIV container, so damage can stay frame-local or be pushed across boundaries.
               </p>
-              <p class="small">Open the blob codec.</p>
+              <p class="small"><a class="card-open" href="./ooid/" aria-label="Open ooid codec">Open the blob codec.</a></p>
             </div>
-          </a>
+          </article>
 
-          <a class="codec-card scute" href="./scute/">
+          <article class="codec-card scute">
             <div class="card-body">
               <div class="codec-name">
                 <h2>scute</h2>
@@ -747,11 +794,11 @@
                 Corruption moves seeds, buckles borders, flares cell colours, and lets surviving territories annex space after truncation.
                 Record order is intentionally not meaningful, so shuffle is not part of the format grammar.
               </p>
-              <p class="small">Open the cell codec.</p>
+              <p class="small"><a class="card-open" href="./scute/" aria-label="Open scute codec">Open the cell codec.</a></p>
             </div>
-          </a>
+          </article>
 
-          <a class="codec-card vermis" href="./vermis/">
+          <article class="codec-card vermis">
             <div class="card-body">
               <div class="codec-name">
                 <h2>vermis</h2>
@@ -765,9 +812,29 @@
               <p>
                 Corruption accumulates downstream. A damaged delta becomes a travelling stain, bruise, or phase shift through the body of the worm.
               </p>
-              <p class="small">Open the thread codec.</p>
+              <p class="small"><a class="card-open" href="./vermis/" aria-label="Open vermis codec">Open the thread codec.</a></p>
             </div>
-          </a>
+          </article>
+
+          <article class="codec-card urumizuri">
+            <div class="card-body">
+              <div class="codec-name">
+                <h2>urumizuri</h2>
+                <span class="ext">.urumizuri</span>
+              </div>
+              <p class="motif">Wet state snapshot → tectonic shear</p>
+              <p>
+                A space-allocated layout codec native to the
+                <a class="inline-link" href="../../bakezuri/">bakezuri</a>
+                performance station. Rather than calculating flat pixels, it maps raw environment grids—storing live ink load paths, local wetness maps, and paper-setting field variables as uncompressed byte records.
+              </p>
+              <p>
+                Because record sizing relies on rigid channel strides, corruption breaks base alignments.
+                Manual byte editing triggers tectonic spatial cascades, causing the active ink layers to shift sideways and shear along geographic fault lines instead of throwing unhandled parser crashes.
+              </p>
+              <p class="small"><a class="card-open" href="./urumizuri/" aria-label="Open urumizuri codec">Open the wet snapshot station.</a></p>
+            </div>
+          </article>
         </div>
       </div>
     </section>
