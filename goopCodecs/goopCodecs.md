@@ -24,10 +24,10 @@ Together they establish the rule for the collection: a goopCodec is not just an 
    A Gaussian-blob still, field, and video codec. Images become layered sediment: coloured anisotropic Gaussian blobs composited in record order. Corruption is round: blobs swell, teleport, recolour, spin, dissolve into fog, or relayer when shuffled. Video is stored as independent ooid frames in an `OOIV` container, so corruption is frame-local unless the byte editor deliberately cascades across frame boundaries.
 
 2. **scute** — `.scute`  
-   A Voronoi-cell image codec. Images become seed-defined territories: every pixel belongs to its nearest seed. Corruption is cellular: seeds wander, borders buckle, cells annex neighbours, colours flare, and truncation coarsens the partition instead of making holes. Record order carries no meaning, so there is no shuffle operation by design.
+   A Voronoi-cell still and video codec. Images become seed-defined territories: every pixel belongs to its nearest seed. Corruption is cellular: seeds wander, borders buckle, cells annex neighbours, colours flare, and truncation coarsens the partition instead of making holes. Video is stored as independent `SCUT` frames in a `SCUV` container. Record order carries no meaning, so there is no shuffle operation by design.
 
 3. **vermis** — `.vermis`  
-   A Hilbert-thread image codec. Images are sampled along a Hilbert curve as DPCM colour deltas, then repainted not as square cells but as one continuous filament. Corruption flows: a damaged delta integrates downstream as a travelling stain or bruise through the body of the worm.
+   A space-filling-thread still and video codec. Images are sampled along a path grid as DPCM colour deltas, then repainted not as square cells but as one continuous filament in an aspect-preserving output rectangle. Video is stored as `VERM` frame bodies in a `VERV` container; seeded random-walk video rethreads every frame, while deterministic path modes stay canonical. Corruption flows: a damaged delta integrates downstream as a travelling stain or bruise through the body of the worm.
 
 ### Parked / adjacent
 
@@ -213,9 +213,9 @@ The important structural fact is that **order is meaning**. Because blobs compos
 **Substrate logic:** partition, adjacency, annexation  
 **Serialization:** fixed-width records for seed position and colour; warp lives in the locked header  
 **Order:** not meaningful; every pixel takes its nearest seed regardless of record order  
-**Status:** v1 complete: image/sample-field encoder, detail-biased seed scattering, warp, damage sliders, byte editor, native export, documentation.
+**Status:** v1 complete: image/sample-field/video encoder, detail-biased seed scattering, warp, damage sliders, byte editor, native export, PNG/WebM export, documentation.
 
-`scute` is the first sibling and the first strong contrast to `ooid`. It converts the image into a partition of territories grown from points. Corrupting a seed coordinate does not smear the picture; it rewrites jurisdiction. Borders buckle, cells annex neighbours, and truncation causes surviving cells to flood into abandoned territory rather than leaving holes.
+`scute` is the first sibling and the first strong contrast to `ooid`. It converts the image or each sampled video frame into a partition of territories grown from points. Corrupting a seed coordinate does not smear the picture; it rewrites jurisdiction. Borders buckle, cells annex neighbours, and truncation causes surviving cells to flood into abandoned territory rather than leaving holes.
 
 The important structural fact is that **order is not meaning**. A Voronoi partition does not care where a seed appears in the file; it only cares where the seed is in space. Therefore `scute` has no shuffle operation, and that absence is part of the format's identity.
 
@@ -229,11 +229,11 @@ The important structural fact is that **order is not meaning**. A Voronoi partit
 **Substrate logic:** path, adjacency, integration, flow  
 **Serialization:** Hilbert-curve order; 3-byte RGB deltas from the previous sample; small header with anchor and substrate hints  
 **Order:** order is the body; samples only make sense as a continuous sequence  
-**Status:** v1 complete: image/sample-field source, Hilbert+DPCM encoding, filament rendering, girth/bleed/relax substrate controls, Resolve/Ooze presets, damage sliders, byte editor, native export, documentation.
+**Status:** v1 complete: image/sample-field/video source, path+DPCM encoding, per-frame seeded random-walk video paths, aspect-preserving filament rendering, girth/bleed/relax substrate controls, Resolve/Ooze presets, damage sliders, byte editor, native export, PNG/WebM export, documentation.
 
 `vermis` is the hinge member. It began as a Hilbert-curve pixel codec that round-tripped cleanly but still painted samples back into square cells. That version was parked because it did not pass the goopCodecs test: it changed serialization but not substrate.
 
-The shipped version keeps the Hilbert+DPCM core but changes the decoded body. Samples are repainted as one continuous worm rather than restored to square cells. Thin the thread and the image resolves; thicken and soften it and the image dissolves into ooze. Corruption flows because the body is a stream of deltas: a single damaged byte integrates forward as a travelling stain, a bruise spreading through tissue.
+The shipped version keeps the path+DPCM core but changes the decoded body. Samples are repainted as one continuous worm rather than restored to square cells, and the visible specimen keeps the source aspect ratio even though the internal path grid is square. For video, the seeded random-walk mode redraws the route per frame while deterministic path modes stay fixed. Thin the thread and the image resolves; thicken and soften it and the image dissolves into ooze. Corruption flows because the body is a stream of deltas: a single damaged byte integrates forward as a travelling stain, a bruise spreading through tissue.
 
 `vermis` clarifies the collection's rule: **to leave the grid, it is not enough to reorder it. The decode substrate must change.**
 

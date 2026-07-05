@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="./favicon.svg" type="image/svg+xml">
 <title>ooid · gaussian-blob codec</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1389,6 +1390,7 @@ let vid=null,vidUrl=null,vidDur=0,vidNatW=0,vidNatH=0,vidFrames=[],vidFps=12,
     vidOutW=0,vidOutH=0,vidIndex=0,vidBusy=false,vidAbort=false,vidPlayTimer=null,vidFrameResolve=null;
 const hasVideo=()=>mode==='image'&&(vidFrames.length>0||!!vid);
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const nextPaint=()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
 function seekTo(v,t){return new Promise(res=>{let done=false;
   const on=()=>{if(done)return;done=true;v.removeEventListener('seeked',on);res();};
   v.addEventListener('seeked',on);try{v.currentTime=t;}catch(e){}setTimeout(on,500);});}
@@ -1497,27 +1499,31 @@ async function recordVideo(){
   if(!vidFrames.length||vidBusy)return;
   if(editing)exitEdit(false);
   pauseVideo();vidBusy=true;vidAbort=false;
+  if(!window.MediaRecorder||!cv.captureStream){alert('This browser can\u2019t record canvas video. Use the .ooid / PNG export instead.');vidBusy=false;return;}
   let mime='video/webm;codecs=vp9';
   if(!(window.MediaRecorder&&MediaRecorder.isTypeSupported(mime)))mime='video/webm;codecs=vp8';
   if(!(window.MediaRecorder&&MediaRecorder.isTypeSupported(mime)))mime='video/webm';
-  if(!window.MediaRecorder){alert('This browser can\u2019t record video. Use the .ooid / PNG export instead.');vidBusy=false;return;}
-  const stream=cv.captureStream(0),track=stream.getVideoTracks()[0];
+  const fps=Math.max(1,Math.min(30,vidFps||12)),dt=1000/fps;
+  const stream=cv.captureStream(fps),track=stream.getVideoTracks()[0];
+  if(!track){stream.getTracks().forEach(t=>t.stop());alert('Video export could not start a canvas stream.');vidBusy=false;return;}
   const rec=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:16000000});
   const chunks=[];rec.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data);};
   const stopped=new Promise(r=>{rec.onstop=r;});
   $('vidrec').disabled=true;$('vidstop').hidden=false;$('prog').classList.add('on');
-  rec.start();
-  const dt=1000/(vidFps||12);
+  rec.start(1000);
   for(let f=0;f<vidFrames.length&&!vidAbort;f++){
+    const t0=performance.now();
     SIG_MAX=0.45*Math.min(vidOutW,vidOutH);
     const buf=damage(vidFrames[f],D),dec=decode(buf);
-    render(dec.blobs,dec.W,dec.H,dec.base);
-    if(track.requestFrame)track.requestFrame();
+    render(dec.blobs,dec.W,dec.H,dec.base);gl.flush();
     $('vid_v').textContent='rec '+(f+1)+'/'+vidFrames.length;
     $('prog_i').style.width=(((f+1)/vidFrames.length)*100).toFixed(1)+'%';
-    await sleep(dt);
+    await nextPaint();
+    if(track.requestFrame)track.requestFrame();
+    await sleep(Math.max(0,dt-(performance.now()-t0)));
   }
-  rec.stop();await stopped;
+  if(rec.state!=='inactive')rec.stop();await stopped;
+  stream.getTracks().forEach(t=>t.stop());
   vidBusy=false;$('vidrec').disabled=false;$('vidstop').hidden=true;$('prog').classList.remove('on');$('prog_i').style.width='0';
   $('vid_v').textContent=vidFrames.length+' frames';
   if(chunks.length)dl(new Blob(chunks,{type:'video/webm'}),'ooid-video.webm');

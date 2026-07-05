@@ -1,0 +1,567 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CyberScotoma</title>
+<link rel="icon" href="./assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Averia+Sans+Libre:wght@400;700&family=Averia+Gruesa+Libre&family=Syne+Mono&display=swap" rel="stylesheet">
+<style>
+@font-face{
+  font-family:"MudClub Franklin";
+  src:url("MudClub-FranklintheGoth.otf") format("opentype");
+  font-weight:400;
+  font-style:normal;
+  font-display:swap;
+}
+:root{
+  /* light mode — photophobic bone, no zero-chroma. sick pale, not warm cream. */
+  --bone:#e7ecdf;        /* ground: pale green-bone, the about-to-faint pallor */
+  --bone2:#f2f3ec;       /* raised glass panel */
+  --bone3:#dde3d3;       /* inset well */
+  --ink:#25203a;         /* plum-black text (never #000) */
+  --ink-soft:#5f5972;
+  --mineral:#91bd64;     /* visual-field grass green */
+  --mineral-d:#526d33;
+  --amber:#f0dd5f;       /* test-field yellow */
+  --blurple:#79adea;     /* sky/test blue, not cyberpunk violet */
+  --flesh:#c44f46;       /* retinal scan red */
+  /* scintillation trio — chromatic fringe */
+  --scin-c:#86bfff;      /* sky-blue edge */
+  --scin-m:#e85b52;      /* retinal red edge */
+  --scin-g:#f0dd5f;      /* yellow edge */
+  --line:rgba(37,32,58,.15);
+  --glass:linear-gradient(180deg,#f6f7f1 0%,#eaefe2 60%,#e2e8d7 100%);
+  /* perimetry-sunset reskin: Y2K aqua glass, mid-2010s photo haze, 2026 liminal dusk. */
+  --bone:#edf2e5;
+  --bone2:rgba(247,252,242,.66);
+  --bone3:rgba(197,217,201,.34);
+  --ink:#20172f;
+  --ink-soft:#61576e;
+  --mineral:#91bd64;
+  --mineral-d:#526d33;
+  --amber:#f0dd5f;
+  --blurple:#79adea;
+  --flesh:#c44f46;
+  --scin-c:#86bfff;
+  --scin-m:#e85b52;
+  --scin-g:#f0dd5f;
+  --retina:#7c3934;
+  --field-ink:#586137;
+  --optic-blue:#79adea;
+  --optic-red:#e85b52;
+  --optic-yellow:#f0dd5f;
+  --line:rgba(50,31,76,.23);
+  --dusk:#171020;
+  --deep:#25143b;
+  --photo-peach:#f4a46b;
+  --glass:linear-gradient(145deg,rgba(255,255,255,.68) 0%,rgba(208,253,245,.40) 38%,rgba(239,224,255,.31) 66%,rgba(246,255,228,.56) 100%);
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{
+  position:relative;
+  min-height:100%;
+  overflow-x:hidden;
+  isolation:isolate;
+  background:var(--dusk);
+  color:var(--ink);
+  font-family:"Averia Sans Libre",system-ui,sans-serif;
+  font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased;
+}
+body::before,body::after{content:"";position:fixed;inset:0;pointer-events:none}
+body::before{
+  z-index:-3;
+  background:url("assets/perimetry-sunset-blur.jpg") center/cover no-repeat;
+  transform:scale(1.018);
+}
+body::after{
+  z-index:-2;
+  background:
+    radial-gradient(120% 80% at 50% 47%,rgba(255,248,223,.38) 0%,rgba(255,248,223,.18) 28%,transparent 55%),
+    linear-gradient(90deg,rgba(23,16,32,.78) 0%,rgba(23,16,32,.10) 31%,rgba(255,232,200,.12) 50%,rgba(32,17,49,.76) 100%),
+    linear-gradient(180deg,rgba(6,5,14,.58) 0%,rgba(232,247,232,.14) 32%,rgba(255,255,246,.28) 53%,rgba(15,9,24,.70) 100%),
+    radial-gradient(circle at 51% 43%,rgba(255,255,255,.22) 0 1.2px,transparent 1.8px);
+  background-size:auto,auto,auto,74px 74px;
+  background-position:center,center,center,0 0;
+  box-shadow:inset 0 0 120px rgba(8,5,18,.62);
+}
+.wrap{max-width:1180px;margin:0 auto;padding:24px 20px 64px;position:relative;z-index:1}
+
+header{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:4px}
+h1{
+  font-family:"MudClub Franklin","Averia Gruesa Libre",cursive;font-weight:400;font-size:40px;letter-spacing:0;margin:0;
+  color:var(--ink);
+  /* static chromatic aberration — the aura pinned, not moving */
+  text-shadow:-1.6px 0 0 var(--scin-c), 1.7px 0 0 var(--scin-m), 0 1.2px 0 rgba(240,180,78,.54),0 10px 28px rgba(255,244,214,.38);
+}
+h1 .cy{color:var(--optic-yellow)} h1 .scot{color:var(--optic-blue)}
+.tag{font-family:"Syne Mono",monospace;font-size:12px;color:rgba(39,29,55,.80);letter-spacing:.3px;background:rgba(255,255,248,.34);border:1px solid rgba(255,255,255,.40);border-radius:10px 6px 12px 7px;padding:3px 8px;backdrop-filter:blur(12px) saturate(1.25);-webkit-backdrop-filter:blur(12px) saturate(1.25)}
+.spine{font-family:"Syne Mono",monospace;font-size:11.5px;color:rgba(213,255,244,.92);opacity:.96;margin:3px 0 20px;letter-spacing:.3px;text-shadow:0 1px 9px rgba(8,5,18,.70)}
+
+.deck{display:grid;grid-template-columns:1fr 342px;gap:18px}
+@media(max-width:860px){.deck{grid-template-columns:1fr}}
+
+/* aqua-glass Frutiger panels — glossy, beveled, light. this is what makes "cyber" read as citation not costume. */
+.organ{
+  position:relative;
+  overflow:hidden;
+  background:var(--glass);
+  border:1px solid rgba(255,255,255,.58);
+  outline:1px solid var(--line);
+  border-radius:26px 16px 30px 18px;
+  padding:16px;
+  backdrop-filter:blur(22px) saturate(1.35);
+  -webkit-backdrop-filter:blur(22px) saturate(1.35);
+  box-shadow:0 24px 54px -26px rgba(7,4,18,.74), inset 0 2px 2px rgba(255,255,255,.92), inset 0 -24px 38px rgba(145,189,100,.12), inset 18px 0 44px rgba(232,91,82,.06);
+}
+.organ.right{border-radius:18px 30px 16px 28px}
+.organ::before{
+  content:"";
+  position:absolute;
+  inset:1px;
+  pointer-events:none;
+  border-radius:inherit;
+  background:
+    linear-gradient(115deg,rgba(255,255,255,.70),rgba(255,255,255,.10) 34%,rgba(121,173,234,.12) 49%,rgba(232,91,82,.09) 68%,rgba(255,255,255,.28)),
+    radial-gradient(80% 38% at 50% 0%,rgba(255,255,255,.42),transparent 68%);
+  mix-blend-mode:screen;
+  opacity:.75;
+}
+.organ>*{position:relative;z-index:1}
+
+.stagewrap{position:relative;border-radius:20px 12px 22px 14px;overflow:hidden;background:linear-gradient(180deg,rgba(24,16,36,.72),rgba(78,122,119,.28));border:1px solid rgba(255,255,255,.45);outline:1px solid rgba(38,23,58,.34);box-shadow:inset 0 0 34px rgba(10,6,20,.46),0 18px 34px -26px rgba(8,5,18,.80);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+#stage{display:block;width:100%;background:linear-gradient(180deg,rgba(29,18,44,.70),rgba(214,236,214,.28))}
+#cellsOverlay{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:0}
+#cellsOverlay.on{opacity:.85}
+.badge{position:absolute;top:10px;left:12px;font-family:"Syne Mono",monospace;font-size:11px;color:rgba(213,255,244,.96);background:rgba(18,12,30,.42);padding:3px 9px;border-radius:9px 4px 8px 5px;border:1px solid rgba(255,255,255,.26);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);text-shadow:0 1px 6px rgba(0,0,0,.45)}
+
+.srcrow{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.ghost{font-family:"Averia Sans Libre";font-size:13px;color:var(--ink);cursor:pointer;background:linear-gradient(180deg,rgba(255,255,250,.62),rgba(221,238,198,.32) 58%,rgba(209,229,255,.26));border:1px solid rgba(255,255,255,.62);outline:1px solid rgba(50,31,76,.22);padding:9px 14px;border-radius:14px 8px 16px 9px;box-shadow:inset 0 1px 0 rgba(255,255,255,.92),inset 0 -10px 20px rgba(145,189,100,.08),0 7px 16px -12px rgba(8,5,18,.72);backdrop-filter:blur(12px) saturate(1.25);-webkit-backdrop-filter:blur(12px) saturate(1.25)}
+.ghost:hover{outline-color:rgba(121,173,234,.72);box-shadow:inset 0 1px 0 rgba(255,255,255,.96),0 0 0 3px rgba(121,173,234,.14),0 8px 18px -13px rgba(8,5,18,.80)}
+.ghost.alt{outline-color:rgba(240,221,95,.58)}
+.donortag{font-family:"Syne Mono",monospace;font-size:11px;color:var(--ink-soft)}
+.donortag b{color:var(--flesh);font-weight:400}
+
+.transport{display:flex;align-items:center;gap:12px;margin-top:12px}
+.playbtn{width:44px;height:44px;flex:0 0 auto;border:none;cursor:pointer;border-radius:50% 46% 52% 48%;
+  background:radial-gradient(circle at 34% 26%,#ffffff,#fff7b8 32%,var(--optic-yellow) 68%,#c98f24);
+  box-shadow:0 3px 0 #9d6e17,0 0 0 4px rgba(255,255,255,.36),0 9px 20px -9px rgba(8,5,18,.76),0 0 0 6px rgba(121,173,234,.16),0 0 22px rgba(240,221,95,.46),inset 0 2px 3px rgba(255,255,255,.92),inset 0 -5px 12px rgba(103,73,11,.34);
+  color:#33250c;font-size:15px;display:grid;place-items:center}
+.playbtn:active{transform:translateY(2px)}
+.scrub{flex:1;-webkit-appearance:none;appearance:none;height:16px;background:transparent;cursor:pointer}
+.scrub::-webkit-slider-runnable-track{height:8px;border-radius:6px;background:linear-gradient(90deg,rgba(232,91,82,.58),rgba(240,221,95,.74) 50%,rgba(121,173,234,.66));border:1px solid rgba(255,255,255,.42);box-shadow:inset 0 1px 4px rgba(18,12,30,.22)}
+.scrub::-moz-range-track{height:8px;border-radius:6px;background:linear-gradient(90deg,rgba(232,91,82,.58),rgba(240,221,95,.74) 50%,rgba(121,173,234,.66));border:1px solid rgba(255,255,255,.42);box-shadow:inset 0 1px 4px rgba(18,12,30,.22)}
+.scrub::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;margin-top:-7px;border-radius:52% 48% 50% 50%;background:radial-gradient(circle at 34% 28%,#fff,#f5f9ff 30%,var(--optic-blue) 62%,#315f9a);border:1px solid rgba(37,32,58,.38);box-shadow:0 4px 10px -3px rgba(8,5,18,.66),0 0 16px rgba(121,173,234,.48)}
+.scrub::-moz-range-thumb{width:20px;height:20px;border-radius:52% 48% 50% 50%;background:radial-gradient(circle at 34% 28%,#fff,#f5f9ff 30%,var(--optic-blue) 62%,#315f9a);border:1px solid rgba(37,32,58,.38);box-shadow:0 4px 10px -3px rgba(8,5,18,.66),0 0 16px rgba(121,173,234,.48)}
+.frameno{font-family:"Syne Mono",monospace;font-size:12px;color:var(--ink-soft);min-width:78px;text-align:right}
+
+.ctl{margin:0 0 15px}
+.ctl label{display:flex;justify-content:space-between;align-items:baseline;font-size:12.5px;color:var(--ink);margin-bottom:5px}
+.ctl label .v{font-family:"Syne Mono",monospace;color:var(--mineral-d);font-size:12px}
+.ctl .hint{font-size:11px;color:var(--ink-soft);margin-top:3px;line-height:1.35}
+input[type=range].dial{-webkit-appearance:none;appearance:none;width:100%;height:14px;background:transparent;cursor:pointer}
+input[type=range].dial::-webkit-slider-runnable-track{height:6px;border-radius:6px;background:linear-gradient(90deg,rgba(18,12,30,.20),rgba(216,236,190,.44));border:1px solid rgba(255,255,255,.34);box-shadow:inset 0 1px 3px rgba(23,16,32,.18)}
+input[type=range].dial::-moz-range-track{height:6px;border-radius:6px;background:linear-gradient(90deg,rgba(18,12,30,.20),rgba(216,236,190,.44));border:1px solid rgba(255,255,255,.34);box-shadow:inset 0 1px 3px rgba(23,16,32,.18)}
+input[type=range].dial::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;margin-top:-7px;border-radius:50% 48% 52% 50%;background:radial-gradient(circle at 33% 28%,#fff,#f1f8df 42%,var(--mineral) 67%,var(--mineral-d));border:1px solid rgba(37,32,58,.33);box-shadow:0 3px 9px -3px rgba(8,5,18,.62),0 0 13px rgba(145,189,100,.36)}
+input[type=range].dial::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:radial-gradient(circle at 33% 28%,#fff,#f1f8df 42%,var(--mineral) 67%,var(--mineral-d));border:1px solid rgba(37,32,58,.33);box-shadow:0 3px 9px -3px rgba(8,5,18,.62),0 0 13px rgba(145,189,100,.36)}
+
+.ctl.acausal{background:linear-gradient(150deg,rgba(255,227,197,.28),rgba(232,91,82,.14) 54%,rgba(255,255,255,.10));padding:11px 12px;border-radius:16px 9px 14px 11px;border:1px solid rgba(196,79,70,.38);box-shadow:inset 0 1px 0 rgba(255,255,255,.42),0 0 24px rgba(232,91,82,.10)}
+.ctl.acausal label .v{color:var(--flesh)}
+.ctl.acausal input.dial::-webkit-slider-thumb{background:radial-gradient(circle at 33% 28%,#fff,#ffd8ba 36%,var(--flesh) 63%,#7c3934);box-shadow:0 3px 9px -3px rgba(8,5,18,.62),0 0 14px rgba(232,91,82,.42)}
+.ctl.acausal input.dial::-moz-range-thumb{background:radial-gradient(circle at 33% 28%,#fff,#ffd8ba 36%,var(--flesh) 63%,#7c3934);box-shadow:0 3px 9px -3px rgba(8,5,18,.62),0 0 14px rgba(232,91,82,.42)}
+.ctl.acausal .tagword{font-family:"Syne Mono",monospace;font-size:10px;color:var(--flesh);letter-spacing:.5px;text-transform:uppercase}
+
+.toggles{display:flex;gap:9px;flex-wrap:wrap;margin:2px 0 16px}
+.chk{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--ink);cursor:pointer;user-select:none;background:linear-gradient(180deg,rgba(255,255,250,.56),rgba(224,248,240,.30));border:1px solid rgba(255,255,255,.56);outline:1px solid rgba(50,31,76,.20);padding:7px 11px;border-radius:12px 7px 13px 8px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.chk input{accent-color:var(--mineral);width:15px;height:15px}
+
+.curvehead{display:flex;justify-content:space-between;align-items:baseline;margin:4px 0 6px}
+.curvehead h3{font-family:"Averia Gruesa Libre";font-weight:400;font-size:18px;margin:0;color:var(--ink)}
+.curvehead .sub{font-family:"Syne Mono",monospace;font-size:10.5px;color:var(--ink-soft)}
+#curve{display:block;width:100%;height:120px;border-radius:16px 9px 15px 10px;background:linear-gradient(180deg,rgba(255,255,250,.42),rgba(221,238,198,.26));border:1px solid rgba(255,255,255,.50);outline:1px solid rgba(50,31,76,.22);cursor:crosshair;touch-action:none;box-shadow:inset 0 1px 0 rgba(255,255,255,.62),inset 0 -16px 24px rgba(145,189,100,.08)}
+.curvebtns{display:flex;gap:8px;margin-top:8px}
+.mini{font-size:11px;font-family:"Syne Mono",monospace;color:var(--ink-soft);background:linear-gradient(180deg,rgba(255,255,250,.56),rgba(225,247,239,.30));border:1px solid rgba(255,255,255,.54);outline:1px solid rgba(50,31,76,.20);padding:5px 9px;border-radius:9px 5px 8px 6px;cursor:pointer;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.mini:hover{color:var(--ink);outline-color:var(--mineral-d)}
+
+/* THE ONE GLARE EVENT — render as a frozen phosphene. static bloom halo + chromatic ring. */
+.renderbtn{width:100%;margin-top:6px;cursor:pointer;border:none;position:relative;
+  font-family:"Averia Gruesa Libre";font-size:21px;letter-spacing:.4px;color:#2f3515;
+  padding:16px;border-radius:20px 12px 22px 13px;
+  background:radial-gradient(circle at 50% 34%,#ffffff 0%,#fffdf0 18%,#fff29b 39%,var(--mineral) 68%,var(--mineral-d) 100%);
+  box-shadow:
+    0 0 0 3px rgba(255,255,255,.78),
+    0 0 0 5px rgba(121,173,234,.82),
+    0 0 0 7px rgba(232,91,82,.54),
+    0 0 0 9px rgba(240,221,95,.28),
+    0 0 26px 7px rgba(255,242,155,.72),
+    0 0 48px 16px rgba(145,189,100,.44),
+    0 0 74px 26px rgba(232,91,82,.22),
+    0 16px 32px -18px rgba(8,5,18,.76),
+    inset 0 2px 4px rgba(255,255,255,.95),
+    inset 0 -6px 14px rgba(63,82,32,.34);}
+.renderbtn:active{transform:translateY(2px)}
+.renderbtn:disabled{filter:grayscale(.45) brightness(.94);cursor:wait}
+
+.exportbtn{width:100%;margin-top:10px;cursor:pointer;border:none;font-family:"Averia Sans Libre";font-weight:700;font-size:14px;color:var(--ink);
+  padding:11px;border-radius:14px 20px 12px 18px;background:linear-gradient(180deg,rgba(255,255,250,.60),rgba(221,238,198,.28),rgba(209,229,255,.22));border:1px solid rgba(255,255,255,.56);outline:1px solid rgba(50,31,76,.22);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.86),0 7px 16px -12px rgba(8,5,18,.70);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.exportbtn:hover{outline-color:var(--optic-blue)}
+.exportbtn:disabled{opacity:.5;cursor:not-allowed}
+
+.progress{height:9px;border-radius:6px;background:rgba(18,12,30,.20);border:1px solid rgba(255,255,255,.34);overflow:hidden;margin-top:12px;display:none}
+.progress.on{display:block}
+.progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--optic-red),var(--optic-yellow),var(--optic-blue))}
+.status{font-family:"Syne Mono",monospace;font-size:11px;color:rgba(65,55,78,.78);margin-top:8px;min-height:15px}
+.status b{color:var(--mineral-d);font-weight:400}
+
+.note{font-size:11.5px;color:rgba(65,55,78,.86);line-height:1.5;margin-top:18px;border-top:1px solid rgba(50,31,76,.20);padding-top:12px;text-shadow:0 1px 0 rgba(255,255,255,.26)}
+.note code{font-family:"Syne Mono",monospace;color:var(--amber);font-size:11px}
+.note b{color:var(--ink)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1><span class="cy">Cyber</span><span class="scot">Scotoma</span></h1>
+    <span class="tag">sgueltch ∩ hindcasts · acausal motion-field graft · scintillating scotoma effect</span>
+  </header>
+  <div class="spine">non-DCT datamosh: held Voronoi cells advect donor frames through current motion</div>
+
+  <div class="deck">
+    <div class="organ">
+      <div class="srcrow">
+        <button class="ghost" id="demoBtn">generate demo clip</button>
+        <button class="ghost alt" id="uploadBtn">load host clip…</button>
+        <input type="file" id="file" accept="video/*" hidden>
+        <span class="donortag" id="donortag">donor: <b>self</b></span>
+      </div>
+
+      <div class="stagewrap">
+        <span class="badge" id="badge">no clip loaded</span>
+        <canvas id="stage" width="320" height="180"></canvas>
+        <canvas id="cellsOverlay" width="320" height="180"></canvas>
+      </div>
+
+      <div class="transport">
+        <button class="playbtn" id="play" title="play / pause">▶</button>
+        <input type="range" class="scrub" id="scrub" min="0" max="0" value="0" step="1">
+        <span class="frameno" id="frameno">–/–</span>
+      </div>
+
+      <div class="note">
+        <b>graft:</b> each held region keeps the <em>current</em> motion field applied to <em>donor</em> content — flowing forward wearing the wrong skin. Regions are Voronoi cells with noised edges, not macroblocks. At bloom onset the region is seeded from the donor at <code>t + offset</code>; positive = future bleeds backward. <b>Donor can be a second clip</b> (load donor) — the scotoma fills with foreign tissue. Offline: render once, scrub instantly, export WebM.
+      </div>
+    </div>
+
+    <div class="organ right">
+      <div class="curvehead">
+        <h3>bloom curve</h3>
+        <span class="sub">drag to paint · time →</span>
+      </div>
+      <canvas id="curve" width="320" height="120"></canvas>
+      <div class="curvebtns">
+        <button class="mini" data-preset="bell">bell</button>
+        <button class="mini" data-preset="ramp">ramp</button>
+        <button class="mini" data-preset="pulse">pulses</button>
+        <button class="mini" data-preset="flat0">clear</button>
+      </div>
+
+      <div style="height:14px"></div>
+
+      <div class="srcrow" style="margin-bottom:14px">
+        <button class="ghost alt" id="donorBtn">load donor clip…</button>
+        <button class="mini" id="selfBtn">use self</button>
+        <input type="file" id="donorFile" accept="video/*" hidden>
+      </div>
+
+      <div class="ctl">
+        <label>cells <span class="v" id="cellsV">26</span></label>
+        <input type="range" class="dial" id="cells" min="6" max="80" value="26">
+        <div class="hint">how many Voronoi regions carve the frame</div>
+      </div>
+      <div class="ctl">
+        <label>edge noise <span class="v" id="edgeV">18</span></label>
+        <input type="range" class="dial" id="edge" min="0" max="48" value="18">
+        <div class="hint">warps cell boundaries off-grid — membranes, not tiles</div>
+      </div>
+      <div class="ctl">
+        <label>motion drag <span class="v" id="dragV">1.6</span></label>
+        <input type="range" class="dial" id="drag" min="0" max="40" value="16">
+        <div class="hint">how hard held content smears along the flow</div>
+      </div>
+      <div class="ctl acausal">
+        <label><span>donor offset <span class="tagword">acausal</span></span><span class="v" id="donorV">+8 fr</span></label>
+        <input type="range" class="dial" id="donor" min="-30" max="30" value="8">
+        <div class="hint">where the skin is seeded from at bloom onset. <b style="color:var(--flesh)">positive = future bleeds backward.</b></div>
+      </div>
+
+      <div class="toggles">
+        <label class="chk"><input type="checkbox" id="latch"> perpetual (latch)</label>
+        <label class="chk"><input type="checkbox" id="showCells"> show cells</label>
+      </div>
+
+      <button class="renderbtn" id="render" disabled>render</button>
+      <button class="exportbtn" id="export" disabled>export webm</button>
+      <div class="progress" id="prog"><i></i></div>
+      <div class="status" id="status">load or generate a clip to begin.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* processing graph (thin stub — anticipates hindcasts racking).
+   one scotoma node today; racking = an array of graft nodes composited as a DAG.
+   render() reads params.scotoma directly for now. */
+function buildGraph(p){return{nodes:[
+  {id:"host",type:"source"},
+  {id:"donor",type:"source"},
+  {id:"motion",type:"motion",in:"host"},
+  {id:"cells",type:"field-partition",in:"host"},
+  {id:"scotoma",type:"graft",in:["host","donor","motion","cells"],params:p},
+  {id:"out",type:"output",in:"scotoma"}
+]};}
+
+const S={W:320,H:180,N:0,src:[],donor:[],out:[],field:[],fw:0,fh:0,DM:4,
+  bloom:null,cellIndex:null,cellThresh:null,rendered:false,playing:false};
+const $=id=>document.getElementById(id);
+const stage=$("stage"),sctx=stage.getContext("2d");
+const overlay=$("cellsOverlay"),octx=overlay.getContext("2d");
+const curve=$("curve"),cctx=curve.getContext("2d");
+
+function hash2(x,y){let n=Math.sin(x*127.1+y*311.7)*43758.5453;return n-Math.floor(n);}
+function vnoise(x,y){const xi=Math.floor(x),yi=Math.floor(y),xf=x-xi,yf=y-yi;
+  const u=xf*xf*(3-2*xf),v=yf*yf*(3-2*yf);
+  const a=hash2(xi,yi),b=hash2(xi+1,yi),c=hash2(xi,yi+1),d=hash2(xi+1,yi+1);
+  return a*(1-u)*(1-v)+b*u*(1-v)+c*(1-u)*v+d*u*v;}
+
+function setDims(w,h){const tw=320,s=Math.min(1,tw/w);
+  S.W=Math.round(w*s/2)*2;S.H=Math.round(h*s/2)*2;
+  stage.width=S.W;stage.height=S.H;overlay.width=S.W;overlay.height=S.H;
+  S.fw=Math.max(2,Math.floor(S.W/S.DM));S.fh=Math.max(2,Math.floor(S.H/S.DM));}
+
+async function generateDemo(){resetOutput();S.donor=[];setDonorTag();setDims(320,180);S.N=90;S.src=[];
+  const W=S.W,H=S.H;
+  const balls=[{x:.28,y:.4,r:.20,dx:.006,dy:.004,col:[55,185,162]},
+    {x:.7,y:.62,r:.24,dx:-.005,dy:-.006,col:[232,161,60]},
+    {x:.52,y:.3,r:.17,dx:.004,dy:.007,col:[138,108,240]},
+    {x:.4,y:.75,r:.15,dx:.007,dy:-.003,col:[217,138,134]}];
+  for(let f=0;f<S.N;f++){const buf=new Uint8ClampedArray(W*H*4);
+    for(const b of balls){b.x+=b.dx;b.y+=b.dy;if(b.x<.12||b.x>.88)b.dx*=-1;if(b.y<.12||b.y>.88)b.dy*=-1;}
+    for(let y=0;y<H;y++)for(let x=0;x<W;x++){const nx=x/W,ny=y/H;let r=8,g=14,bl=18;
+      for(const b of balls){const dx=nx-b.x,dy=ny-b.y,d=Math.sqrt(dx*dx+dy*dy),fld=Math.max(0,1-d/b.r),w=fld*fld*(3-2*fld);
+        r+=b.col[0]*w;g+=b.col[1]*w;bl+=b.col[2]*w;}
+      const gr=(vnoise(nx*40+f*.3,ny*40)-.5)*10,i=(y*W+x)*4;
+      buf[i]=Math.min(255,r+gr);buf[i+1]=Math.min(255,g+gr);buf[i+2]=Math.min(255,bl+gr);buf[i+3]=255;}
+    S.src.push(buf);}
+  $("badge").textContent="demo · "+S.N+" fr · "+W+"×"+H;
+  await afterLoad("demo clip generated");}
+
+async function decodeInto(fileURL,into,cap){
+  const v=document.createElement("video");v.muted=true;v.playsInline=true;v.src=fileURL;
+  await new Promise((res,rej)=>{v.onloadedmetadata=res;v.onerror=()=>rej(new Error("could not read that file"));});
+  const fps=15,dur=Math.min(v.duration,8),n=Math.max(2,Math.min(cap,Math.floor(dur*fps)));
+  const tmp=document.createElement("canvas");tmp.width=S.W;tmp.height=S.H;
+  const tctx=tmp.getContext("2d",{willReadFrequently:true});
+  const frames=[];
+  for(let i=0;i<n;i++){await seekTo(v,i/fps);tctx.drawImage(v,0,0,S.W,S.H);
+    frames.push(tctx.getImageData(0,0,S.W,S.H).data.slice());
+    status(`decoding… <b>${i+1}/${n}</b>`);}
+  URL.revokeObjectURL(fileURL);return frames;}
+
+async function loadHost(fileURL){resetOutput();S.donor=[];setDonorTag();
+  const v=document.createElement("video");v.muted=true;v.src=fileURL;
+  await new Promise((res,rej)=>{v.onloadedmetadata=res;v.onerror=()=>rej(new Error("could not read that file"));});
+  setDims(v.videoWidth||320,v.videoHeight||180);
+  S.src=await decodeInto(fileURL,null,120);
+  S.N=S.src.length;
+  $("badge").textContent="host · "+S.N+" fr · "+S.W+"×"+S.H;
+  await afterLoad("host clip loaded");}
+
+async function loadDonor(fileURL){
+  if(!S.N){status("load a host clip first.");return;}
+  status("decoding donor…");
+  S.donor=await decodeInto(fileURL,[],120);
+  setDonorTag();resetOutput();$("export").disabled=true;
+  status(`donor loaded (<b>${S.donor.length} fr</b>) — <b>re-render to graft</b>`);}
+
+function seekTo(v,t){return new Promise(res=>{const on=()=>{v.removeEventListener("seeked",on);res();};v.addEventListener("seeked",on);v.currentTime=Math.min(t,(v.duration||t)-0.001);});}
+function setDonorTag(){$("donortag").innerHTML="donor: <b>"+(S.donor.length?("clip · "+S.donor.length+" fr"):"self")+"</b>";}
+
+async function afterLoad(msg){ensureBloom("bell");status("estimating motion…");
+  await estimateMotion();buildCells();drawCurve();showFrame(0,true);
+  $("scrub").max=S.N-1;$("scrub").value=0;$("frameno").textContent=`0/${S.N-1}`;
+  $("render").disabled=false;$("export").disabled=true;status(msg+" — <b>ready to render</b>");}
+
+function lumaDown(rgba){const W=S.W,H=S.H,DM=S.DM,lw=Math.floor(W/DM),lh=Math.floor(H/DM);
+  const L=new Float32Array(lw*lh);
+  for(let ly=0;ly<lh;ly++)for(let lx=0;lx<lw;lx++){let s=0;
+    for(let j=0;j<DM;j++)for(let k=0;k<DM;k++){const i=(((ly*DM+j)*W)+(lx*DM+k))*4;s+=0.299*rgba[i]+0.587*rgba[i+1]+0.114*rgba[i+2];}
+    L[ly*lw+lx]=s/(DM*DM);}
+  return{L,lw,lh};}
+async function estimateMotion(){const bs=4,R=6;let prev=lumaDown(S.src[0]);const lw=prev.lw,lh=prev.lh;
+  const fw=Math.max(1,Math.ceil(lw/bs)),fh=Math.max(1,Math.ceil(lh/bs));S.fw=fw;S.fh=fh;
+  S.field=[new Float32Array(fw*fh*2)];
+  for(let t=1;t<S.N;t++){const cur=lumaDown(S.src[t]);const F=new Float32Array(fw*fh*2);
+    for(let by=0;by<fh;by++)for(let bx=0;bx<fw;bx++){const ox=bx*bs,oy=by*bs;let best=1e18,bdx=0,bdy=0;
+      for(let dy=-R;dy<=R;dy++)for(let dx=-R;dx<=R;dx++){let sad=0;
+        for(let j=0;j<bs;j++)for(let k=0;k<bs;k++){const x=ox+k,y=oy+j;if(x>=lw||y>=lh)continue;
+          const sx=x+dx,sy=y+dy,cv=cur.L[y*lw+x],pv=(sx<0||sy<0||sx>=lw||sy>=lh)?cv:prev.L[sy*lw+sx];sad+=Math.abs(cv-pv);}
+        sad+=(Math.abs(dx)+Math.abs(dy))*0.6;if(sad<best){best=sad;bdx=dx;bdy=dy;}}
+      F[(by*fw+bx)*2]=bdx;F[(by*fw+bx)*2+1]=bdy;}
+    S.field.push(F);prev=cur;
+    if(t%12===0){status(`estimating motion… <b>${t}/${S.N-1}</b>`);await yield_();}}}
+function sampleField(F,x,y){const fx=(x/S.W)*S.fw-0.5,fy=(y/S.H)*S.fh-0.5;
+  let x0=Math.floor(fx),y0=Math.floor(fy);const tx=fx-x0,ty=fy-y0;
+  const cl=(v,m)=>v<0?0:(v>=m?m-1:v);const x1=cl(x0+1,S.fw),y1=cl(y0+1,S.fh);x0=cl(x0,S.fw);y0=cl(y0,S.fh);
+  const g=(xx,yy,c)=>F[(yy*S.fw+xx)*2+c];
+  const dx=(g(x0,y0,0)*(1-tx)+g(x1,y0,0)*tx)*(1-ty)+(g(x0,y1,0)*(1-tx)+g(x1,y1,0)*tx)*ty;
+  const dy=(g(x0,y0,1)*(1-tx)+g(x1,y0,1)*tx)*(1-ty)+(g(x0,y1,1)*(1-tx)+g(x1,y1,1)*tx)*ty;
+  return[dx*S.DM,dy*S.DM];}
+
+function buildCells(){const W=S.W,H=S.H,n=+$("cells").value,amp=+$("edge").value;
+  const seeds=[];for(let i=0;i<n;i++)seeds.push([hash2(i+1,7.3)*W,hash2(i+2,3.1)*H]);
+  S.cellThresh=new Float32Array(n);for(let i=0;i<n;i++)S.cellThresh[i]=0.06+hash2(i+5,9.9)*0.9;
+  const idx=new Uint16Array(W*H),scale=0.045;
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){const wx=x+(vnoise(x*scale,y*scale)-.5)*2*amp,wy=y+(vnoise(x*scale+50,y*scale+50)-.5)*2*amp;
+    let best=1e18,bi=0;for(let i=0;i<n;i++){const dx=wx-seeds[i][0],dy=wy-seeds[i][1],d=dx*dx+dy*dy;if(d<best){best=d;bi=i;}}
+    idx[y*W+x]=bi;}
+  S.cellIndex=idx;drawCellOverlay();}
+function drawCellOverlay(){if(!S.cellIndex)return;const W=S.W,H=S.H,img=octx.createImageData(W,H),d=img.data;
+  for(let p=0;p<W*H;p++){const c=S.cellIndex[p],th=S.cellThresh[c];
+    const r=Math.round(110+th*130),g=Math.round(180+th*32),b=Math.round(86+th*140);
+    d[p*4]=r;d[p*4+1]=g;d[p*4+2]=b;d[p*4+3]=76;}
+  for(let y=1;y<H;y++)for(let x=1;x<W;x++){const p=y*W+x;
+    if(S.cellIndex[p]!==S.cellIndex[p-1]||S.cellIndex[p]!==S.cellIndex[p-W]){d[p*4]=37;d[p*4+1]=32;d[p*4+2]=58;d[p*4+3]=200;}}
+  octx.putImageData(img,0,0);}
+
+function ensureBloom(preset){S.bloom=new Float32Array(S.N);applyPreset(preset||"bell");}
+function applyPreset(kind){const N=S.N;if(!N)return;
+  for(let i=0;i<N;i++){const t=i/(N-1);let v=0;
+    if(kind==="bell")v=Math.exp(-Math.pow((t-0.55)/0.28,2));
+    else if(kind==="ramp")v=t;
+    else if(kind==="pulse")v=(Math.sin(t*Math.PI*5)>0.3)?0.9:0.05;
+    else if(kind==="flat0")v=0;
+    S.bloom[i]=v;}
+  drawCurve();}
+function drawCurve(){const w=curve.width,h=curve.height;cctx.clearRect(0,0,w,h);
+  cctx.fillStyle="rgba(255,255,246,.18)";cctx.fillRect(0,0,w,h);
+  cctx.fillStyle="rgba(121,173,234,.055)";
+  for(let y=14;y<h;y+=24)for(let x=12+(y%48?18:0);x<w;x+=36){cctx.beginPath();cctx.arc(x,y,1.15,0,Math.PI*2);cctx.fill();}
+  if(!S.bloom||!S.N)return;const N=S.N;
+  cctx.beginPath();cctx.moveTo(0,h);for(let i=0;i<N;i++){const x=i/(N-1)*w,y=h-S.bloom[i]*h;cctx.lineTo(x,y);}
+  cctx.lineTo(w,h);cctx.closePath();
+  const grad=cctx.createLinearGradient(0,0,0,h);grad.addColorStop(0,"rgba(232,91,82,.30)");grad.addColorStop(.46,"rgba(240,221,95,.20)");grad.addColorStop(1,"rgba(145,189,100,.12)");
+  cctx.fillStyle=grad;cctx.fill();
+  cctx.lineWidth=2.4;cctx.lineJoin="round";
+  const stroke=cctx.createLinearGradient(0,0,w,0);stroke.addColorStop(0,"#e85b52");stroke.addColorStop(.44,"#f0dd5f");stroke.addColorStop(.76,"#79adea");stroke.addColorStop(1,"#91bd64");
+  cctx.strokeStyle=stroke;cctx.beginPath();
+  for(let i=0;i<N;i++){const x=i/(N-1)*w,y=h-S.bloom[i]*h;i?cctx.lineTo(x,y):cctx.moveTo(x,y);}
+  cctx.stroke();
+  if(S.rendered){const pf=+$("scrub").value,px=pf/(N-1)*w;cctx.strokeStyle="rgba(32,23,47,.55)";cctx.lineWidth=1;cctx.beginPath();cctx.moveTo(px,0);cctx.lineTo(px,h);cctx.stroke();}}
+let painting=false;
+function paintCurve(e){if(!S.N)return;const r=curve.getBoundingClientRect();
+  const cx=(e.touches?e.touches[0].clientX:e.clientX)-r.left,cyR=(e.touches?e.touches[0].clientY:e.clientY)-r.top;
+  const x=Math.max(0,Math.min(1,cx/r.width)),y=Math.max(0,Math.min(1,cyR/r.height));
+  const i=Math.round(x*(S.N-1)),val=1-y;for(let k=-1;k<=1;k++){const j=i+k;if(j>=0&&j<S.N)S.bloom[j]=val;}drawCurve();}
+curve.addEventListener("pointerdown",e=>{painting=true;curve.setPointerCapture(e.pointerId);paintCurve(e);});
+curve.addEventListener("pointermove",e=>{if(painting)paintCurve(e);});
+curve.addEventListener("pointerup",()=>painting=false);
+curve.addEventListener("pointercancel",()=>painting=false);
+
+function advect(C,F,drag){const W=S.W,H=S.H,out=new Uint8ClampedArray(W*H*4);
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){const s=sampleField(F,x,y);let sx=x-s[0]*drag,sy=y-s[1]*drag;
+    if(sx<0)sx=0;if(sy<0)sy=0;if(sx>W-1)sx=W-1;if(sy>H-1)sy=H-1;
+    const x0=Math.floor(sx),y0=Math.floor(sy),x1=Math.min(W-1,x0+1),y1=Math.min(H-1,y0+1),tx=sx-x0,ty=sy-y0,o=(y*W+x)*4;
+    for(let c=0;c<4;c++){const a=C[(y0*W+x0)*4+c],b=C[(y0*W+x1)*4+c],cc=C[(y1*W+x0)*4+c],dd=C[(y1*W+x1)*4+c];
+      out[o+c]=(a*(1-tx)+b*tx)*(1-ty)+(cc*(1-tx)+dd*tx)*ty;}}
+  return out;}
+
+async function render(){if(!S.N)return;
+  $("render").disabled=true;$("export").disabled=true;$("prog").classList.add("on");S.playing=false;$("play").textContent="▶";
+  buildCells();
+  const W=S.W,H=S.H,N=S.N,drag=(+$("drag").value)/10,donorOff=+$("donor").value,latch=$("latch").checked;
+  const donorArr=S.donor.length?S.donor:S.src,dLen=donorArr.length;
+  const graph=buildGraph({drag,donorOff,latch,donor:S.donor.length?"clip":"self"}); // stub, for future rack
+  const nCells=S.cellThresh.length,cellActive=new Uint8Array(nCells);
+  S.out=new Array(N);let C=S.src[0].slice();
+  S.out[0]=new ImageData(new Uint8ClampedArray(C),W,H);
+  for(let t=1;t<N;t++){const bloom=S.bloom[t];
+    const onset=new Uint8Array(nCells),active=new Uint8Array(nCells);
+    for(let c=0;c<nCells;c++){const sh=bloom>S.cellThresh[c]?1:0;const act=latch?(cellActive[c]||sh):sh;active[c]=act;onset[c]=(act&&!cellActive[c])?1:0;}
+    const Cadv=advect(C,S.field[t],drag);
+    const donorT=Math.max(0,Math.min(dLen-1,t+donorOff)),donor=donorArr[donorT],srcT=S.src[t];
+    const newC=new Uint8ClampedArray(W*H*4);
+    for(let p=0;p<W*H;p++){const c=S.cellIndex[p],o=p*4;
+      if(!active[c]){newC[o]=srcT[o];newC[o+1]=srcT[o+1];newC[o+2]=srcT[o+2];newC[o+3]=255;}
+      else if(onset[c]){newC[o]=donor[o];newC[o+1]=donor[o+1];newC[o+2]=donor[o+2];newC[o+3]=255;}
+      else{newC[o]=Cadv[o];newC[o+1]=Cadv[o+1];newC[o+2]=Cadv[o+2];newC[o+3]=255;}}
+    for(let c=0;c<nCells;c++)cellActive[c]=active[c];
+    C=newC;S.out[t]=new ImageData(new Uint8ClampedArray(C),W,H);
+    if(t%4===0){$("prog").firstElementChild.style.width=Math.round(t/(N-1)*100)+"%";status(`rendering… <b>${t}/${N-1}</b>`);await yield_();}}
+  $("prog").firstElementChild.style.width="100%";S.rendered=true;
+  $("render").disabled=false;$("export").disabled=false;
+  status("<b>rendered.</b> scrub, play, or export.");
+  setTimeout(()=>$("prog").classList.remove("on"),500);
+  $("scrub").max=N-1;showFrame(+$("scrub").value,false);}
+
+async function exportWebM(){if(!S.rendered)return;
+  const W=S.W,H=S.H,fps=15;
+  const mimes=["video/webm;codecs=vp9","video/webm;codecs=vp8","video/webm"];
+  const mime=mimes.find(m=>window.MediaRecorder&&MediaRecorder.isTypeSupported(m));
+  if(!mime){status("webm export not supported in this browser.");return;}
+  $("export").disabled=true;$("prog").classList.add("on");
+  const cvs=document.createElement("canvas");cvs.width=W;cvs.height=H;const cx=cvs.getContext("2d");
+  const stream=cvs.captureStream(0),track=stream.getVideoTracks()[0];
+  const rec=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:8e6}),chunks=[];
+  rec.ondataavailable=e=>{if(e.data.size)chunks.push(e.data);};
+  const done=new Promise(res=>rec.onstop=res);
+  rec.start();
+  for(let i=0;i<S.N;i++){cx.putImageData(S.out[i],0,0);
+    if(track.requestFrame)track.requestFrame();else if(stream.requestFrame)stream.requestFrame();
+    $("prog").firstElementChild.style.width=Math.round(i/(S.N-1)*100)+"%";status(`encoding… <b>${i+1}/${S.N}</b>`);
+    await new Promise(r=>setTimeout(r,1000/fps));}
+  rec.stop();await done;
+  const blob=new Blob(chunks,{type:mime}),url=URL.createObjectURL(blob);
+  const a=document.createElement("a");a.href=url;a.download="cyberscotoma.webm";a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),4000);
+  $("export").disabled=false;status("<b>exported</b> cyberscotoma.webm");
+  setTimeout(()=>$("prog").classList.remove("on"),500);}
+
+function showFrame(i,fromSource){i=Math.max(0,Math.min(S.N-1,i|0));
+  if(fromSource||!S.rendered){if(S.src[i])sctx.putImageData(new ImageData(new Uint8ClampedArray(S.src[i]),S.W,S.H),0,0);}
+  else{if(S.out[i])sctx.putImageData(S.out[i],0,0);}
+  $("frameno").textContent=`${i}/${S.N-1}`;$("scrub").value=i;if(S.rendered)drawCurve();}
+$("scrub").addEventListener("input",e=>{S.playing=false;$("play").textContent="▶";showFrame(+e.target.value,false);});
+let raf=null,lastT=0;
+function loop(ts){if(!S.playing)return;if(ts-lastT>1000/15){lastT=ts;let i=(+$("scrub").value)+1;if(i>=S.N)i=0;showFrame(i,false);}raf=requestAnimationFrame(loop);}
+$("play").addEventListener("click",()=>{if(!S.N)return;S.playing=!S.playing;$("play").textContent=S.playing?"❚❚":"▶";if(S.playing){lastT=0;raf=requestAnimationFrame(loop);}});
+
+function resetOutput(){S.out=[];S.rendered=false;S.playing=false;$("play").textContent="▶";$("export").disabled=true;}
+function status(html){$("status").innerHTML=html;}
+function yield_(){return new Promise(r=>setTimeout(r,0));}
+
+$("demoBtn").addEventListener("click",async()=>{status("generating demo…");$("render").disabled=true;try{await generateDemo();}catch(e){status("error: "+e.message);}});
+$("uploadBtn").addEventListener("click",()=>$("file").click());
+$("file").addEventListener("change",async e=>{const f=e.target.files[0];if(!f)return;status("reading file…");$("render").disabled=true;
+  try{await loadHost(URL.createObjectURL(f));}catch(err){status("error: "+err.message);}});
+$("donorBtn").addEventListener("click",()=>$("donorFile").click());
+$("donorFile").addEventListener("change",async e=>{const f=e.target.files[0];if(!f)return;
+  try{await loadDonor(URL.createObjectURL(f));}catch(err){status("error: "+err.message);}});
+$("selfBtn").addEventListener("click",()=>{if(!S.N)return;S.donor=[];setDonorTag();resetOutput();status("donor set to <b>self</b> — re-render");});
+$("render").addEventListener("click",render);
+$("export").addEventListener("click",exportWebM);
+
+const labelMap={cells:["cellsV",v=>v],edge:["edgeV",v=>v],drag:["dragV",v=>(v/10).toFixed(1)],donor:["donorV",v=>(v>0?"+":"")+v+" fr"]};
+for(const id in labelMap){const lab=labelMap[id][0],fmt=labelMap[id][1];
+  $(id).addEventListener("input",e=>{$(lab).textContent=fmt(+e.target.value);if((id==="cells"||id==="edge")&&S.N)buildCells();});}
+document.querySelectorAll(".mini[data-preset]").forEach(b=>b.addEventListener("click",()=>{if(S.N)applyPreset(b.dataset.preset);}));
+$("showCells").addEventListener("change",e=>overlay.classList.toggle("on",e.target.checked));
+
+drawCurve();status("load or generate a clip to begin.");
+</script>
+</body>
+</html>

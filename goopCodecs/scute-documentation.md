@@ -13,10 +13,10 @@ scute is the second specimen in **goopCodecs**, after ooid. It shares the family
 ## Quick start
 
 1. Open `scute.html` in a modern browser (needs WebGL2).
-2. It boots into a procedural **sample field** so there's cellular eye-candy to corrupt immediately. To glitch a photo, drop an image onto the canvas (or *Choose image…*). Drop a `.scute` to re-open one.
+2. It boots into a procedural **sample field** so there's cellular eye-candy to corrupt immediately. To glitch a photo, drop an image onto the canvas (or *Choose image…*). Drop a video to process sampled frames, or drop a `.scute` to re-open a still or processed clip.
 3. Tune the cells with **cells**, **detail bias**, and **warp** (see *Source*).
 4. Drag the **Damage** sliders to corrupt non-destructively, or open **Corrupt as data** to edit the bytes by hand.
-5. **Download PNG** for a flat image, or **Download .scute** to keep the glitched file in the native format.
+5. **Download PNG** for a flat image, **Record .webm** for a flattened processed clip, or **Download .scute** to keep the glitched still/video in the native format.
 
 Every control has a tooltip — hover on desktop, tap on mobile.
 
@@ -33,6 +33,14 @@ Seeds are scattered onto the image and each cell takes a flat colour. There is o
 | **warp** | Domain-warps the cell borders. 0 = crystalline hard Voronoi, clean carapace seams; high = borders ooze, interlock and marble — the cells go wet and organic. See *Organic borders*. |
 | **Choose image…** | Pick an image file to partition. |
 | **Re-seed** | Re-scatter the seeds with a fresh random sampling. |
+
+---
+
+## Video
+
+Dropping a video reveals a small video processor. scute samples the source at the chosen **sample fps**, caps the run with **max frames**, and encodes each sampled frame as an independent `SCUT` still. Playback and scrubbing swap those frames through the same damage/decode/render loop as still images, so slider damage is re-derived per frame and reads as cellular flicker.
+
+Processed clips can be flattened with **Record .webm** or kept native with **Download .scute**. Native video uses a `SCUV` container: a 16-byte video header followed by length-prefixed complete `SCUT` frames. Reopening that `.scute` restores the processed frame set.
 
 ---
 
@@ -93,7 +101,8 @@ A length-changing cascade can occasionally shift the body to where very few whol
 ## Export
 
 - **Download PNG** — the current canvas as a flat image. Cells are resolution-independent, so this is rendered at 2× for crisp borders.
-- **Download .scute** — the native format, with any slider damage or byte edits baked in. The format spec is appended as a plaintext manifest, so anyone who opens it in a hex editor finds a short document explaining what they're looking at. Re-openable here.
+- **Record .webm** — for processed video, records the damaged frame playback to a flattened WebM.
+- **Download .scute** — the native format, with any slider damage or byte edits baked in. For processed video, this saves a re-openable `SCUV` frame container. The format spec is appended as a plaintext manifest, so anyone who opens it in a hex editor finds a short document explaining what they're looking at. Re-openable here.
 
 ---
 
@@ -126,6 +135,22 @@ A tiny, deliberately legible binary format. Little-endian. Fixed-width records, 
 | 7 | 1 | reserved |
 
 File size = 16 + 8 × cell count, plus the optional trailing text manifest (which the decoder ignores).
+
+### Video container — `SCUV` v1
+
+Processed video is stored in the same `.scute` extension with magic `"SCUV"`:
+
+| Offset | Size | Field |
+|---|---|---|
+| 0 | 4 | magic `"SCUV"` |
+| 4 | 2 | output width (uint16) |
+| 6 | 2 | output height (uint16) |
+| 8 | 2 | frame count (uint16) |
+| 10 | 1 | fps (uint8) |
+| 11 | 1 | version (1) |
+| 12 | 4 | reserved |
+
+The body is `len:u32 + frame bytes` repeated once per frame. Each frame is a complete `SCUT` still, so frame damage remains local.
 
 **The partition is nearest-seed, so record order carries no meaning** — every pixel takes its single nearest seed regardless of order. This is the structural reason there is no shuffle operation, and the philosophical inverse of ooid, where compositing is alpha-over and order *is* meaning. The decoder is **tolerant**: it reads `min(declared count, whole records actually present)`, so a truncated or length-changed file still renders instead of crashing.
 

@@ -177,8 +177,16 @@
   .crumbs .sep{color:var(--faint);}
 
   header.hero{
+    position:relative;
+    isolation:isolate;
+    --hero-slime-hue:0deg;
+    --hero-slime-opacity:.8;
+    --hero-slime-saturation:1.18;
+    --hero-slime-brightness:1.14;
+    --hero-slime-blend:screen;
+    --hero-slime-width:30px;
     margin:18px 0 18px;
-    border:30px solid rgba(156,255,27,.34);
+    border:2px solid rgba(156,255,27,.34);
     border-radius:34px 42px 30px 28px;
     overflow:hidden;
     background:
@@ -189,10 +197,28 @@
       0 0 0 3px rgba(0,0,0,.50),
       0 28px 80px -50px #000,
       inset 0 -5px 0 rgba(0,0,0,.22);
-	  		border-image: url("slimeborder.png") 100 repeat round;
+  }
+
+  .hero-slime-border{
+    position:absolute;
+    inset:0;
+    z-index:1;
+    pointer-events:none;
+    border:var(--hero-slime-width) solid transparent;
+    border-radius:inherit;
+    border-image:url("./slimeborder.png") 100 repeat round;
+    opacity:var(--hero-slime-opacity);
+    filter:
+      hue-rotate(var(--hero-slime-hue))
+      saturate(var(--hero-slime-saturation))
+      brightness(var(--hero-slime-brightness))
+      contrast(1.04);
+    mix-blend-mode:var(--hero-slime-blend);
   }
 
   .hero-grid{
+    position:relative;
+    z-index:2;
     display:grid;
     grid-template-columns:minmax(0,1.2fr) minmax(280px,.8fr);
     gap:0;
@@ -378,6 +404,17 @@
   }
 
   .panel{
+    position:relative;
+    isolation:isolate;
+    --slime-border-opacity:.56;
+    --slime-border-hue:0deg;
+    --slime-border-saturation:1.16;
+    --slime-border-brightness:1.12;
+    --slime-border-blend:screen;
+    --slime-border-inset:0;
+    --slime-border-width:14px;
+    --slime-border-slice:100;
+    --slime-border-repeat:repeat round;
     border:2px solid rgba(156,255,27,.28);
     border-radius:24px;
     background:
@@ -387,16 +424,43 @@
     box-shadow:0 0 0 3px rgba(0,0,0,.38), 0 18px 52px -38px #000;
 	    overflow:hidden;
 
-
   }
   .panel + .panel{margin-top:18px;}
+
+  .panel::after,
+  .codec-card::after{
+    content:"";
+    position:absolute;
+    inset:var(--slime-border-inset,0);
+    z-index:1;
+    pointer-events:none;
+    border-radius:inherit;
+    border:var(--slime-border-width,14px) solid transparent;
+    border-image-source:url("./slimeborder.png");
+    border-image-slice:var(--slime-border-slice,100);
+    border-image-width:1;
+    border-image-repeat:var(--slime-border-repeat,repeat round);
+    opacity:var(--slime-border-opacity,.56);
+    filter:
+      hue-rotate(var(--slime-border-hue,0deg))
+      saturate(var(--slime-border-saturation,1.16))
+      brightness(var(--slime-border-brightness,1.12))
+      contrast(1.04);
+    mix-blend-mode:var(--slime-border-blend,screen);
+  }
+
+  .panel-head,
+  .panel-body{
+    position:relative;
+    z-index:2;
+  }
 
   .panel-head{
     display:flex;
     justify-content:space-between;
     gap:12px;
     align-items:center;
-    padding:12px 16px;
+    padding:14px 20px;
     border-bottom:2px solid rgba(156,255,27,.18);
     background:linear-gradient(180deg,rgba(255,255,255,.035),transparent);
     color:var(--hazard);
@@ -409,7 +473,11 @@
 
   /* ── collection sampler: each region wears a different specimen's colour ── */
   /* aside · 1 — cyan/worm */
-  main > aside .panel:first-child{border-color:rgba(50,244,255,.32);
+  main > aside .panel:first-child{
+    --slime-border-hue:66deg;
+    --slime-border-opacity:.52;
+    --slime-border-brightness:1.18;
+    border-color:rgba(50,244,255,.32);
     box-shadow:0 0 0 3px rgba(0,0,0,.38), 0 18px 52px -38px #000, 0 0 30px rgba(50,244,255,.09);}
   main > aside .panel:first-child .panel-head{color:var(--cyan); border-bottom-color:rgba(50,244,255,.22);}
   main > aside .panel:first-child .panel-head .v{color:var(--worm);}
@@ -418,7 +486,12 @@
   main > aside .panel:first-child .spec-list li{border-top-color:rgba(50,244,255,.16);}
 
   /* aside · 2 — rust/amber (scute) */
-  main > aside .panel:last-child{border-color:rgba(230,161,92,.34);
+  main > aside .panel:last-child{
+    --slime-border-hue:-78deg;
+    --slime-border-opacity:.48;
+    --slime-border-saturation:1.24;
+    --slime-border-blend:lighten;
+    border-color:rgba(230,161,92,.34);
     box-shadow:0 0 0 3px rgba(0,0,0,.38), 0 18px 52px -38px #000, 0 0 30px rgba(230,161,92,.09);}
   main > aside .panel:last-child .panel-head{color:#e6a15c; border-bottom-color:rgba(230,161,92,.24);}
   main > aside .panel:last-child .panel-head .v{color:var(--hazard);}
@@ -430,7 +503,7 @@
   /* main column — lime collection core, with a worm-pink readout */
   main > .panel .panel-head .v{color:var(--worm);}
 
-  .panel-body{padding:18px;}
+  .panel-body{padding:20px;}
   h2,h3,p{margin-top:0;}
   h2{
     margin-bottom:12px;
@@ -489,6 +562,14 @@
 
   .codec-card{
     position:relative;
+    isolation:isolate;
+    --slime-border-opacity:.58;
+    --slime-border-hue:0deg;
+    --slime-border-saturation:1.2;
+    --slime-border-brightness:1.14;
+    --slime-border-blend:screen;
+    --slime-border-inset:0;
+    --slime-border-width:5px;
     display:flex;
     flex-direction:column;
     min-height:420px;
@@ -504,6 +585,8 @@
     transition:transform .15s ease, border-color .15s ease, box-shadow .15s ease;
   }
   .codec-card:hover{
+    --slime-border-opacity:.74;
+    --slime-border-brightness:1.2;
     transform:translateY(-3px);
     border-color:var(--goo-hi);
     box-shadow:0 0 0 3px rgba(0,0,0,.50),0 26px 68px -38px #000,0 0 34px rgba(156,255,27,.14);
@@ -516,13 +599,23 @@
     background-size:220% 100%;
     animation:slime-shift 18s linear infinite;
     border-bottom:2px solid #020402;
+    position:relative;
+    z-index:2;
   }
   .codec-card.ooid::before{background:linear-gradient(90deg,var(--goo-hi),var(--goo2),var(--cyan),var(--goo-hi));background-size:220% 100%;}
   .codec-card.scute::before{background:linear-gradient(90deg,#3fe3ea,#33c9d6,#d98b42,#b5612b,#3fe3ea);background-size:220% 100%;}
   .codec-card.vermis::before{background:linear-gradient(90deg,var(--worm),var(--cyan),var(--pink),var(--worm));background-size:220% 100%;}
   .codec-card.urumizuri::before{background:linear-gradient(90deg,#7b6ff0,#2fe0c0,var(--cyan),#eafff3,#7b6ff0);background-size:220% 100%;}
 
+  @supports (mix-blend-mode:plus-lighter){
+    .codec-card.ooid{--slime-border-blend:plus-lighter;}
+  }
+
   .codec-card.scute{
+    --slime-border-hue:-76deg;
+    --slime-border-opacity:.54;
+    --slime-border-saturation:1.28;
+    --slime-border-blend:lighten;
     border-color:rgba(217,139,66,.40);
     background:
       radial-gradient(ellipse 40% 34% at 24% 14%,rgba(63,227,234,.16),transparent 60%),
@@ -531,6 +624,9 @@
       linear-gradient(180deg,rgba(28,30,32,.94),rgba(11,13,14,.92));
   }
   .codec-card.vermis{
+    --slime-border-hue:-150deg;
+    --slime-border-opacity:.5;
+    --slime-border-saturation:1.34;
     border-color:rgba(255,131,210,.36);
     background:
       radial-gradient(ellipse at 18% 30%,transparent 0 28%,rgba(255,131,210,.22) 29% 30%,transparent 31%),
@@ -540,6 +636,8 @@
   }
 
   .card-body{
+    position:relative;
+    z-index:2;
     display:flex;
     flex-direction:column;
     flex:1;
@@ -564,6 +662,9 @@
   .scute .codec-name h2{color:#ffe6cf; text-shadow:2px 2px 0 #17120c,0 0 16px rgba(217,139,66,.30);}
   .vermis .codec-name h2{color:#ffb5e8; text-shadow:2px 2px 0 #17051a,0 0 16px rgba(255,131,210,.28);}
   .codec-card.urumizuri {
+    --slime-border-hue:58deg;
+    --slime-border-opacity:.5;
+    --slime-border-saturation:1.18;
     border-color: rgba(47, 224, 192, 0.34); /* Verdigris border */
     background:
       radial-gradient(ellipse at 50% 0%, rgba(123, 111, 240, 0.15), transparent 50%),
@@ -696,6 +797,7 @@
   </nav>
 
   <header class="hero">
+    <div class="hero-slime-border" aria-hidden="true"></div>
     <div class="hero-grid">
       <div class="hero-copy">
         <p class="kicker">browser-native databending formats</p>

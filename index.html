@@ -42,9 +42,17 @@
 }
 
 
-	@font-face{
+@font-face{
   font-family:"Biceps";
   src:url("/fonts/BicepsGrotesk-Regular.otf") format("opentype");
+}
+
+@font-face{
+  font-family:"MudClub Franklin";
+  src:url("cyberscotoma/MudClub-FranklintheGoth.otf") format("opentype");
+  font-weight:400;
+  font-style:normal;
+  font-display:swap;
 }
 
 @font-face {
@@ -343,9 +351,16 @@
   --tool-a-rgb: 47,224,192; --tool-b-rgb: 255,61,134; --tool-c-rgb: 233,194,74;
 }
 
+[data-tool="cyberscotoma"] {
+  grid-column: 1 / 11;
+  --tool-a: #f0dd5f; --tool-b: #79adea; --tool-c: #e85b52;
+  --tool-a-rgb: 240,221,95; --tool-b-rgb: 121,173,234; --tool-c-rgb: 232,91,82;
+}
+
 
 [data-tool="goopcodecs"] .preview-slot,
-[data-tool="bakezuri"] .preview-slot {
+[data-tool="bakezuri"] .preview-slot,
+[data-tool="cyberscotoma"] .preview-slot {
   aspect-ratio: 16 / 6;
 }
 
@@ -365,8 +380,21 @@
   color: var(--tool-a);
 }
 
+.f-cyberscotoma {
+  font-family: "MudClub Franklin", "Averia Sans Libre", system-ui;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-shadow:
+    -1.4px 0 0 rgba(var(--tool-b-rgb), .74),
+    1.5px 0 0 rgba(var(--tool-c-rgb), .70),
+    0 0 .42em rgba(var(--tool-a-rgb), .16);
+}
+.f-cyberscotoma .cy { color: var(--tool-a); }
+.f-cyberscotoma .scot { color: var(--tool-b); }
+
 @media (max-width: 720px) {
-  [data-tool="bakezuri"] { grid-column: auto }
+  [data-tool="bakezuri"],
+  [data-tool="cyberscotoma"] { grid-column: auto }
 }
 
     /* ─── CARDS ─── */
@@ -551,7 +579,8 @@
 [data-tool="gurgulator"],
 [data-tool="typebojangler"],
 [data-tool="goopcodecs"],
-[data-tool="bakezuri"] { grid-column: auto }
+[data-tool="bakezuri"],
+[data-tool="cyberscotoma"] { grid-column: auto }
       .preview-slot { aspect-ratio: 16 / 8 }
     }
 	
@@ -1425,6 +1454,31 @@
       <em>.urumizuri</em> wet-state matrices for databending.
     </p>
     <a href="/sgueltch/bakezuri/" class="tool-cta">open instrument →</a>
+  </div>
+</article>
+
+      <!-- CYBERSCOTOMA -->
+<article class="tool-card" data-tool="cyberscotoma">
+
+  <div class="preview-slot">
+    <img src="/sgueltch/cyberscotoma/assets/perimetry-sunset-blur.jpg"
+         alt="CyberScotoma perimetry sunset interface preview"
+         class="tool-preview-img">
+  </div>
+
+  <div class="card-body">
+    <span class="tool-type">acausal video graft · non-grid datamosh</span>
+    <a href="/sgueltch/cyberscotoma/" class="tool-name f-cyberscotoma">
+      <span class="cy">Cyber</span><span class="scot">Scotoma</span><span class="tool-year">2026</span>
+    </a>
+    <p class="tool-desc">
+      A scintillating scotoma effect at the Sgueltch and Hindcasts intersection.
+      Voronoi hold-regions stop refreshing, receive the current motion field, and
+      fill with donor content from another moment or another clip. The blind spot
+      becomes a grafted image-organ: photophobic Frutiger glass, future-seeded skin,
+      and datamosh without macroblocks.
+    </p>
+    <a href="/sgueltch/cyberscotoma/" class="tool-cta">open tool &rarr;</a>
   </div>
 </article>
 

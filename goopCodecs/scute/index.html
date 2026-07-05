@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="./favicon.svg" type="image/svg+xml">
 <title>scute · voronoi-cell codec</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -293,6 +294,10 @@
   .drop .big::before { content: "☢ "; color: var(--hazard); }
   .drop .sm b { color: var(--teal); }
 
+  .prog { position: absolute; left: 26px; right: 26px; bottom: 26px; height: 8px; border: 2px solid #020402; border-radius: 3px; background: #100e0c; box-shadow: inset 0 2px 3px rgba(0,0,0,.55); display: none; }
+  .prog.on { display: block; }
+  .prog i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--goo-hi), var(--goo2), var(--teal), var(--pink)); box-shadow: 0 0 12px rgba(230,161,92,.45); transition: width .1s linear; }
+
   /* ─── SIDE PANEL & CONTROLS ─── */
   .panel {
     border-left: 2px solid rgba(230,161,92,.28);
@@ -425,11 +430,12 @@
   <div class="stage" id="stage">
     <div class="frame"><canvas id="cv" width="880" height="629"></canvas></div>
     <div class="drop hidden" id="drop">
-      <div class="big">drop an image</div>
+      <div class="big">drop an image or video</div>
       <div class="sm">…and watch it partition into cells. drop a <b>.scute</b> file to re-open one.
-        <br>png · jpg · webp · scute</div>
-      <input id="file" type="file" accept="image/*,.scute" hidden>
+        <br>png · jpg · webp · mp4 · webm · scute</div>
+      <input id="file" type="file" accept="image/*,video/*,.scute" hidden>
     </div>
+    <div class="prog" id="prog"><i id="prog_i"></i></div>
     <div class="readout"><span id="ro_n">0</span> cells · <span id="ro_b">0</span> B · <b id="ro_state">clean</b></div>
   </div>
 
@@ -455,6 +461,35 @@
       <div class="btns">
         <button class="btn" id="browse" data-tip="Pick an image file to partition into cells.">Choose image…</button>
         <button class="btn solid" id="reseed" data-tip="Re-scatter the seeds with a fresh random sampling.">Re-seed</button>
+      </div>
+    </section>
+
+    <!-- VIDEO -->
+    <section id="m_video" hidden>
+      <p class="eyebrow">Video <span class="v" id="vid_v">no video</span></p>
+      <p class="note">Partition every sampled frame with the current cell settings. Damage is applied per frame during playback and .webm recording.</p>
+      <div class="row" data-tip="Frames sampled per second of video. Lower is faster and choppier; higher is smoother and heavier.">
+        <label>sample fps</label>
+        <input id="vidfps" type="range" min="1" max="30" value="12">
+        <span class="val" id="vidfps_v">12</span></div>
+      <div class="row" data-tip="A hard cap on how many frames to encode.">
+        <label>max frames</label>
+        <input id="vidmax" type="range" min="10" max="1200" step="10" value="300">
+        <span class="val" id="vidmax_v">300</span></div>
+      <div class="frcount" id="vid_est"></div>
+      <div class="btns">
+        <button class="btn solid" id="vidproc" disabled data-tip="Seek through the video and encode each sampled frame to Scute cells.">Process frames</button>
+        <button class="btn warn" id="vidstop" hidden data-tip="Stop now and keep the frames already encoded.">Stop</button>
+      </div>
+      <div id="vidtransport" hidden>
+        <div class="row" style="margin-top:14px">
+          <button class="btn" id="vidplay" style="flex:0 0 72px;min-width:0" data-tip="Play or pause the processed video.">play</button>
+          <input id="vidscrub" type="range" min="0" max="0" value="0" data-tip="Scrub through encoded frames.">
+          <span class="val" id="vidpos">0/0</span>
+        </div>
+        <div class="btns">
+          <button class="btn solid" id="vidrec" data-tip="Record the processed frames to a .webm.">Record .webm</button>
+        </div>
       </div>
     </section>
 
@@ -574,6 +609,31 @@ function decode(buf){
   for(let i=0;i<n;i++){seeds[i]={nx:dv.getUint16(o,true)/65535,ny:dv.getUint16(o+2,true)/65535,
     r:u8[o+4],g:u8[o+5],b:u8[o+6]};o+=REC;}
   return {seeds,W,H,bg,warp:u8[15]/255};
+}
+
+const VHEADER=16;
+function isContainer(buf){const u8=new Uint8Array(buf);return u8[0]===0x53&&u8[1]===0x43&&u8[2]===0x55&&u8[3]===0x56;}
+function encodeContainer(frames,W,H,fps){
+  let total=VHEADER;for(const f of frames)total+=4+f.byteLength;
+  const buf=new ArrayBuffer(total),dv=new DataView(buf),u8=new Uint8Array(buf);
+  u8[0]=0x53;u8[1]=0x43;u8[2]=0x55;u8[3]=0x56;                 // "SCUV"
+  dv.setUint16(4,W,true);dv.setUint16(6,H,true);dv.setUint16(8,Math.min(65535,frames.length),true);
+  u8[10]=Math.max(1,Math.min(255,fps|0));u8[11]=1;
+  let o=VHEADER;
+  for(const f of frames){const len=f.byteLength;dv.setUint32(o,len,true);o+=4;u8.set(new Uint8Array(f),o);o+=len;}
+  return buf;
+}
+function decodeContainer(buf){
+  const dv=new DataView(buf),u8=new Uint8Array(buf);
+  const W=dv.getUint16(4,true),H=dv.getUint16(6,true),fc=dv.getUint16(8,true),fps=u8[10];
+  const frames=[];let o=VHEADER;
+  for(let f=0;f<fc&&o+4<=buf.byteLength;f++){
+    let len=dv.getUint32(o,true);o+=4;
+    const rem=buf.byteLength-o;if(rem<=0)break;
+    if(len>rem)len=rem;
+    frames.push(buf.slice(o,o+len));o+=len;
+  }
+  return {W,H,fps,frames};
 }
 
 /* ---- damage --------------------------------------------------------------- */
@@ -739,9 +799,13 @@ let cleanBuf=null, curImg=null, curW=880, curH=629, curBg=[7,15,20], warpV=35;
 const D={drift:0,recolor:0,corrupt:0,band:0,trunc:100};
 const dims=(iw,ih)=>{const s=Math.min(1,RENDER_MAX/Math.max(iw,ih));
   return [Math.max(2,Math.round(iw*s)),Math.max(2,Math.round(ih*s))];};
+let vid=null,vidUrl=null,vidDur=0,vidNatW=0,vidNatH=0,vidFrames=[],vidFps=12,
+    vidOutW=0,vidOutH=0,vidIndex=0,vidBusy=false,vidAbort=false,vidPlayTimer=null;
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const nextPaint=()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
 
 function buildSample(){
-  if(editing)exitEdit(false);
+  if(editing)exitEdit(false);clearVideo();
   curImg=null;curW=880;curH=Math.round(880*0.715);curBg=[7,15,20];
   const seeds=sampleSeeds(+$('cells').value);
   cleanBuf=encode(seeds,curW,curH,curBg,0,warpV/100);
@@ -805,35 +869,168 @@ function resetDamage(redraw){
 function ingestFile(file){
   if(!file)return;
   if(editing)exitEdit(false);
+  if((file.type&&file.type.startsWith('video/'))||/\.(mp4|webm|mov|m4v|ogv)$/i.test(file.name)){ingestVideo(file);return;}
   const fr=new FileReader();
   if(/\.scute$/i.test(file.name)){
     fr.onload=()=>{const buf=fr.result.slice(0),u8=new Uint8Array(buf);
+      if(isContainer(buf)){openContainer(buf);return;}
       if(!(u8[0]===0x53&&u8[1]===0x43&&u8[2]===0x55&&u8[3]===0x54)){alert('Not a scute file.');return;}
       const dv=new DataView(buf);curW=dv.getUint16(4,true);curH=dv.getUint16(6,true);
       warpV=Math.round(u8[15]/255*100);$('warp').value=warpV;$('warp_v').textContent=warpV;
-      cleanBuf=buf;curImg=null;$('drop').classList.add('hidden');$('src_v').textContent='reopened';
+      clearVideo();cleanBuf=buf;curImg=null;$('drop').classList.add('hidden');$('src_v').textContent='reopened';
       resetDamage(false);apply();};
     fr.readAsArrayBuffer(file);return;
   }
   fr.onload=()=>{const img=new Image();
-    img.onload=()=>{curImg=img;$('drop').classList.add('hidden');resetDamage(false);fit();};
+    img.onload=()=>{clearVideo();curImg=img;$('drop').classList.add('hidden');resetDamage(false);fit();};
     img.onerror=()=>alert('Could not read that image.');img.src=fr.result;};
   fr.readAsDataURL(file);
 }
 
+/* ====================================================================== video */
+function clearVideo(){
+  pauseVideo();vidAbort=true;vidFrames=[];vidIndex=0;
+  if(vidUrl){URL.revokeObjectURL(vidUrl);vidUrl=null;}
+  vid=null;$('m_video').hidden=true;$('vidtransport').hidden=true;$('vid_v').textContent='no video';
+  $('vidproc').disabled=true;$('vid_est').innerHTML='';
+}
+function openContainer(buf){
+  const dec=decodeContainer(buf);
+  if(!dec.frames.length){alert('That .scute has no readable frames.');return;}
+  clearVideo();curImg=null;
+  vidFrames=dec.frames;vidFps=dec.fps||12;vidOutW=dec.W;vidOutH=dec.H;vidIndex=0;
+  const first=new Uint8Array(dec.frames[0]);
+  warpV=Math.round((first[15]||0)/255*100);$('warp').value=warpV;$('warp_v').textContent=warpV;
+  $('m_video').hidden=false;$('vidproc').disabled=true;$('vidtransport').hidden=false;$('vidscrub').max=dec.frames.length-1;
+  $('vid_v').textContent=dec.frames.length+' frames'+(dec.fps?(' · '+dec.fps+'fps'):'');
+  $('src_v').textContent='reopened video';$('drop').classList.add('hidden');resetDamage(false);showVideoFrame(0);
+}
+function ingestVideo(file){
+  clearVideo();curImg=null;resetDamage(false);
+  vidUrl=URL.createObjectURL(file);
+  const v=document.createElement('video');
+  v.muted=true;v.playsInline=true;v.preload='auto';v.crossOrigin='anonymous';v.src=vidUrl;
+  v.addEventListener('error',()=>alert('Could not read that video.'),{once:true});
+  v.addEventListener('loadedmetadata',()=>{
+    vid=v;vidDur=v.duration||0;vidNatW=v.videoWidth;vidNatH=v.videoHeight;
+    $('drop').classList.add('hidden');$('m_video').hidden=false;$('vidproc').disabled=false;
+    $('src_v').textContent='video';$('vid_v').textContent='ready';updateVideoEstimate();
+  },{once:true});
+}
+function updateVideoEstimate(){
+  if(!vid){$('vid_est').innerHTML='';return;}
+  const n=Math.max(1,Math.min(+$('vidmax').value,Math.floor((vidDur||0)*+$('vidfps').value)||1));
+  $('vid_est').innerHTML='<b>'+n+'</b> frames · '+(vidDur||0).toFixed(1)+'s · '+vidNatW+'×'+vidNatH;
+}
+function seekTo(v,t){return new Promise(res=>{let done=false;
+  const on=()=>{if(done)return;done=true;v.removeEventListener('seeked',on);res();};
+  v.addEventListener('seeked',on);try{v.currentTime=t;}catch(e){}setTimeout(on,500);});}
+function encodeVideoFrame(sourceCanvas){
+  const N=+$('cells').value,bias=$('bias').value/100,T=buildTarget(sourceCanvas,FIT);
+  const seeds=fitImageSeeds(T,N,bias);
+  const bg=[Math.round(T.mean[0]*255*0.5),Math.round(T.mean[1]*255*0.5),Math.round(T.mean[2]*255*0.5)];
+  return encode(seeds,vidOutW,vidOutH,bg,0,warpV/100);
+}
+async function processVideo(){
+  if(!vid||vidBusy)return;
+  if(editing)exitEdit(false);
+  pauseVideo();vidBusy=true;vidAbort=false;
+  const fps=+$('vidfps').value,cap=+$('vidmax').value;
+  const total=Math.max(1,Math.min(cap,Math.floor((vidDur||0)*fps)||1));
+  vidFps=fps;vidFrames=[];$('vidtransport').hidden=true;
+  [vidOutW,vidOutH]=dims(vidNatW,vidNatH);
+  const fc=document.createElement('canvas');fc.width=vidNatW;fc.height=vidNatH;
+  const fctx=fc.getContext('2d',{willReadFrequently:true});
+  $('vidproc').disabled=true;$('vidstop').hidden=false;$('prog').classList.add('on');
+  for(let f=0;f<total&&!vidAbort;f++){
+    await seekTo(vid,Math.min(Math.max(0,vidDur-1e-3),f/fps));
+    if(vidAbort)break;
+    fctx.drawImage(vid,0,0,vidNatW,vidNatH);
+    $('vid_v').textContent='frame '+(f+1)+'/'+total;
+    const buf=encodeVideoFrame(fc);
+    vidFrames.push(buf);cleanBuf=buf;
+    const dec=decode(buf);renderVoronoi(dec.seeds,dec.W,dec.H,dec.bg,1,dec.warp);
+    $('ro_n').textContent=dec.seeds.length;$('ro_b').textContent=buf.byteLength.toLocaleString();
+    $('prog_i').style.width=(((f+1)/total)*100).toFixed(1)+'%';
+    await sleep(0);
+  }
+  vidBusy=false;$('vidproc').disabled=false;$('vidstop').hidden=true;$('prog').classList.remove('on');$('prog_i').style.width='0';
+  if(vidFrames.length){
+    $('vidtransport').hidden=false;$('vidscrub').max=vidFrames.length-1;
+    $('vid_v').textContent=vidFrames.length+' frames';showVideoFrame(0);
+  } else $('vid_v').textContent='stopped';
+}
+function stopVideo(){vidAbort=true;}
+function showVideoFrame(i){
+  if(!vidFrames.length)return;
+  const len=vidFrames.length,k=(i%len+len)%len;
+  vidIndex=k;cleanBuf=vidFrames[k];
+  const u8=new Uint8Array(cleanBuf);warpV=Math.round((u8[15]||0)/255*100);$('warp').value=warpV;$('warp_v').textContent=warpV;
+  $('vidscrub').value=k;$('vidpos').textContent=(k+1)+'/'+len;apply();
+}
+function pauseVideo(){if(vidPlayTimer){clearInterval(vidPlayTimer);vidPlayTimer=null;}$('vidplay').textContent='play';}
+function playVideo(){
+  if(!vidFrames.length)return;
+  if(vidPlayTimer){pauseVideo();return;}
+  $('vidplay').textContent='pause';
+  vidPlayTimer=setInterval(()=>showVideoFrame(vidIndex+1),1000/(vidFps||12));
+}
+async function recordVideo(){
+  if(!vidFrames.length||vidBusy)return;
+  if(editing)exitEdit(false);
+  pauseVideo();vidBusy=true;vidAbort=false;
+  if(!window.MediaRecorder||!cv.captureStream){alert('This browser cannot record canvas video. Use the .scute export instead.');vidBusy=false;return;}
+  let mime='video/webm;codecs=vp9';
+  if(!(MediaRecorder.isTypeSupported(mime)))mime='video/webm;codecs=vp8';
+  if(!(MediaRecorder.isTypeSupported(mime)))mime='video/webm';
+  const fps=Math.max(1,Math.min(30,vidFps||12)),dt=1000/fps;
+  const stream=cv.captureStream(fps),track=stream.getVideoTracks()[0];
+  if(!track){stream.getTracks().forEach(t=>t.stop());alert('Video export could not start a canvas stream.');vidBusy=false;return;}
+  const rec=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:16000000});
+  const chunks=[];rec.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data);};
+  const stopped=new Promise(r=>{rec.onstop=r;});
+  $('vidrec').disabled=true;$('vidstop').hidden=false;$('prog').classList.add('on');
+  rec.start(1000);
+  for(let f=0;f<vidFrames.length&&!vidAbort;f++){
+    const t0=performance.now();
+    const buf=damage(vidFrames[f],D),dec=decode(buf);
+    renderVoronoi(dec.seeds,dec.W,dec.H,dec.bg,1,dec.warp);gl.flush();
+    $('vid_v').textContent='rec '+(f+1)+'/'+vidFrames.length;
+    $('prog_i').style.width=(((f+1)/vidFrames.length)*100).toFixed(1)+'%';
+    await nextPaint();
+    if(track.requestFrame)track.requestFrame();
+    await sleep(Math.max(0,dt-(performance.now()-t0)));
+  }
+  if(rec.state!=='inactive')rec.stop();await stopped;
+  stream.getTracks().forEach(t=>t.stop());
+  vidBusy=false;$('vidrec').disabled=false;$('vidstop').hidden=true;$('prog').classList.remove('on');$('prog_i').style.width='0';
+  $('vid_v').textContent=vidFrames.length+' frames';
+  if(chunks.length)dl(new Blob(chunks,{type:'video/webm'}),'scute-video.webm');
+  showVideoFrame(vidIndex);
+}
+
 /* ===================================================================== wiring */
 $('cells').addEventListener('input',()=>{$('cells_v').textContent=$('cells').value;});
-$('cells').addEventListener('change',fit);
+$('cells').addEventListener('change',()=>{if(vid){updateVideoEstimate();return;}fit();});
 $('bias').addEventListener('input',()=>{$('bias_v').textContent=$('bias').value;});
-$('bias').addEventListener('change',()=>{if(curImg)fit();});
+$('bias').addEventListener('change',()=>{if(vid)return;if(curImg)fit();});
 $('warp').addEventListener('input',()=>{warpV=+$('warp').value;$('warp_v').textContent=warpV;
   const b=Math.round(warpV/100*255);                          // warp lives in the (locked) header byte 15
   if(cleanBuf)new Uint8Array(cleanBuf)[15]=b;
+  if(vidFrames.length)for(const frame of vidFrames)new Uint8Array(frame)[15]=b;
   if(editing&&editHeader)editHeader[15]=b;
   apply();});
 $('browse').addEventListener('click',()=>$('file').click());
 $('reseed').addEventListener('click',fit);
 $('file').addEventListener('change',e=>{if(e.target.files[0])ingestFile(e.target.files[0]);});
+
+// video
+['vidfps','vidmax'].forEach(id=>$(id).addEventListener('input',()=>{$(id+'_v').textContent=$(id).value;updateVideoEstimate();}));
+$('vidproc').addEventListener('click',processVideo);
+$('vidstop').addEventListener('click',stopVideo);
+$('vidplay').addEventListener('click',playVideo);
+$('vidscrub').addEventListener('input',()=>{pauseVideo();showVideoFrame(+$('vidscrub').value);});
+$('vidrec').addEventListener('click',recordVideo);
 
 // damage
 ['drift','recolor','corrupt','band'].forEach(id=>{
@@ -862,6 +1059,18 @@ $('png').addEventListener('click',()=>{
   cv.toBlob(b=>{dl(b,'scute-render.png');renderVoronoi(seeds,W,H,bg,1,warp);});
 });
 $('scute').addEventListener('click',()=>{
+  if(vidFrames.length){
+    const buf=encodeContainer(vidFrames,vidOutW,vidOutH,vidFps);
+    const manifest=`\n\n--- SCUV v1 - scute video container ------------------------------
+header 16B: "SCUV"[4] W:u16 H:u16 frames:u16 fps:u8 ver:u8 rsv[4]
+then per frame: len:u32 + that many bytes of a complete "SCUT" v1 still
+each frame is an independent .scute partition; trailing text ignored
+------------------------------------------------------------------\n`;
+    const txt=new TextEncoder().encode(manifest);
+    const out=new Uint8Array(buf.byteLength+txt.length);
+    out.set(new Uint8Array(buf),0);out.set(txt,buf.byteLength);
+    dl(new Blob([out],{type:'application/octet-stream'}),'specimen.scute');return;
+  }
   if(!cleanBuf)return;const buf=currentBuf();
   const manifest=`\n\n--- SCUT v1 · voronoi-cell codec ---------------------------------
 header 16B: "SCUT"[4] W:u16 H:u16 N:u16 mode:u8 ver:u8 bg[3] rsv
@@ -916,7 +1125,7 @@ function enterEdit(){
 }
 function exitEdit(commit){
   if(!editing)return;
-  if(commit){cleanBuf=editBuffer().slice(0);resetDamage(false);}   // promote glitched bytes to new base
+  if(commit){cleanBuf=editBuffer().slice(0);if(vidFrames.length)vidFrames[vidIndex]=cleanBuf;resetDamage(false);}   // promote glitched bytes to new base
   editing=false;editHeader=editBody=null;
   $('editbtn').hidden=false;$('editor').hidden=true;$('data_v').textContent='locked';
   setSlidersLocked(false);apply();

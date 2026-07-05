@@ -33,7 +33,7 @@ The Sgueltch suite is not a naive biophilic pursuit or a romantic celebration of
 
 ## 3. The Sgueltch Software Suite (The Portfolio)
 
-The suite is comprised of specialized tools spanning image processing, typography, audio synthesis, file architecture, and printing simulation.
+The suite is comprised of specialized tools spanning image processing, typography, audio synthesis, file architecture, acausal video effects, and printing simulation.
 
 ### A. Pixel Lesions (Organic Pixel Sorter)
 * **Classification:** Pixel Sorter / Cellular Automata
@@ -98,6 +98,18 @@ The suite is comprised of specialized tools spanning image processing, typograph
 * **File Architecture Ecosystem:**
     * `.urumizuri`: Stores vulnerable wet-state matrix coordinate blocks for manual data manipulation.
     * `.bakezuri`: A seedless, process-oriented recipe file format that saves the exact structural timeline of passes and ink bleeds. Because it is seedless, it operates as a live script; every individual performance bleeds uniquely based on real-time execution parameters.
+
+### G. CyberScotoma (Acausal Motion-Field Graft)
+* **Classification:** Video Effect / Non-Grid Datamosh / Hindcasts Bridge
+* **Public Address:** `https://xyhtamura.github.io/sgueltch/cyberscotoma/`
+* **Core Substrate:** Builds a scintillating scotoma as a browser-based video effect. Instead of producing datamosh artifacts by exposing codec macroblocks, it decodes to frames and creates its own non-grid hold regions using Voronoi cells with noised edges.
+* **Technical Mechanics:**
+    * *Scotoma Regions:* Drawn bloom curves progressively latch cells, creating blind spots that stop refreshing without snapping to the compression grid.
+    * *Motion-Field Graft:* Held regions receive the current per-frame motion field, so donor-descended content keeps flowing with motion it does not own.
+    * *Acausal Donor Offset:* At onset, each held region can seed from `t + donorOffset`; positive offsets make future frames bleed backward into the present.
+    * *Cross-Clip Graft:* A separate donor clip can supply the tissue inside the scotoma, extending the Pythia-style control/source interface into video.
+    * *Offline Render & Export:* The effect renders sequentially, caches frames for instant scrub, and exports WebM.
+* **Conceptual Role:** CyberScotoma is the hinge between Sgueltch and Hindcasts: as Sgueltch, it is a biological visual-field lesion and a non-grid refusal of macroblock damage; as Hindcasts, it is a precognitive video effect whose aura arrives before the event it announces.
 
 ---
 

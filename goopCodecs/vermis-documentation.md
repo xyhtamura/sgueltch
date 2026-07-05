@@ -40,9 +40,15 @@ Everything in the codec was checked numerically before it shipped: the Hilbert m
 
 ### Source
 
-The image is cover-fit (centre-cropped) onto a **2ᵒʳᵈᵉʳ square** — a Hilbert curve needs a power-of-two square grid, so vermis is square by construction. With nothing loaded, the tool boots into a procedural **sample field**: smooth gradients and soft blobs in the Sultai ramp, chosen because smooth content makes the deltas small and the flowing stains legible. **Re-roll sample** reseeds it; **Choose image** threads a real picture onto the worm; dropping a `.vermis` file re-opens a specimen.
+The source is sampled onto an internal **2ᵒʳᵈᵉʳ square path grid**, because the path needs a power-of-two lattice, but the output canvas keeps the source aspect ratio. Vermis no longer centre-crops: the whole image is threaded, then rendered back into a width/height rectangle stored in the header. With nothing loaded, the tool boots into a procedural **sample field**: smooth gradients and soft blobs in the Sultai ramp, chosen because smooth content makes the deltas small and the flowing stains legible. **Re-roll sample** reseeds it; **Choose image** threads a real picture onto the worm; dropping a video processes sampled frames; dropping a `.vermis` file re-opens a still or processed clip.
 
 **thread** (Hilbert order, 4–8 → 16² … 256²) is the main resolution lever. Finer thread samples the image more densely and resolves it; coarser thread reads as a visible snaking worm.
+
+### Video
+
+Dropping a video reveals the same sampled-frame workflow as the other goopCodecs. Vermis samples the source at the chosen **sample fps**, caps the run with **max frames**, and encodes each sampled frame as a `VERM` body using the current path mode and substrate settings. Seeded random-walk video rethreads every frame through a fresh route; deterministic path modes such as Hilbert, Morton, boustrophedon, and spiral keep their canonical route. Playback and scrubbing swap those frames through the normal damage/decode/render loop, so delta damage is re-derived per frame and reads as flowing temporal stains.
+
+Processed clips can be flattened with **Record .webm** or kept native with **Download .vermis**. Native video uses a `VERV` container: a 16-byte video header with a video path seed, followed by length-prefixed `VERM` frames. Reopening that `.vermis` restores the processed frame set and its per-frame random-walk paths.
 
 ### Filament — the substrate
 
@@ -81,7 +87,8 @@ The **16-byte header stays locked** — magic, dimensions, order, anchor, and su
 ### Export
 
 - **Download PNG** — the painted worm as a flat image.
-- **Download .vermis** — the native format, with the current substrate baked into the header and the spec appended as a plaintext manifest. Re-openable here.
+- **Record .webm** — for processed video, records the damaged frame playback to a flattened WebM.
+- **Download .vermis** — the native format, with the current substrate baked into the header and the spec appended as a plaintext manifest. For processed video, this saves a re-openable `VERV` frame container. Re-openable here.
 
 ---
 
@@ -94,10 +101,10 @@ Little-endian. A small locked header followed by a flat stream of three-byte del
 | Offset | Size | Field |
 |---|---|---|
 | 0 | 4 | magic `"VERM"` (0x56 0x45 0x52 0x4D) |
-| 4 | 2 | width (uint16) — equals the grid side S |
-| 6 | 2 | height (uint16) — equals S (square by construction) |
+| 4 | 2 | output width (uint16) — aspect-preserving canvas width |
+| 6 | 2 | output height (uint16) — aspect-preserving canvas height |
 | 8 | 1 | Hilbert order (uint8) — grid side S = 2ᵒʳᵈᵉʳ |
-| 9 | 1 | version (1) |
+| 9 | 1 | path type — 0 Hilbert, 1 seeded random walk, 2 Morton, 3 boustrophedon, 4 spiral |
 | 10 | 3 | anchor RGB — mean colour, the DPCM seed |
 | 13 | 1 | girth (uint8) — render hint, (girth − 0.4) / 2.2 × 255 |
 | 14 | 1 | bleed (uint8) — render hint, bleed × 2.55 |
@@ -111,7 +118,23 @@ Little-endian. A small locked header followed by a flat stream of three-byte del
 | 1 | 1 | dG | (G − G_prev) & 255 |
 | 2 | 1 | dB | (B − B_prev) & 255 |
 
-Samples are in Hilbert-curve order. `prev` is seeded from the header anchor, so the first sample is a delta from the mean. Sample count = S² = (2ᵒʳᵈᵉʳ)². File size = 16 + 3·S², plus the optional trailing manifest, which the decoder ignores.
+Samples are stored in the selected path order. `prev` is seeded from the header anchor, so the first sample is a delta from the mean. For standalone seeded-random-walk files, the anchor also seeds the path. In `VERV` video, the container path seed plus frame index seeds each random-walk frame. Deterministic path modes ignore the seed. Sample count = S² = (2ᵒʳᵈᵉʳ)². File size = 16 + 3·S², plus the optional trailing manifest, which the decoder ignores.
+
+### Video container — `VERV` v1
+
+Processed video is stored in the same `.vermis` extension with magic `"VERV"`:
+
+| Offset | Size | Field |
+|---|---|---|
+| 0 | 4 | magic `"VERV"` |
+| 4 | 2 | output width (uint16) |
+| 6 | 2 | output height (uint16) |
+| 8 | 2 | frame count (uint16) |
+| 10 | 1 | fps (uint8) |
+| 11 | 1 | version (1) |
+| 12 | 4 | video path seed (uint32) — random-walk frame seed is `pathSeed + frameIndex`; deterministic paths ignore it |
+
+The body is `len:u32 + frame bytes` repeated once per frame. Each frame carries a normal `VERM` header and delta body; the container supplies the per-frame path seed for seeded random-walk replay, so frame damage remains local.
 
 ---
 
@@ -119,9 +142,9 @@ Samples are in Hilbert-curve order. `prev` is seeded from the header anchor, so 
 
 - **The header is small and locked.** Magic, dimensions, order, anchor, and substrate hints are never editable in the byte editor, so a damaged file always decodes. The anchor in particular seeds the entire delta integration — protect it and the whole worm still reconstructs.
 - **The decoder is tolerant.** It reads `min(declared samples, samples actually present)`. A truncated or length-changed file does not crash; the thread simply stops where the bytes run out, and the rest of the canvas is left as bare substrate.
-- **The curve is implicit, not stored.** Sample *positions* come from the order alone, regenerated on decode — they are never in the file. So corruption can only touch *colour*, never *geometry*; the worm always traces a valid Hilbert path, and damage flows as discolouration rather than scrambling the route. (This is the deliberate counterpart to the squares object, where the same body would scramble cells.)
+- **The curve is implicit, not stored.** Sample *positions* come from order, path type, and for the seeded random-walk mode a locked seed. They are regenerated on decode rather than listed in the body. So corruption can only touch *colour*, never *geometry*; the worm always traces a valid path, and damage flows as discolouration rather than scrambling the route. (This is the deliberate counterpart to the squares object, where the same body would scramble cells.)
 - **Substrate bytes are hints.** girth / bleed / relax change how the thread is painted, never what the body means. The body is identical whether it oozes or resolves — the serialization layer and the substrate layer are cleanly separable, which is the layer model made literal.
-- **Square by construction.** Hilbert requires a 2ⁿ square, so the source is cover-fit and centre-cropped. This is a property of the substrate, not a limitation to apologise for.
+- **Square path, rectangular specimen.** The path grid is still 2ⁿ by 2ⁿ, but the header stores output width and height. The full source is sampled into the path and rendered back into an aspect-preserving rectangle rather than being centre-cropped.
 
 ---
 
