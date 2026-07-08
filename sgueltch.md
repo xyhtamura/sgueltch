@@ -111,6 +111,13 @@ The suite is comprised of specialized tools spanning image processing, typograph
     * *Offline Render & Export:* The effect renders sequentially, caches frames for instant scrub, and exports WebM.
 * **Conceptual Role:** CyberScotoma is the hinge between Sgueltch and Hindcasts: as Sgueltch, it is a biological visual-field lesion and a non-grid refusal of macroblock damage; as Hindcasts, it is a precognitive video effect whose aura arrives before the event it announces.
 
+### H. Remanence (Magnetic Print-Through) — *kin, Hindcasts-home*
+* **Classification:** Acausal Tape-Decay Effect / Audio + Video / Hindcasts Bridge
+* **Address:** `hindcasts/remanence/` · full spec in `hindcasts/remanence/remanence.md`
+* **Core Substrate:** A wound reel imprints itself — loud moments print onto neighbouring wraps as **pre-echo** (the ghost that arrives before the sound). Remanence turns magnetic print-through into an effect that has read the tape before it plays; the same reel engine runs on audio (multi-tap delay with negative taps) and on video (frame composite, print's spatial LF bias as ghost-blur).
+* **Why it is kin, not core:** By the **suite placement rule**, a corruption-forward app with a *specially organic* substrate (ooze / tissue / lesion / mycelium / marbling / Voronoi) is Sgueltch; an app whose main idea is whole-file analysis, with glitch a side effect or *not specially organic* (Prolepsis), is Hindcasts. Remanence's damage is **analog-magnetic / nostalgic**, not biological-organic, and its spine is whole-file acausality (print-through needs the future) — so it lives in Hindcasts and is kept here as **kin**, the mirror of how CyberScotoma lives in Sgueltch and is kept as kin in Hindcasts. Same hinge status, opposite primary homes.
+* **Contact point with Sgueltch:** it degrades rather than restores, and VHS is where audio and video share one substrate — the tape-decay aesthetic and the a/v collapse are Sgueltch-adjacent even though the engine is a Hindcasts acausal analysis.
+
 ---
 
 ## 4. The Conceptual Frontier (Unbuilt & Future Works)

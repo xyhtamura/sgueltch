@@ -383,14 +383,31 @@
 .f-cyberscotoma {
   font-family: "MudClub Franklin", "Averia Sans Libre", system-ui;
   font-weight: 400;
+  font-size: 2rem;
+  line-height: .96;
   letter-spacing: 0;
-  text-shadow:
-    -1.4px 0 0 rgba(var(--tool-b-rgb), .74),
-    1.5px 0 0 rgba(var(--tool-c-rgb), .70),
-    0 0 .42em rgba(var(--tool-a-rgb), .16);
 }
-.f-cyberscotoma .cy { color: var(--tool-a); }
-.f-cyberscotoma .scot { color: var(--tool-b); }
+.f-cyberscotoma .cs-title-stack {
+  position: relative;
+  display: inline-block;
+  white-space: nowrap;
+  isolation: isolate;
+}
+.f-cyberscotoma .cs-title-measure { visibility: hidden; }
+.f-cyberscotoma .cs-title-plate {
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+  opacity: .86;
+  mix-blend-mode: screen;
+}
+@supports (mix-blend-mode:plus-lighter) {
+  .f-cyberscotoma .cs-title-plate { mix-blend-mode: plus-lighter; }
+}
+.f-cyberscotoma .cs-title-red { color: var(--tool-c); transform: translate(1.5px, 1px); }
+.f-cyberscotoma .cs-title-yellow { color: var(--tool-a); transform: translate(-.5px, 0); }
+.f-cyberscotoma .cs-title-blue { color: var(--tool-b); transform: translate(-2px, -1px); }
 
 @media (max-width: 720px) {
   [data-tool="bakezuri"],
@@ -1461,15 +1478,105 @@
 <article class="tool-card" data-tool="cyberscotoma">
 
   <div class="preview-slot">
-    <img src="/sgueltch/cyberscotoma/assets/perimetry-sunset-blur.jpg"
-         alt="CyberScotoma perimetry sunset interface preview"
-         class="tool-preview-img">
+    <div class="placeholder-anim" aria-hidden="true">
+      <svg viewBox="0 0 640 240" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <radialGradient id="csField" cx="50%" cy="48%" r="72%">
+            <stop offset="0%" stop-color="rgba(237,242,229,.24)"/>
+            <stop offset="38%" stop-color="rgba(121,173,234,.12)"/>
+            <stop offset="70%" stop-color="rgba(32,23,47,.84)"/>
+            <stop offset="100%" stop-color="rgba(7,5,13,1)"/>
+          </radialGradient>
+          <pattern id="csDots" width="34" height="34" patternUnits="userSpaceOnUse">
+            <circle cx="17" cy="17" r="1.4" fill="rgba(237,242,229,.28)"/>
+          </pattern>
+          <clipPath id="csBloom">
+            <path d="M246 74 C288 42 356 45 406 70 C460 97 489 148 468 183 C442 226 356 223 292 204 C228 185 199 129 246 74Z"/>
+          </clipPath>
+        </defs>
+
+        <rect width="640" height="240" fill="#100817"/>
+        <rect width="640" height="240" fill="url(#csField)"/>
+        <rect width="640" height="240" fill="url(#csDots)" opacity=".56"/>
+
+        <g fill="none" stroke="rgba(237,242,229,.18)" stroke-width="1">
+          <ellipse cx="320" cy="120" rx="244" ry="86"/>
+          <ellipse cx="320" cy="120" rx="162" ry="56"/>
+          <ellipse cx="320" cy="120" rx="78" ry="27"/>
+          <path d="M64 120 H576"/>
+          <path d="M320 26 V214"/>
+        </g>
+
+        <g fill="rgba(237,242,229,.035)" stroke="rgba(237,242,229,.12)" stroke-width="1.2">
+          <path d="M36 26 L118 15 L157 68 L108 118 L38 96Z"/>
+          <path d="M118 15 L244 28 L239 96 L157 68Z"/>
+          <path d="M244 28 L354 21 L387 80 L307 126 L239 96Z"/>
+          <path d="M354 21 L506 44 L466 122 L387 80Z"/>
+          <path d="M506 44 L615 32 L602 126 L466 122Z"/>
+          <path d="M38 96 L108 118 L92 210 L22 182Z"/>
+          <path d="M108 118 L239 96 L252 185 L92 210Z"/>
+          <path d="M239 96 L307 126 L283 220 L252 185Z"/>
+          <path d="M307 126 L466 122 L444 212 L283 220Z"/>
+          <path d="M466 122 L602 126 L616 208 L444 212Z"/>
+        </g>
+
+        <g clip-path="url(#csBloom)">
+          <rect x="190" y="46" width="330" height="172" fill="rgba(16,8,23,.72)"/>
+          <g opacity=".78">
+            <rect x="204" y="62" width="230" height="8" fill="rgba(232,91,82,.36)">
+              <animate attributeName="x" values="204;186;214;204" dur="3.4s" repeatCount="indefinite"/>
+            </rect>
+            <rect x="242" y="88" width="274" height="9" fill="rgba(240,221,95,.38)">
+              <animate attributeName="width" values="274;196;306;274" dur="4.2s" repeatCount="indefinite"/>
+            </rect>
+            <rect x="210" y="118" width="318" height="7" fill="rgba(121,173,234,.34)">
+              <animate attributeName="x" values="210;236;198;210" dur="3.7s" repeatCount="indefinite"/>
+            </rect>
+            <rect x="266" y="151" width="212" height="10" fill="rgba(237,242,229,.22)">
+              <animate attributeName="width" values="212;262;146;212" dur="4.8s" repeatCount="indefinite"/>
+            </rect>
+            <rect x="220" y="181" width="258" height="6" fill="rgba(232,91,82,.28)">
+              <animate attributeName="x" values="220;194;242;220" dur="4.1s" repeatCount="indefinite"/>
+            </rect>
+          </g>
+        </g>
+
+        <g fill="none" stroke-linecap="round" stroke-width="5" opacity=".92">
+          <path d="M246 74 C288 42 356 45 406 70 C460 97 489 148 468 183 C442 226 356 223 292 204 C228 185 199 129 246 74Z"
+                stroke="rgba(232,91,82,.78)" transform="translate(3 2)"/>
+          <path d="M246 74 C288 42 356 45 406 70 C460 97 489 148 468 183 C442 226 356 223 292 204 C228 185 199 129 246 74Z"
+                stroke="rgba(240,221,95,.78)" transform="translate(-1 0)"/>
+          <path d="M246 74 C288 42 356 45 406 70 C460 97 489 148 468 183 C442 226 356 223 292 204 C228 185 199 129 246 74Z"
+                stroke="rgba(121,173,234,.78)" transform="translate(-4 -2)"/>
+        </g>
+
+        <g stroke="rgba(237,242,229,.34)" stroke-width="1.6" stroke-linecap="round">
+          <path d="M144 62 l38 9"/>
+          <path d="M166 155 l54 -15"/>
+          <path d="M474 66 l-38 22"/>
+          <path d="M510 170 l-62 -9"/>
+          <path d="M330 37 l20 29"/>
+          <animateTransform attributeName="transform" type="translate" values="0 0; 8 -3; -5 4; 0 0" dur="5.2s" repeatCount="indefinite"/>
+        </g>
+
+        <g fill="rgba(240,221,95,.78)">
+          <circle cx="246" cy="74" r="4"/>
+          <circle cx="468" cy="183" r="3"/>
+        </g>
+      </svg>
+    </div>
   </div>
 
   <div class="card-body">
     <span class="tool-type">acausal video graft · non-grid datamosh</span>
-    <a href="/sgueltch/cyberscotoma/" class="tool-name f-cyberscotoma">
-      <span class="cy">Cyber</span><span class="scot">Scotoma</span><span class="tool-year">2026</span>
+    <a href="/sgueltch/cyberscotoma/" class="tool-name f-cyberscotoma" aria-label="CyberScotoma 2026">
+      <span class="cs-title-stack" aria-hidden="true">
+        <span class="cs-title-measure">CyberScotoma</span>
+        <span class="cs-title-plate cs-title-red">CyberScotoma</span>
+        <span class="cs-title-plate cs-title-yellow">CyberScotoma</span>
+        <span class="cs-title-plate cs-title-blue">CyberScotoma</span>
+      </span>
+      <span class="tool-year" aria-hidden="true">2026</span>
     </a>
     <p class="tool-desc">
       A scintillating scotoma effect at the Sgueltch and Hindcasts intersection.

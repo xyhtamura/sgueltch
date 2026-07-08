@@ -85,7 +85,7 @@ Developments push in from both parents. Ordered within each by leverage.
 
 ### biology pushing in (scotoma gets more *real* → Sgueltch strains)
 
-1. **propagating front (CSD strain)** — *the deepest unlock.* Right now blooms are cells catching a global curve. A real scotoma **nucleates at a locus and spreads as a wavefront** (cortical spreading depression). Replace/augment the global curve with a **bloom seed + strain**, where the strain is a Pixel Lesions growth algorithm (Lichen / Slime Mold / Perivascular Crawl) governing propagation *over time* instead of space. Welds the two suites at the mechanic, not just the concept. *(Note: for now, global control is deliberately enough — this is the first real extension, not an MVP gap.)*
+1. **propagating front (CSD strain)** — **FIRST STRAIN SHIPPED.** The first implementation adds a seed-centered reaction-diffusion activation field: the bloom curve becomes temporal front progress, while a Gray-Scott-style scalar texture bends cell catch times into a living wavefront. This replaces/augments the old global curve with a **bloom seed + strain** path. Future strains can still come straight from Pixel Lesions growth algorithms (Lichen / Slime Mold / Perivascular Crawl) governing propagation *over time* instead of space.
 2. **edge-vs-interior differentiation** — real aura has a bright **scintillating leading edge** and a **blind trailing region**. Advancing frontier gets chromatic seep + brightening (donor onset with aberration); interior decays to mush. Perivascular Crawl already tracks contrast boundaries with Sobel — the edge is where the aura lives.
 3. **goop-tissue graft** — donor content sourced from a `.scute` / `.ooid` / `.vermis` file, so the scotoma fills with organic-codec damage rather than photographic frames.
 
@@ -124,16 +124,16 @@ CyberScotoma can trivially become a **unidirectional, causal, realtime** effect:
 - Option B engine — non-grid Voronoi hold-regions, own motion estimation (block-match on downsampled luma), sequential offline render, instant acausal scrub.
 - Drawn bloom curve (paintable; bell / ramp / pulses / clear presets), progressive per-cell threshold catch, latch (perpetual).
 - Controls: cells, edge noise, motion drag, donor offset (acausal), show-cells overlay.
+- **propagating front (CSD reaction-diffusion strain)** — selectable global vs reaction-diffusion bloom strain, seed X/Y sliders, click-to-seed on the stage, front strain control, and per-cell activation thresholds derived from the reaction field.
 - **cross-clip graft (dual-input donor).**
 - **WebM export.**
 - Light / photophobic CyberScotoma reskin; `buildGraph()` DAG stub.
 
 **Next (ordered by leverage):**
-1. propagating front (CSD strain) — seed + Pixel Lesions growth algorithm over time.
-2. edge-vs-interior differentiation — scintillating frontier / blind interior.
-3. anticipatory motion (backward flow) + prolepsis stances.
-4. whole-clip auto-placement (motion extrema / negative-space, optimal-vs-inverted).
-5. rack (multiple scotomata as a DAG).
+1. edge-vs-interior differentiation — scintillating frontier / blind interior.
+2. anticipatory motion (backward flow) + prolepsis stances.
+3. whole-clip auto-placement (motion extrema / negative-space, optimal-vs-inverted).
+4. rack (multiple scotomata as a DAG).
 
 ---
 

@@ -91,13 +91,33 @@ body::after{
 .wrap{max-width:1180px;margin:0 auto;padding:24px 20px 64px;position:relative;z-index:1}
 
 header{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:4px}
-h1{
-  font-family:"MudClub Franklin","Averia Gruesa Libre",cursive;font-weight:400;font-size:40px;letter-spacing:0;margin:0;
-  color:var(--ink);
-  /* static chromatic aberration — the aura pinned, not moving */
-  text-shadow:-1.6px 0 0 var(--scin-c), 1.7px 0 0 var(--scin-m), 0 1.2px 0 rgba(240,180,78,.54),0 10px 28px rgba(255,244,214,.38);
+.title-seep{
+  position:relative;
+  display:inline-block;
+  font-family:"MudClub Franklin","Averia Gruesa Libre",cursive;
+  font-weight:400;
+  font-size:40px;
+  line-height:.96;
+  letter-spacing:0;
+  margin:0;
+  white-space:nowrap;
+  isolation:isolate;
 }
-h1 .cy{color:var(--optic-yellow)} h1 .scot{color:var(--optic-blue)}
+.title-seep .title-measure{visibility:hidden}
+.title-seep .title-plate{
+  position:absolute;
+  left:0;
+  top:0;
+  pointer-events:none;
+  opacity:.86;
+  mix-blend-mode:screen;
+}
+@supports (mix-blend-mode:plus-lighter){
+  .title-seep .title-plate{mix-blend-mode:plus-lighter}
+}
+.title-seep .title-red{color:var(--optic-red);transform:translate(1.5px,1px)}
+.title-seep .title-yellow{color:var(--optic-yellow);transform:translate(-.5px,0)}
+.title-seep .title-blue{color:var(--optic-blue);transform:translate(-2px,-1px)}
 .tag{font-family:"Syne Mono",monospace;font-size:12px;color:rgba(39,29,55,.80);letter-spacing:.3px;background:rgba(255,255,248,.34);border:1px solid rgba(255,255,255,.40);border-radius:10px 6px 12px 7px;padding:3px 8px;backdrop-filter:blur(12px) saturate(1.25);-webkit-backdrop-filter:blur(12px) saturate(1.25)}
 .spine{font-family:"Syne Mono",monospace;font-size:11.5px;color:rgba(213,255,244,.92);opacity:.96;margin:3px 0 20px;letter-spacing:.3px;text-shadow:0 1px 9px rgba(8,5,18,.70)}
 
@@ -133,6 +153,7 @@ h1 .cy{color:var(--optic-yellow)} h1 .scot{color:var(--optic-blue)}
 .organ>*{position:relative;z-index:1}
 
 .stagewrap{position:relative;border-radius:20px 12px 22px 14px;overflow:hidden;background:linear-gradient(180deg,rgba(24,16,36,.72),rgba(78,122,119,.28));border:1px solid rgba(255,255,255,.45);outline:1px solid rgba(38,23,58,.34);box-shadow:inset 0 0 34px rgba(10,6,20,.46),0 18px 34px -26px rgba(8,5,18,.80);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.stagewrap.seedable #stage{cursor:crosshair}
 #stage{display:block;width:100%;background:linear-gradient(180deg,rgba(29,18,44,.70),rgba(214,236,214,.28))}
 #cellsOverlay{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:0}
 #cellsOverlay.on{opacity:.85}
@@ -177,6 +198,11 @@ input[type=range].dial::-moz-range-thumb{width:18px;height:18px;border-radius:50
 .toggles{display:flex;gap:9px;flex-wrap:wrap;margin:2px 0 16px}
 .chk{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--ink);cursor:pointer;user-select:none;background:linear-gradient(180deg,rgba(255,255,250,.56),rgba(224,248,240,.30));border:1px solid rgba(255,255,255,.56);outline:1px solid rgba(50,31,76,.20);padding:7px 11px;border-radius:12px 7px 13px 8px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
 .chk input{accent-color:var(--mineral);width:15px;height:15px}
+
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0 0}
+.seg button{font-size:11px;font-family:"Syne Mono",monospace;color:var(--ink-soft);background:linear-gradient(180deg,rgba(255,255,250,.52),rgba(225,247,239,.25));border:1px solid rgba(255,255,255,.54);outline:1px solid rgba(50,31,76,.20);padding:7px 9px;border-radius:11px 6px 12px 7px;cursor:pointer;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.seg button.on{color:var(--ink);outline-color:rgba(232,91,82,.62);box-shadow:inset 0 1px 0 rgba(255,255,255,.82),0 0 0 3px rgba(232,91,82,.10)}
+.ctl.strain{background:linear-gradient(150deg,rgba(134,191,255,.18),rgba(240,221,95,.12) 54%,rgba(255,255,255,.10));padding:10px 12px;border-radius:14px 10px 16px 9px;border:1px solid rgba(121,173,234,.30);box-shadow:inset 0 1px 0 rgba(255,255,255,.38)}
 
 .curvehead{display:flex;justify-content:space-between;align-items:baseline;margin:4px 0 6px}
 .curvehead h3{font-family:"Averia Gruesa Libre";font-weight:400;font-size:18px;margin:0;color:var(--ink)}
@@ -225,7 +251,12 @@ input[type=range].dial::-moz-range-thumb{width:18px;height:18px;border-radius:50
 <body>
 <div class="wrap">
   <header>
-    <h1><span class="cy">Cyber</span><span class="scot">Scotoma</span></h1>
+    <h1 class="title-seep" aria-label="CyberScotoma">
+      <span class="title-measure" aria-hidden="true">CyberScotoma</span>
+      <span class="title-plate title-red" aria-hidden="true">CyberScotoma</span>
+      <span class="title-plate title-yellow" aria-hidden="true">CyberScotoma</span>
+      <span class="title-plate title-blue" aria-hidden="true">CyberScotoma</span>
+    </h1>
     <span class="tag">sgueltch ∩ hindcasts · acausal motion-field graft · scintillating scotoma effect</span>
   </header>
   <div class="spine">non-DCT datamosh: held Voronoi cells advect donor frames through current motion</div>
@@ -268,6 +299,10 @@ input[type=range].dial::-moz-range-thumb{width:18px;height:18px;border-radius:50
         <button class="mini" data-preset="pulse">pulses</button>
         <button class="mini" data-preset="flat0">clear</button>
       </div>
+      <div class="seg" id="strainMode">
+        <button class="on" data-strain="global">global</button>
+        <button data-strain="reaction">reaction-diffusion</button>
+      </div>
 
       <div style="height:14px"></div>
 
@@ -297,6 +332,20 @@ input[type=range].dial::-moz-range-thumb{width:18px;height:18px;border-radius:50
         <input type="range" class="dial" id="donor" min="-30" max="30" value="8">
         <div class="hint">where the skin is seeded from at bloom onset. <b style="color:var(--flesh)">positive = future bleeds backward.</b></div>
       </div>
+      <div class="ctl strain">
+        <label>seed x <span class="v" id="seedXV">52%</span></label>
+        <input type="range" class="dial" id="seedX" min="0" max="100" value="52">
+        <div class="hint">front nucleation point for reaction-diffusion</div>
+      </div>
+      <div class="ctl strain">
+        <label>seed y <span class="v" id="seedYV">45%</span></label>
+        <input type="range" class="dial" id="seedY" min="0" max="100" value="45">
+      </div>
+      <div class="ctl strain">
+        <label>front strain <span class="v" id="strainV">62</span></label>
+        <input type="range" class="dial" id="strain" min="0" max="100" value="62">
+        <div class="hint">reaction texture bends the CSD wavefront</div>
+      </div>
 
       <div class="toggles">
         <label class="chk"><input type="checkbox" id="latch"> perpetual (latch)</label>
@@ -321,12 +370,14 @@ function buildGraph(p){return{nodes:[
   {id:"donor",type:"source"},
   {id:"motion",type:"motion",in:"host"},
   {id:"cells",type:"field-partition",in:"host"},
+  {id:"strain",type:"reaction-diffusion-front",in:["cells"]},
   {id:"scotoma",type:"graft",in:["host","donor","motion","cells"],params:p},
   {id:"out",type:"output",in:"scotoma"}
 ]};}
 
 const S={W:320,H:180,N:0,src:[],donor:[],out:[],field:[],fw:0,fh:0,DM:4,
-  bloom:null,cellIndex:null,cellThresh:null,rendered:false,playing:false};
+  bloom:null,cellIndex:null,cellThresh:null,cellBaseThresh:null,cellCenter:null,strainField:null,
+  strainMode:"global",rendered:false,playing:false};
 const $=id=>document.getElementById(id);
 const stage=$("stage"),sctx=stage.getContext("2d");
 const overlay=$("cellsOverlay"),octx=overlay.getContext("2d");
@@ -337,6 +388,7 @@ function vnoise(x,y){const xi=Math.floor(x),yi=Math.floor(y),xf=x-xi,yf=y-yi;
   const u=xf*xf*(3-2*xf),v=yf*yf*(3-2*yf);
   const a=hash2(xi,yi),b=hash2(xi+1,yi),c=hash2(xi,yi+1),d=hash2(xi+1,yi+1);
   return a*(1-u)*(1-v)+b*u*(1-v)+c*(1-u)*v+d*u*v;}
+function clamp01(v){return v<0?0:(v>1?1:v);}
 
 function setDims(w,h){const tw=320,s=Math.min(1,tw/w);
   S.W=Math.round(w*s/2)*2;S.H=Math.round(h*s/2)*2;
@@ -424,19 +476,53 @@ function sampleField(F,x,y){const fx=(x/S.W)*S.fw-0.5,fy=(y/S.H)*S.fh-0.5;
 
 function buildCells(){const W=S.W,H=S.H,n=+$("cells").value,amp=+$("edge").value;
   const seeds=[];for(let i=0;i<n;i++)seeds.push([hash2(i+1,7.3)*W,hash2(i+2,3.1)*H]);
-  S.cellThresh=new Float32Array(n);for(let i=0;i<n;i++)S.cellThresh[i]=0.06+hash2(i+5,9.9)*0.9;
   const idx=new Uint16Array(W*H),scale=0.045;
   for(let y=0;y<H;y++)for(let x=0;x<W;x++){const wx=x+(vnoise(x*scale,y*scale)-.5)*2*amp,wy=y+(vnoise(x*scale+50,y*scale+50)-.5)*2*amp;
     let best=1e18,bi=0;for(let i=0;i<n;i++){const dx=wx-seeds[i][0],dy=wy-seeds[i][1],d=dx*dx+dy*dy;if(d<best){best=d;bi=i;}}
     idx[y*W+x]=bi;}
-  S.cellIndex=idx;drawCellOverlay();}
+  S.cellIndex=idx;S.cellCenter=seeds;S.cellBaseThresh=new Float32Array(n);
+  for(let i=0;i<n;i++)S.cellBaseThresh[i]=0.06+hash2(i+5,9.9)*0.9;
+  buildCellStrain();drawCellOverlay();}
+function buildCellStrain(){const n=S.cellBaseThresh?S.cellBaseThresh.length:0;if(!n)return;
+  S.cellThresh=new Float32Array(n);S.strainField=null;
+  if(S.strainMode!=="reaction"){S.cellThresh.set(S.cellBaseThresh);return;}
+  const W=S.W,H=S.H,sx=(+$("seedX").value/100)*W,sy=(+$("seedY").value/100)*H,rough=+$("strain").value/100;
+  const maxD=Math.max(Math.hypot(sx,sy),Math.hypot(W-sx,sy),Math.hypot(sx,H-sy),Math.hypot(W-sx,H-sy))||1;
+  const field=buildReactionField(sx,sy,rough);S.strainField=field;
+  for(let i=0;i<n;i++){const c=S.cellCenter[i],d=Math.hypot(c[0]-sx,c[1]-sy)/maxD;
+    const rd=sampleScalarField(field,c[0],c[1]),grain=(rd-.5)*rough*.34+(vnoise(c[0]*.052,c[1]*.052)-.5)*rough*.16;
+    S.cellThresh[i]=clamp01(.025+d*.94+grain);}
+}
+function buildReactionField(sx,sy,rough){const W=S.W,H=S.H,gw=96,gh=Math.max(36,Math.round(gw*H/W)),N=gw*gh;
+  let U=new Float32Array(N),V=new Float32Array(N),nU=new Float32Array(N),nV=new Float32Array(N);U.fill(1);
+  const cx=sx/W*(gw-1),cy=sy/H*(gh-1),seedR=3.2+rough*3.2;
+  for(let y=0;y<gh;y++)for(let x=0;x<gw;x++){const p=y*gw+x,d=Math.hypot(x-cx,y-cy);
+    if(d<seedR||hash2(x*3.7,y*5.1)>.992){V[p]=.42+.48*hash2(x+11,y+19);U[p]=1-V[p]*.55;}}
+  const du=.16,dv=.08,feed=.033+rough*.012,kill=.058+rough*.010,steps=80+Math.round(rough*135);
+  const ix=(x,y)=>Math.max(0,Math.min(gh-1,y))*gw+Math.max(0,Math.min(gw-1,x));
+  for(let s=0;s<steps;s++){
+    for(let y=0;y<gh;y++)for(let x=0;x<gw;x++){const p=ix(x,y),u=U[p],v=V[p];
+      const lapU=-u+U[ix(x-1,y)]*.2+U[ix(x+1,y)]*.2+U[ix(x,y-1)]*.2+U[ix(x,y+1)]*.2+U[ix(x-1,y-1)]*.05+U[ix(x+1,y-1)]*.05+U[ix(x-1,y+1)]*.05+U[ix(x+1,y+1)]*.05;
+      const lapV=-v+V[ix(x-1,y)]*.2+V[ix(x+1,y)]*.2+V[ix(x,y-1)]*.2+V[ix(x,y+1)]*.2+V[ix(x-1,y-1)]*.05+V[ix(x+1,y-1)]*.05+V[ix(x-1,y+1)]*.05+V[ix(x+1,y+1)]*.05;
+      const uvv=u*v*v;nU[p]=clamp01(u+du*lapU-uvv+feed*(1-u));nV[p]=clamp01(v+dv*lapV+uvv-(feed+kill)*v);}
+    const tu=U;U=nU;nU=tu;const tv=V;V=nV;nV=tv;}
+  let lo=1,hi=0;for(let i=0;i<N;i++){if(V[i]<lo)lo=V[i];if(V[i]>hi)hi=V[i];}
+  const span=hi-lo||1,out=new Float32Array(N);for(let i=0;i<N;i++)out[i]=(V[i]-lo)/span;
+  return{w:gw,h:gh,data:out};}
+function sampleScalarField(field,x,y){if(!field)return .5;
+  const fx=x/S.W*(field.w-1),fy=y/S.H*(field.h-1),x0=Math.floor(fx),y0=Math.floor(fy);
+  const x1=Math.min(field.w-1,x0+1),y1=Math.min(field.h-1,y0+1),tx=fx-x0,ty=fy-y0,g=(xx,yy)=>field.data[yy*field.w+xx];
+  return(g(x0,y0)*(1-tx)+g(x1,y0)*tx)*(1-ty)+(g(x0,y1)*(1-tx)+g(x1,y1)*tx)*ty;}
 function drawCellOverlay(){if(!S.cellIndex)return;const W=S.W,H=S.H,img=octx.createImageData(W,H),d=img.data;
   for(let p=0;p<W*H;p++){const c=S.cellIndex[p],th=S.cellThresh[c];
     const r=Math.round(110+th*130),g=Math.round(180+th*32),b=Math.round(86+th*140);
     d[p*4]=r;d[p*4+1]=g;d[p*4+2]=b;d[p*4+3]=76;}
   for(let y=1;y<H;y++)for(let x=1;x<W;x++){const p=y*W+x;
     if(S.cellIndex[p]!==S.cellIndex[p-1]||S.cellIndex[p]!==S.cellIndex[p-W]){d[p*4]=37;d[p*4+1]=32;d[p*4+2]=58;d[p*4+3]=200;}}
-  octx.putImageData(img,0,0);}
+  octx.putImageData(img,0,0);
+  if(S.strainMode==="reaction"){const sx=(+$("seedX").value/100)*W,sy=(+$("seedY").value/100)*H;
+    octx.strokeStyle="rgba(232,91,82,.95)";octx.lineWidth=2;octx.beginPath();octx.arc(sx,sy,6,0,Math.PI*2);octx.stroke();
+    octx.strokeStyle="rgba(240,221,95,.80)";octx.lineWidth=1;octx.beginPath();octx.arc(sx,sy,12,0,Math.PI*2);octx.stroke();}}
 
 function ensureBloom(preset){S.bloom=new Float32Array(S.N);applyPreset(preset||"bell");}
 function applyPreset(kind){const N=S.N;if(!N)return;
@@ -485,7 +571,7 @@ async function render(){if(!S.N)return;
   buildCells();
   const W=S.W,H=S.H,N=S.N,drag=(+$("drag").value)/10,donorOff=+$("donor").value,latch=$("latch").checked;
   const donorArr=S.donor.length?S.donor:S.src,dLen=donorArr.length;
-  const graph=buildGraph({drag,donorOff,latch,donor:S.donor.length?"clip":"self"}); // stub, for future rack
+  const graph=buildGraph({drag,donorOff,latch,donor:S.donor.length?"clip":"self",strain:S.strainMode}); // stub, for future rack
   const nCells=S.cellThresh.length,cellActive=new Uint8Array(nCells);
   S.out=new Array(N);let C=S.src[0].slice();
   S.out[0]=new ImageData(new Uint8ClampedArray(C),W,H);
@@ -541,6 +627,7 @@ function loop(ts){if(!S.playing)return;if(ts-lastT>1000/15){lastT=ts;let i=(+$("
 $("play").addEventListener("click",()=>{if(!S.N)return;S.playing=!S.playing;$("play").textContent=S.playing?"❚❚":"▶";if(S.playing){lastT=0;raf=requestAnimationFrame(loop);}});
 
 function resetOutput(){S.out=[];S.rendered=false;S.playing=false;$("play").textContent="▶";$("export").disabled=true;}
+function dirtyRender(msg){if(S.rendered){resetOutput();status(msg||"settings changed - <b>re-render</b>");}}
 function status(html){$("status").innerHTML=html;}
 function yield_(){return new Promise(r=>setTimeout(r,0));}
 
@@ -555,12 +642,27 @@ $("selfBtn").addEventListener("click",()=>{if(!S.N)return;S.donor=[];setDonorTag
 $("render").addEventListener("click",render);
 $("export").addEventListener("click",exportWebM);
 
-const labelMap={cells:["cellsV",v=>v],edge:["edgeV",v=>v],drag:["dragV",v=>(v/10).toFixed(1)],donor:["donorV",v=>(v>0?"+":"")+v+" fr"]};
+function setStrainMode(mode){S.strainMode=mode;
+  document.querySelectorAll("[data-strain]").forEach(b=>b.classList.toggle("on",b.dataset.strain===mode));
+  document.querySelector(".stagewrap").classList.toggle("seedable",mode==="reaction");
+  if(S.N){buildCells();dirtyRender(mode==="reaction"?"reaction front changed - <b>re-render</b>":"global strain restored - <b>re-render</b>");}}
+document.querySelectorAll("[data-strain]").forEach(b=>b.addEventListener("click",()=>setStrainMode(b.dataset.strain)));
+
+const labelMap={cells:["cellsV",v=>v],edge:["edgeV",v=>v],drag:["dragV",v=>(v/10).toFixed(1)],donor:["donorV",v=>(v>0?"+":"")+v+" fr"],
+  seedX:["seedXV",v=>v+"%"],seedY:["seedYV",v=>v+"%"],strain:["strainV",v=>v]};
+const rebuildControls={cells:1,edge:1,seedX:1,seedY:1,strain:1};
 for(const id in labelMap){const lab=labelMap[id][0],fmt=labelMap[id][1];
-  $(id).addEventListener("input",e=>{$(lab).textContent=fmt(+e.target.value);if((id==="cells"||id==="edge")&&S.N)buildCells();});}
+  $(id).addEventListener("input",e=>{$(lab).textContent=fmt(+e.target.value);
+    if(rebuildControls[id]&&S.N){buildCells();dirtyRender("front field changed - <b>re-render</b>");}});}
+stage.addEventListener("click",e=>{if(S.strainMode!=="reaction"||!S.N)return;
+  const r=stage.getBoundingClientRect(),x=clamp01((e.clientX-r.left)/r.width),y=clamp01((e.clientY-r.top)/r.height);
+  $("seedX").value=Math.round(x*100);$("seedY").value=Math.round(y*100);
+  $("seedXV").textContent=$("seedX").value+"%";$("seedYV").textContent=$("seedY").value+"%";
+  buildCells();dirtyRender("seed moved - <b>re-render</b>");});
 document.querySelectorAll(".mini[data-preset]").forEach(b=>b.addEventListener("click",()=>{if(S.N)applyPreset(b.dataset.preset);}));
 $("showCells").addEventListener("change",e=>overlay.classList.toggle("on",e.target.checked));
 
+setStrainMode("global");
 drawCurve();status("load or generate a clip to begin.");
 </script>
 </body>
