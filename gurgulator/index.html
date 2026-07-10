@@ -65,8 +65,9 @@
     background:linear-gradient(180deg, hsl(255 30% 10%), hsl(258 34% 6%));
     box-shadow: inset 0 0 80px hsl(266 50% 3% / .9), 0 18px 40px hsl(266 60% 2% / .5);
     min-height:560px; display:flex; flex-direction:column}
-  .dish-shell .meta{display:flex; justify-content:space-between; align-items:center;
+  .dish-shell .meta{display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px 12px;
     padding:9px 14px; border-bottom:1px solid var(--line); font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--muted)}
+  #dishReadout{margin-left:auto; text-align:right; overflow-wrap:anywhere}
   .dish-shell .meta .dot{width:9px;height:9px;border-radius:50%;background:var(--acid-dim);display:inline-block;margin-right:7px;vertical-align:middle;box-shadow:0 0 0 0 var(--acid)}
   .dish-shell.live .meta .dot{background:var(--acid); animation:pulse 1.1s infinite}
   @keyframes pulse{0%{box-shadow:0 0 0 0 hsl(74 92% 58% / .6)}70%{box-shadow:0 0 0 7px hsl(74 92% 58% / 0)}100%{box-shadow:0 0 0 0 hsl(74 92% 58% / 0)}}
@@ -122,8 +123,10 @@
   @keyframes rec{50%{opacity:.65}}
   button.on{background:var(--wet); color:hsl(266 40% 6%); border-color:var(--wet)}
   .file{display:none}
-  #dl{display:none}
-  #dl.show{display:inline-block; text-decoration:none; background:var(--violet); color:hsl(266 40% 6%); border-color:var(--violet)}
+  .download{display:none}
+  .download.show{display:inline-block; text-decoration:none; background:var(--violet); color:hsl(266 40% 6%); border-color:var(--violet)}
+  #harvestDl.show{background:var(--flesh); border-color:var(--flesh)}
+  #brewDl.show{background:var(--wet); border-color:var(--wet)}
 
   .cultures{display:flex; flex-wrap:wrap; gap:7px}
   .culture{font-family:"Bagel Fat One"; font-weight:400; font-size:11px; letter-spacing:.03em;
@@ -133,6 +136,20 @@
   .culture:nth-child(6n+1){background:var(--acid)} .culture:nth-child(6n+2){background:var(--flesh)}
   .culture:nth-child(6n+3){background:var(--wet)} .culture:nth-child(6n+4){background:var(--violet)}
   .culture:nth-child(6n+5){background:hsl(48 95% 60%)} .culture:nth-child(6n){background:hsl(146 70% 55%)}
+  .g-brew .pip{background:var(--flesh)}
+  .brew-grid{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:7px}
+  button.brew{min-height:42px; padding:8px 7px; font-family:"Bagel Fat One"; font-weight:400; font-size:13px;
+    line-height:1.05; white-space:normal; overflow-wrap:anywhere; color:hsl(266 40% 6%);
+    border-color:hsl(266 40% 6%); box-shadow:2px 2px 0 hsl(266 60% 3% / .55)}
+  button.brew:nth-child(6n+1){background:var(--flesh)}
+  button.brew:nth-child(6n+2){background:var(--acid)}
+  button.brew:nth-child(6n+3){background:hsl(146 70% 55%)}
+  button.brew:nth-child(6n+4){background:var(--wet)}
+  button.brew:nth-child(6n+5){background:var(--violet)}
+  button.brew:nth-child(6n){background:hsl(48 95% 60%)}
+  .brew-actions{display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; align-items:center}
+  .brew-status{margin-top:9px; min-height:1.2em; font-size:11px; color:var(--muted); overflow-wrap:anywhere}
+  .brew-status b{color:var(--wet)}
 
   .status{font-size:11.5px; color:var(--muted); min-height:1.2em; letter-spacing:.02em}
   .status b{color:var(--acid)}
@@ -181,10 +198,31 @@
         <button id="stop">■ Halt</button>
         <button id="freeze">❄ Freeze</button>
         <button id="rec">● Record</button>
+        <button id="harvest">Harvest WAV</button>
+        <button id="reset">Reset Jar</button>
         <button id="panic">⚠ Panic</button>
-        <a id="dl">⤓ Save .webm</a>
+        <a id="dl" class="download">⤓ Save .webm</a>
+        <a id="harvestDl" class="download">Save .wav</a>
       </div>
       <div style="margin-top:11px" class="cultures" id="cultures"></div>
+    </div>
+
+    <div class="panel g-brew">
+      <h2><span class="pip"></span>Wet SFX Vending
+        <span class="k">reroll · wav</span></h2>
+      <div class="brew-grid">
+        <button class="brew" data-brew="potion">Potion</button>
+        <button class="brew" data-brew="blob">Blob Jump</button>
+        <button class="brew" data-brew="swamp">Swamp Step</button>
+        <button class="brew" data-brew="stomach">Stomach</button>
+        <button class="brew" data-brew="monster">Monster</button>
+        <button class="brew" data-brew="bubble">Bubble Pop</button>
+      </div>
+      <div class="brew-actions">
+        <button id="brewAgain">Brew Again</button>
+        <a id="brewDl" class="download">Save Brew .wav</a>
+      </div>
+      <div class="brew-status" id="brewStatus">vending idle.</div>
     </div>
 
     <div class="panel g-grain"><h2><span class="pip"></span>Grain Culture</h2><div id="grp-grain"></div></div>
@@ -265,8 +303,19 @@ const CULTURES = {
   CURDLE:  {rate:20,grain:90,overlap:25,stretch:0.7,pitch:10,reverse:0.35,intensity:0.7,viscosity:0.25,peristalsis:0.5,mutate:0.75,sweep:0.8,burp:0.65,formant:0.5,squelch:0.35,pop:0.4,wet:0.3,bloom:0.35,master:0.88, pad:[0.42,0.82]},
   RENNET:  {rate:6,grain:500,overlap:88,stretch:0.45,pitch:4,reverse:0.04,intensity:0.5,viscosity:0.9,peristalsis:0.2,mutate:0.03,sweep:0.2,burp:0.25,formant:0.5,squelch:0.5,pop:0.02,wet:0.65,bloom:0.6,master:0.8, pad:[0.8,0.1]},
 };
+const CULTURE_ROT = {
+  WILD:    {write:1.0, smear:1.0, fizz:1.0, drift:1.0},
+  NATA:    {write:0.7, smear:1.45, fizz:0.35, drift:0.55},
+  LAMBIC:  {write:1.15,smear:0.9,  fizz:1.25, drift:1.1},
+  KOMBUCHA:{write:1.35,smear:0.7,  fizz:1.55, drift:1.35},
+  BILE:    {write:0.9, smear:1.6,  fizz:0.65, drift:0.65},
+  CURDLE:  {write:1.45,smear:0.55, fizz:1.35, drift:1.45},
+  RENNET:  {write:0.55,smear:1.8,  fizz:0.25, drift:0.5},
+};
+let activeCulture="WILD";
 function loadCulture(name){
   const c = CULTURES[name]; if(!c) return;
+  activeCulture=name;
   for(const k in c){
     if(k==="pad"){ padTarget.x=c.pad[0]; padTarget.y=c.pad[1]; continue; }
     if(ui[k]){ ui[k].value=c[k]; ui[k].dispatchEvent(new Event("input")); }
@@ -290,10 +339,160 @@ let ctx, grainBus, bpFilter, formantEQ, dryGain,
 let buffer=null, running=false, schedTimer=null, engineTimer=null;
 let pointer=0, sampleDur=0, frozen=false, frozenHead=0;
 let lastSatDrive=-1;
+let originalBuffer=null, sourceName="spore", fermentAge=0, rotDepth=0, lastFermentMs=0, lastWriteBackMs=0;
+let lastWebmUrl=null, lastWavUrl=null, lastBrewUrl=null, lastBrewKind="potion";
+
+const FERMENT_STAGES = [
+  {name:"fresh", after:0,   write:0.012, smear:0.04, fizz:0.0005, drift:0.035, slice:0.035},
+  {name:"active", after:30, write:0.026, smear:0.10, fizz:0.0016, drift:0.075, slice:0.055},
+  {name:"over-fermented",after:150,write:0.043, smear:0.18, fizz:0.0034, drift:0.14,  slice:0.08},
+  {name:"vinegar",after:420,write:0.062, smear:0.29, fizz:0.0065, drift:0.22,  slice:0.11},
+];
+const BREW_RECIPES = {
+  potion:  {label:"Potion",     dur:1.45, age:42,  rot:0.18, passes:34, drift:0.09,  culture:"LAMBIC"},
+  blob:    {label:"Blob Jump",  dur:0.95, age:28,  rot:0.12, passes:24, drift:0.055, culture:"NATA"},
+  swamp:   {label:"Swamp Step", dur:1.25, age:66,  rot:0.2,  passes:32, drift:0.07,  culture:"BILE"},
+  stomach: {label:"Stomach",    dur:2.1,  age:120, rot:0.26, passes:46, drift:0.11,  culture:"RENNET"},
+  monster: {label:"Monster",    dur:1.8,  age:160, rot:0.32, passes:54, drift:0.13,  culture:"CURDLE"},
+  bubble:  {label:"Bubble Pop", dur:0.48, age:18,  rot:0.08, passes:16, drift:0.035, culture:"KOMBUCHA"},
+};
+const TAU=Math.PI*2;
 
 /* smoothed performance state */
 const padTarget={x:0.5,y:0.35};
 const S={padX:0.5,padY:0.35,peri:0,periTarget:0};
+
+function hardClip(x){ return x<-1 ? -1 : (x>1 ? 1 : x); }
+
+function cloneAudioBuffer(src){
+  const copy=ctx.createBuffer(src.numberOfChannels, src.length, src.sampleRate);
+  for(let ch=0; ch<src.numberOfChannels; ch++) copy.copyToChannel(src.getChannelData(ch), ch);
+  return copy;
+}
+
+function getFermentStage(age=fermentAge){
+  let stage=FERMENT_STAGES[0];
+  for(const s of FERMENT_STAGES){ if(age>=s.after) stage=s; }
+  return stage;
+}
+
+function formatAge(sec){
+  sec=Math.max(0, sec|0);
+  const m=(sec/60)|0, s=sec%60;
+  return `${m}:${String(s).padStart(2,"0")}`;
+}
+
+function clearDownload(id){
+  const a=document.getElementById(id);
+  if(a){ a.classList.remove("show"); a.removeAttribute("href"); }
+}
+
+function hideDownloads(){
+  if(lastWebmUrl) URL.revokeObjectURL(lastWebmUrl);
+  if(lastWavUrl) URL.revokeObjectURL(lastWavUrl);
+  if(lastBrewUrl) URL.revokeObjectURL(lastBrewUrl);
+  lastWebmUrl=null; lastWavUrl=null; lastBrewUrl=null;
+  clearDownload("dl"); clearDownload("harvestDl"); clearDownload("brewDl");
+}
+
+function updateFreezeButton(){
+  const b=document.getElementById("freeze");
+  if(!b) return;
+  b.classList.remove("on");
+  b.textContent="❄ Freeze";
+}
+
+function setJarBuffer(src, label){
+  originalBuffer=cloneAudioBuffer(src);
+  buffer=cloneAudioBuffer(src);
+  sourceName=label||"jar";
+  sampleDur=buffer.duration; pointer=0; frozen=false; frozenHead=0;
+  fermentAge=0; rotDepth=0; lastWriteBackMs=0; lastFermentMs=performance.now();
+  updateFreezeButton();
+  hideDownloads();
+  updateJarReadout();
+}
+
+function tickFermentClock(){
+  const now=performance.now();
+  if(running && buffer){
+    if(lastFermentMs) fermentAge += (now-lastFermentMs)/1000;
+    lastFermentMs=now;
+  }else{
+    lastFermentMs=now;
+  }
+}
+
+function updateJarReadout(){
+  const el=document.getElementById("dishReadout");
+  if(!el) return;
+  if(!buffer){ el.textContent="idle"; return; }
+  const stage=getFermentStage();
+  const jar=`${stage.name} ${formatAge(fermentAge)} · rot ${Math.round(rotDepth*100)}%`;
+  const perf=`drench ${(S.padX*100|0)}% · frenzy ${(S.padY*100|0)}% · peri ${(S.peri>=0?"+":"")}${S.peri.toFixed(2)}`;
+  el.textContent=`${jar} · ${perf}`;
+}
+
+function resetJar(){
+  if(!originalBuffer){ setStatus("nothing in the jar yet."); return; }
+  buffer=cloneAudioBuffer(originalBuffer);
+  sampleDur=buffer.duration; pointer=0; frozen=false; frozenHead=0;
+  fermentAge=0; rotDepth=0; lastWriteBackMs=0; lastFermentMs=performance.now();
+  updateFreezeButton();
+  if(lastWavUrl) URL.revokeObjectURL(lastWavUrl);
+  lastWavUrl=null;
+  clearDownload("harvestDl");
+  updateJarReadout();
+  setStatus(`jar reset — <b>${sourceName}</b> is fresh again.`);
+}
+
+function writeString(view, offset, text){
+  for(let i=0;i<text.length;i++) view.setUint8(offset+i, text.charCodeAt(i));
+}
+
+function encodeWav(audioBuffer){
+  const channels=audioBuffer.numberOfChannels, length=audioBuffer.length, sr=audioBuffer.sampleRate;
+  const bytesPerSample=2, blockAlign=channels*bytesPerSample;
+  const wav=new ArrayBuffer(44 + length*blockAlign);
+  const view=new DataView(wav);
+  writeString(view,0,"RIFF");
+  view.setUint32(4,36 + length*blockAlign,true);
+  writeString(view,8,"WAVE");
+  writeString(view,12,"fmt ");
+  view.setUint32(16,16,true);
+  view.setUint16(20,1,true);
+  view.setUint16(22,channels,true);
+  view.setUint32(24,sr,true);
+  view.setUint32(28,sr*blockAlign,true);
+  view.setUint16(32,blockAlign,true);
+  view.setUint16(34,bytesPerSample*8,true);
+  writeString(view,36,"data");
+  view.setUint32(40,length*blockAlign,true);
+  let offset=44;
+  const data=[];
+  for(let ch=0; ch<channels; ch++) data.push(audioBuffer.getChannelData(ch));
+  for(let i=0; i<length; i++){
+    for(let ch=0; ch<channels; ch++){
+      const s=hardClip(data[ch][i]);
+      view.setInt16(offset, s<0 ? s*0x8000 : s*0x7fff, true);
+      offset+=2;
+    }
+  }
+  return new Blob([view],{type:"audio/wav"});
+}
+
+function harvestJar(){
+  if(!buffer){ setStatus("nothing to harvest."); return; }
+  if(lastWavUrl) URL.revokeObjectURL(lastWavUrl);
+  const blob=encodeWav(buffer);
+  lastWavUrl=URL.createObjectURL(blob);
+  const stage=getFermentStage().name;
+  const dl=document.getElementById("harvestDl");
+  dl.href=lastWavUrl;
+  dl.download=`gurgulator-${stage}-${Date.now()}.wav`;
+  dl.classList.add("show");
+  setStatus(`harvested <b>${stage}</b> jar at ${formatAge(fermentAge)}.`);
+}
 
 function makeSatCurve(drive){
   const n=2048, c=new Float32Array(n), k=1+drive*4;
@@ -334,9 +533,175 @@ function makeSporeBuffer(){
     const env=Math.min(1,t*4)*Math.min(1,(dur-t)*4);
     d[i]=Math.tanh(s*1.2)*0.6*env;
   }
-  buffer=buf; sampleDur=dur; pointer=0;
+  setJarBuffer(buf, "spore");
   hideHint();
   setStatus("spore seeded — <b>3.6s</b> synthetic culture. press Ferment.");
+}
+
+function rand(){ return Math.random()*2-1; }
+function pulse(t, center, width){
+  const x=(t-center)/width;
+  return Math.exp(-x*x);
+}
+
+function normalizeBuffer(buf, peak=0.88){
+  let max=0;
+  for(let ch=0; ch<buf.numberOfChannels; ch++){
+    const d=buf.getChannelData(ch);
+    for(let i=0; i<d.length; i++) max=Math.max(max, Math.abs(d[i]));
+  }
+  if(max<0.0001) return;
+  const g=peak/max;
+  for(let ch=0; ch<buf.numberOfChannels; ch++){
+    const d=buf.getChannelData(ch);
+    for(let i=0; i<d.length; i++) d[i]=hardClip(d[i]*g);
+  }
+}
+
+function makeBrewBuffer(kind){
+  const recipe=BREW_RECIPES[kind]||BREW_RECIPES.potion;
+  const dur=recipe.dur*(0.92+Math.random()*0.16);
+  const sr=ctx.sampleRate, len=Math.floor(dur*sr), buf=ctx.createBuffer(1,len,sr);
+  const d=buf.getChannelData(0);
+  let phase=0, phase2=Math.random()*TAU, mud=0, grit=0;
+  const wob=Math.random()*TAU;
+
+  for(let i=0; i<len; i++){
+    const t=i/sr, u=t/dur;
+    mud=mud*0.965 + rand()*0.035;
+    grit=grit*0.72 + rand()*0.28;
+    let s=0, f=90;
+
+    if(kind==="potion"){
+      f=138 + 42*Math.sin(t*7.0+wob) + 220*pulse(t,0.18,0.035) + 155*pulse(t,0.72,0.05) + 190*pulse(t,1.12,0.045);
+      phase += TAU*f/sr;
+      phase2 += TAU*(62+18*Math.sin(t*3.7))/sr;
+      const env=Math.exp(-u*2.4)*(1-Math.exp(-t*16));
+      const bubbles=pulse(t,0.16,0.028)+pulse(t,0.43,0.04)+pulse(t,0.78,0.035)+pulse(t,1.15,0.05);
+      s=Math.sin(phase)*0.34*env + Math.sin(phase2)*0.22*env + grit*bubbles*0.5;
+    }else if(kind==="blob"){
+      f=58 + 230*Math.exp(-t*5.4) + 16*Math.sin(t*18+wob);
+      phase += TAU*f/sr;
+      const bounce=pulse(t,0.045,0.035)+0.55*pulse(t,0.32,0.075)+0.23*pulse(t,0.63,0.09);
+      s=Math.tanh(Math.sin(phase)*2.6)*0.5*bounce + grit*pulse(t,0.03,0.018)*0.42;
+    }else if(kind==="swamp"){
+      f=62 + 19*Math.sin(t*5.2+wob) + 12*Math.sin(t*13.0);
+      phase += TAU*f/sr;
+      const thump=pulse(t,0.09,0.07)+0.9*pulse(t,0.56,0.09);
+      const squish=pulse(t,0.25,0.18)+0.75*pulse(t,0.82,0.22);
+      s=Math.sin(phase)*0.42*thump + mud*(thump*0.85+squish*0.48) + grit*squish*0.12;
+    }else if(kind==="stomach"){
+      f=43 + 21*Math.sin(t*2.4+wob) + 15*Math.sin(t*5.1);
+      phase += TAU*f/sr;
+      phase2 += TAU*(88+44*Math.sin(t*1.8+wob))/sr;
+      const env=Math.sin(Math.PI*u)*Math.exp(-u*0.18);
+      const churn=0.42+0.58*Math.sin(t*8.6+Math.sin(t*2.2));
+      s=Math.sin(phase)*0.46*env + Math.sin(phase2)*0.13*env*churn + mud*0.2*env;
+    }else if(kind==="monster"){
+      f=48 + 84*Math.exp(-t*2.8) + 30*Math.sin(t*4.3+wob);
+      phase += TAU*f/sr;
+      const env=(1-Math.exp(-t*8))*Math.exp(-u*1.35);
+      const throat=Math.sin(phase)+0.55*Math.sin(phase*2.01)+0.32*Math.sin(phase*3.04);
+      const bite=pulse(t,0.38,0.08)+0.65*pulse(t,1.05,0.12);
+      s=Math.tanh(throat*2.3)*0.48*env + grit*bite*0.2 + mud*0.1*env;
+    }else{
+      f=118 + 560*Math.exp(-t*18);
+      phase += TAU*f/sr;
+      const pop=pulse(t,0.026,0.014);
+      const tail=Math.exp(-t*11.5);
+      s=grit*pop*0.78 + Math.sin(phase)*tail*0.5 + rand()*tail*0.055;
+    }
+    d[i]=hardClip(Math.tanh(s*1.35));
+  }
+
+  fermentBrewBuffer(buf, recipe);
+  normalizeBuffer(buf, 0.86);
+  return buf;
+}
+
+function fermentBrewBuffer(buf, recipe){
+  const cultureName=activeCulture==="WILD" ? recipe.culture : activeCulture;
+  const culture=CULTURE_ROT[cultureName]||CULTURE_ROT.WILD;
+  const sr=buf.sampleRate, n=buf.length;
+  if(!n) return;
+  const passes=Math.max(8, Math.floor(recipe.passes*(0.75+Math.random()*0.5)));
+  const writeBase=0.08 + recipe.rot*0.22;
+  const smearBase=0.09 + recipe.rot*0.6;
+  const fizzBase=0.0008 + recipe.rot*0.006;
+
+  for(let pass=0; pass<passes; pass++){
+    const src=(Math.random()*n)|0;
+    const drift=Math.floor((Math.random()*2-1)*recipe.drift*sr);
+    const dst=((src+drift)%n+n)%n;
+    const len=Math.min(n, Math.max(32, Math.floor(sr*(0.018+Math.random()*0.09+recipe.rot*0.05))));
+    const write=clamp(writeBase*culture.write*(0.7+Math.random()*0.6), 0.015, 0.22);
+    const smear=clamp(smearBase*culture.smear*(0.65+Math.random()*0.5), 0.04, 0.72);
+    const fizz=fizzBase*culture.fizz;
+    const fold=1.4 + recipe.rot*5.2;
+    const foldNorm=Math.tanh(fold);
+
+    for(let ch=0; ch<buf.numberOfChannels; ch++){
+      const d=buf.getChannelData(ch);
+      let carry=d[(dst+n-1)%n];
+      for(let i=0; i<len; i++){
+        const si=(src+i)%n, di=(dst+i)%n;
+        const env=Math.sin(Math.PI*i/Math.max(1,len-1));
+        const neighbour=(d[(si+n-1)%n]+d[(si+1)%n])*0.5;
+        const residue=d[si]*(1-smear)+neighbour*smear*0.62+carry*smear*0.38;
+        const baked=Math.tanh((residue+rand()*fizz)*fold)/foldNorm;
+        const wet=write*env;
+        d[di]=hardClip(d[di]*(1-wet)+baked*wet);
+        carry=d[di];
+      }
+    }
+  }
+}
+
+function makeBrewDownload(buf, recipe){
+  if(lastBrewUrl) URL.revokeObjectURL(lastBrewUrl);
+  lastBrewUrl=URL.createObjectURL(encodeWav(buf));
+  const dl=document.getElementById("brewDl");
+  dl.href=lastBrewUrl;
+  dl.download=`gurgulator-${recipe.label.toLowerCase().replace(/\s+/g,"-")}-${Date.now()}.wav`;
+  dl.classList.add("show");
+}
+
+function playOneShot(buf){
+  if(!ctx || !preMaster) return;
+  const src=ctx.createBufferSource(), g=ctx.createGain();
+  src.buffer=buf;
+  g.gain.value=0.95;
+  src.connect(g); g.connect(preMaster);
+  try{ src.start(); }catch(e){}
+}
+
+function flashBrewViz(kind){
+  const base={potion:142,blob:76,swamp:146,stomach:332,monster:282,bubble:186}[kind]||74;
+  for(let i=0; i<18; i++){
+    const x=dishW*(0.18+Math.random()*0.64);
+    const y=dishH*(0.35+Math.random()*0.45);
+    spawnBubble(x,y,10+Math.random()*38,base+Math.random()*36,Math.random()<0.35);
+  }
+  spawnBurst();
+}
+
+async function brewSfx(kind){
+  await ensureContext(); ensureEngineLoop();
+  if(running) stopEngine();
+  const recipe=BREW_RECIPES[kind]||BREW_RECIPES.potion;
+  const brewed=makeBrewBuffer(kind);
+  setJarBuffer(brewed, recipe.label+" brew");
+  fermentAge=recipe.age;
+  rotDepth=clamp(recipe.rot,0,1);
+  lastBrewKind=kind;
+  updateJarReadout();
+  makeBrewDownload(buffer, recipe);
+  playOneShot(buffer);
+  flashBrewViz(kind);
+  hideHint();
+  const status=document.getElementById("brewStatus");
+  if(status) status.innerHTML=`last brew: <b>${recipe.label}</b>`;
+  setStatus(`brewed <b>${recipe.label}</b> — WAV ready, jar loaded.`);
 }
 
 async function ensureContext(){
@@ -396,9 +761,10 @@ function setupRecorder(){
   mediaRecorder.ondataavailable=e=>{ if(e.data.size>0) chunks.push(e.data); };
   mediaRecorder.onstop=()=>{
     const blob=new Blob(chunks,{type:chunks[0]?.type||"audio/webm"}); chunks=[];
-    const url=URL.createObjectURL(blob);
+    if(lastWebmUrl) URL.revokeObjectURL(lastWebmUrl);
+    lastWebmUrl=URL.createObjectURL(blob);
     const dl=document.getElementById("dl");
-    dl.href=url; dl.download=`gurgulator-${Date.now()}.webm`; dl.classList.add("show");
+    dl.href=lastWebmUrl; dl.download=`gurgulator-${Date.now()}.webm`; dl.classList.add("show");
     document.getElementById("rec").classList.remove("armed");
     document.getElementById("rec").textContent="● Record";
     setStatus("ooze captured — <b>save</b> when ready.");
@@ -410,6 +776,7 @@ const clamp=(v,a,b)=>v<a?a:(v>b?b:v);
 /* slow viscous parameter morph + peristalsis + feedback clamping */
 function engineTick(){
   if(!ctx) return;
+  tickFermentClock();
   const visc=val("viscosity");
   const k = 0.05 + (1-visc)*0.55;                  // high viscosity => sluggish
   S.padX += (padTarget.x - S.padX)*k;
@@ -439,8 +806,7 @@ function engineTick(){
     const rms=Math.sqrt(sum/buf.length);
     document.getElementById("meter").style.width=clamp(rms*180,0,100)+"%";
   }
-  document.getElementById("dishReadout").textContent =
-    `drench ${(S.padX*100|0)}% · frenzy ${(S.padY*100|0)}% · peri ${(S.peri>=0?'+':'')}${S.peri.toFixed(2)}`;
+  updateJarReadout();
 
   engineTimer=setTimeout(engineTick, 28);
 }
@@ -498,6 +864,50 @@ function bubblePopper(){
 
 const semis = s => Math.pow(2, s/12);
 
+function fermentWriteBack(start, grainDur, rate, cluster){
+  if(!buffer || !running || !sampleDur) return;
+  const now=performance.now();
+  const minGap=24 + val("viscosity")*55;
+  if(now-lastWriteBackMs < minGap) return;
+  lastWriteBackMs=now;
+
+  const stage=getFermentStage();
+  const culture=CULTURE_ROT[activeCulture]||CULTURE_ROT.WILD;
+  const sr=buffer.sampleRate, n=buffer.length;
+  if(!n) return;
+
+  const sourceStart=((Math.floor(start*sr)%n)+n)%n;
+  const drift=(stage.drift + val("mutate")*0.08 + Math.abs(S.peri)*0.045 + S.padY*0.04) * culture.drift;
+  const targetSec=((start + (Math.random()*2-1)*drift) % sampleDur + sampleDur) % sampleDur;
+  const targetStart=Math.floor(targetSec*sr);
+  const len=Math.min(n, Math.max(64, Math.floor(sr*(stage.slice + grainDur*0.18))));
+  const write=clamp(stage.write * culture.write * (0.55 + val("intensity")*1.15 + val("mutate")*0.65 + S.padY*0.45) * (cluster>1?1.25:1), 0.003, 0.12);
+  const smear=clamp((stage.smear + val("viscosity")*0.08 + S.padX*0.04) * culture.smear, 0, 0.62);
+  const fizz=stage.fizz * culture.fizz * (0.7 + val("burp")*1.5 + S.padY*0.7);
+  const fold=1 + val("intensity")*3.2 + rotDepth*1.8;
+  const foldNorm=Math.tanh(fold);
+  const envDen=Math.max(1, len-1);
+
+  for(let ch=0; ch<buffer.numberOfChannels; ch++){
+    const d=buffer.getChannelData(ch);
+    let carry=d[(targetStart+n-1)%n];
+    for(let i=0; i<len; i++){
+      const si=(sourceStart + Math.floor(i*rate)) % n;
+      const di=(targetStart + i) % n;
+      const env=Math.sin(Math.PI*i/envDen);
+      const src=d[si];
+      const neighbour=(d[(si+n-1)%n] + d[(si+1)%n])*0.5;
+      const residue=src*(1-smear) + neighbour*smear*0.62 + carry*smear*0.38;
+      const fizzed=residue + (Math.random()*2-1)*fizz;
+      const baked=Math.tanh(fizzed*fold)/foldNorm;
+      const wet=write*env;
+      d[di]=hardClip(d[di]*(1-wet) + baked*wet);
+      carry=d[di];
+    }
+  }
+  rotDepth=clamp(rotDepth + write*(len/sr)*(0.35 + stage.write*3.0), 0, 1);
+}
+
 function scheduleGrain(when){
   if(!buffer) return;
   const intensity=val("intensity");
@@ -525,6 +935,7 @@ function scheduleGrain(when){
   const effMut = clamp(val("mutate") + S.padY*0.25, 0, 1);
   const cluster = (Math.random() < effMut*0.5) ? (2 + (Math.random()*5|0)) : 1;
   const microHop = grainDur*0.7;
+  fermentWriteBack(start, grainDur, rate, cluster);
 
   for(let n=0;n<cluster;n++){
     const t = when + n*microHop;
@@ -551,9 +962,9 @@ function scheduleGrain(when){
 function startEngine(){
   if(!ctx || !buffer){ setStatus("load audio or <b>seed a spore</b> first."); return; }
   if(running) return;
-  running=true; ctx.resume();
+  running=true; lastFermentMs=performance.now(); ctx.resume();
   document.getElementById("dishShell").classList.add("live");
-  setStatus("fermenting…");
+  setStatus("fermenting — the jar is writing back into itself.");
   const lookahead=0.12;
   const tick=()=>{
     if(!running) return;
@@ -570,6 +981,7 @@ function startEngine(){
 function stopEngine(){
   running=false; if(schedTimer) clearTimeout(schedTimer);
   document.getElementById("dishShell").classList.remove("live");
+  updateJarReadout();
   setStatus("halted.");
 }
 function panic(){
@@ -684,8 +1096,9 @@ async function loadFile(file){
   await ensureContext(); ensureEngineLoop();
   try{
     const arr=await file.arrayBuffer();
-    buffer=await ctx.decodeAudioData(arr);
-    sampleDur=buffer.duration; pointer=0; hideHint();
+    const decoded=await ctx.decodeAudioData(arr);
+    setJarBuffer(decoded, file.name);
+    hideHint();
     setStatus(`loaded <b>${file.name}</b> — ${sampleDur.toFixed(2)}s. press Ferment.`);
   }catch(err){ setStatus("couldn't decode that file."); }
 }
@@ -697,6 +1110,10 @@ function setStatus(html){ document.getElementById("status").innerHTML=html; }
 document.getElementById("spore").addEventListener("click", async ()=>{ await ensureContext(); ensureEngineLoop(); makeSporeBuffer(); });
 document.getElementById("start").addEventListener("click", async ()=>{ await ensureContext(); ensureEngineLoop(); if(!buffer) makeSporeBuffer(); startEngine(); });
 document.getElementById("stop").addEventListener("click", stopEngine);
+document.getElementById("harvest").addEventListener("click", harvestJar);
+document.getElementById("reset").addEventListener("click", resetJar);
+document.querySelectorAll("[data-brew]").forEach(b=>b.addEventListener("click",()=>brewSfx(b.dataset.brew)));
+document.getElementById("brewAgain").addEventListener("click",()=>brewSfx(lastBrewKind));
 document.getElementById("panic").addEventListener("click", panic);
 document.getElementById("freeze").addEventListener("click", ()=>{
   frozen=!frozen;
