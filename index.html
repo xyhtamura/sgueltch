@@ -650,31 +650,40 @@
 <section class="manifesto">
   <span class="kicker">an aesthetic philosophy &amp; software suite</span>
   <p>
-    A word between <em>squelch</em> and <em>glitch</em>. Sgueltch moves away from traditional glitch art's
-    rigid, pixelated, grid-based disruptions and toward fluid, continuous,
-    biologically-inspired distortion. The familiar look of glitch such as blocks,
-    grids, lines, compression scars, and hard digital fractures are aesthetic traces of specific epistemics, technical systems,
-    and the defaults that computation inherits. 
+    A word between <em>squelch</em> and <em>glitch</em>. Sgueltch is a suite of image, video,
+    sound, and type tools for making digital errors that do not default to scanlines, macroblocks, and
+    hard rectangular fractures. Sgueltch moves away from traditional glitch art's rigid, pixelated, grid-based disruptions and toward fluid, continuous, messier distortion. 
   </p>
   <p>
-    Sgueltch asks what digital error can become when it begins from other substrates:
-    ooze, tissue, silt, weather, viscosity, lesion, flocking, breath, and growth.
-    It values asymmetry, unpredictability, embodiment, and mess-compatible media as a counter-infrastructure and a counter-erroring for an alternate digitality.
+    An error inherits the structure it breaks. The familiar look of glitch are aesthetic traces of specific epistemics, technical systems, and the defaults that computation inherits. Sgueltch thinks from different defaults first and asks what digital error and distortion can become from there. 
   </p>
-  
-    <p class="theory">
-    Glitch theory has long read the broken image as a rupture that exposes the
-    machine: <em>Rosa Menkman</em>'s glitch makes visible the flow it interrupts,
-    and <em>Legacy Russell</em>'s glitch feminism weaponises that refusal against
-    the body the system presumes. Sgueltch takes the next step. These gridded artifacts are the codec confessing its order. From <em>Jonathan Sterne</em>'s account of formats as decisions about what to discard, <em>Susan Leigh Star</em>'s
-    infrastructures that vanish by becoming standard, and
-    <em>Mary Douglas</em>'s dirt as <em>matter out of place</em>, conventional
-    glitch is this quantized epistemic regime glitching <em>on schedule</em>.
-    To actually leave the grid you have to change the
-    substrate underneath it.
+
+  <p class="theory">
+    Glitch interrupts an established order and makes that order perceptible (<em>Rosa Menkman</em>;
+    <em>Michael Betancourt</em>); glitch feminism turns the rupture toward refusal of the normative body
+    a system presumes (<em>Legacy Russell</em>). Sgueltch retains this diagnostic force but questions its
+    aesthetic limit: error remains inside the system it exposes. Like tissue under stress, which can
+    respond only through its existing cellular mechanisms, a damaged format has a bounded repertoire of
+    stereotyped responses. JPEG yields blocks because it is organized through block transforms; row-wise
+    raster operations yield scanlines because the image remains a grid.
+  </p>
+  <p class="theory">
+    That repertoire is historical and engineered. Formats preserve some information and discard other
+    information (<em>Jonathan Sterne</em>); as standards spread, those choices recede into infrastructure
+    and habit (<em>Susan Leigh Star</em>). A substrate therefore carries both a technical organization and
+    a prescriptive claim about what a signal should be: it fixes units, adjacency, salience, and permitted
+    change.
+  </p>
+  <p class="theory">
+    A format embeds judgments about what counts as proper, clean, orderly, and efficient. In establishing
+    that order, it also defines its dirt: the data and relations that do not belong within it
+    (<em>Mary Douglas</em>). Conventional glitch can rearrange or displace the units a format admits, but it
+    cannot restore what the format has discarded or produce relations its substrate and decoder cannot
+    interpret. The artifact may violate the arrangement while leaving the format's definition of the
+    possible intact. Sgueltch therefore changes the substrate and its interpretation before introducing
+    error, so both signal and failure arise within another order.
   </p>
 </section>
-
   <!-- ═══════════════════════ SUITE ═══════════════════════ -->
   <section aria-label="Sgueltch software suite">
     <div class="suite-label"><h2>the suite</h2></div>
@@ -804,10 +813,8 @@
           <span class="tool-type" style="border:0;">pixel sorter</span>
           <a href="/sgueltch/pixel-lesions/" class="tool-name f-Biceps">Pixel Lesions</a>
           <p class="tool-desc">
-            Reimagines pixel sorting as a biological process. Instead of the rigid
-            linear artifacts of traditional sorting mechanisms, Pixel Lesions lets you infect
-            an image with organic growths. The sorting algorithm follows organic growth patterns like lichen or
-            slime mold.
+            Pixel sorting is confined to expanding lichen-, mycelium-, dendrite-, or slime-mold-shaped regions.
+            Growth topology replaces the raster row or column as the sorting path.
           </p>
           <a href="/sgueltch/pixel-lesions/" class="tool-cta">open tool →</a>
         </div>
@@ -935,10 +942,10 @@
           <span class="tool-type">shader · phosphor emulator</span>
           <a href="/sgueltch/siltcrt/" class="tool-name"><span class="f-badoney">Silt</span><span class="f-navalie">CRT</span></a>
           <p class="tool-desc">
-            Emulates the decay of analog phosphor screens using Voronoi
-            tessellated phosphor cells instead of a regular grid. Has settings for turbulence, chromatic bleed, current flow. Features a dual light-bleed system for
-            Kawase bloom and a subtractive Umbra: the inverse of familiar
-            CRT bloom.
+            SiltCRT replaces the regular RGB-triad lattice with silt cells, overlapping Gaussian bodies, or weighted
+            Voronoi territories; a block grid remains as a control. Geometry and signal memory vary independently,
+            combining dry refresh, phosphor-like remanence, or advected wet feedback with turbulence, chromatic bleed,
+            Kawase bloom, and subtractive Umbra.
           </p>
           <a href="/sgueltch/siltcrt/" class="tool-cta">open tool →</a>
         </div>
@@ -1079,9 +1086,9 @@
           <span class="tool-type">granular resynthesizer</span>
           <a href="/sgueltch/gurgulator/" class="tool-name f-creepster">Gurgulator</a>
           <p class="tool-desc">
-            A web-based granular resynthesizer specializing in gurgling noises such as
-            erratic pitch bends, time warps, and unpredictable burping filters,
-            capped with a gooey convolution reverb. 
+            A browser-based granular resynthesizer tuned for gurgling sounds. It turns a loaded sample into irregular
+            pitch bends, time warps, overlapping bursts, and filter movement, then feeds the result through convolution
+            reverb.
           </p>
           <a href="/sgueltch/gurgulator/" class="tool-cta">open tool →</a>
         </div>
@@ -1208,16 +1215,15 @@
 
         <div class="card-body">
           <span class="tool-type">typographic irregularity renderer</span>
-          <a href="../typebojangler/" class="tool-name f-typebojangle">
+          <a href="/sgueltch/typebojangler/" class="tool-name f-typebojangle">
             TypeBojangler<span class="tool-year">2026</span>
           </a>
           <p class="tool-desc">
-            A browser-based text renderer that jitters type qualities such as 
-            size, rotation, spacing, baseline wobble, color drift,
-            opacity variance, blur, breathing, and chromatic ghosting. Exports
-            the result as <em>SVG</em> or <em>PNG</em>. Allows own <em>OTF</em>/<em>TTF</em>
+            TypeBojangler renders each character as an independently perturbed vector object. Seeded variation controls
+            size, rotation, spacing, baseline, color, opacity, blur, breathing, and chromatic ghosts. Users can load OTF
+            or TTF fonts and export SVG or PNG.
           </p>
-          <a href="../typebojangler/" class="tool-cta">open tool →</a>
+          <a href="/sgueltch/typebojangler/" class="tool-cta">open tool →</a>
         </div>
       </article>
 
@@ -1326,13 +1332,10 @@
             goopCodecs<span class="tool-year">2026</span>
           </a>
           <p class="tool-desc">
-            A collection of browser-based codecs and native file formats for
-            databending. Each codec changes the image substrate before corruption:
-            <em>ooid</em> uses Gaussian blob records, <em>scute</em> uses Voronoi
-            seed territories, and <em>vermis</em> uses a Hilbert-thread filament.
-            The tools expose damage controls plus byte, hex, and text editing so
-            loss becomes round, cellular, or flowing instead of generic compression
-            noise.
+            Browser-based codecs and native file formats for databending. <em>Ooid</em> stores Gaussian blobs,
+            <em>Scute</em> stores Voronoi territories, and <em>Vermis</em> stores samples along a Hilbert filament.
+            Byte, hex, and text edits therefore deform blobs, territories, or threads instead of exposing a conventional
+            raster or block codec.
           </p>
           <a href="/sgueltch/goopCodecs/" class="tool-cta">open collection →</a>
         </div>
@@ -1459,18 +1462,15 @@
 
   <div class="card-body">
     <span class="tool-type">wet print engine · process codec</span>
-    <a href="/sgueltch/bakezuri/" class="tool-name f-bakezuri">
+    <a href="/bakezuri/" class="tool-name f-bakezuri">
       <span class="jp">化け摺り</span>Bakezuri<span class="tool-year">2026</span>
     </a>
     <p class="tool-desc">
-      A marbling-printer where riso reproduction and
-      suminagashi flow share one wet ink-field. Images are separated into
-      quantized ink grids, deposited wet, then allowed to bleed, repel, fix,
-      misregister, and re-perform. Exports <em>.png</em> pulls,
-      seedless <em>.bakezuri</em> recipes, and vulnerable
-      <em>.urumizuri</em> wet-state matrices for databending.
+      A print simulator that deposits quantized image separations into a shared wet field modeled on risograph printing
+      and suminagashi. Inks bleed, repel, fix, and misregister before export as PNG. A seedless <em>.bakezuri</em> file
+      stores the process recipe; <em>.urumizuri</em> exposes the wet-state matrix for databending.
     </p>
-    <a href="/sgueltch/bakezuri/" class="tool-cta">open instrument →</a>
+    <a href="/bakezuri/" class="tool-cta">open instrument →</a>
   </div>
 </article>
 
@@ -1579,11 +1579,9 @@
       <span class="tool-year" aria-hidden="true">2026</span>
     </a>
     <p class="tool-desc">
-      A scintillating scotoma effect at the Sgueltch and Hindcasts intersection.
-      Voronoi hold-regions stop refreshing, receive the current motion field, and
-      fill with donor content from another moment or another clip. The blind spot
-      becomes a grafted image-organ: photophobic Frutiger glass, future-seeded skin,
-      and datamosh without macroblocks.
+      A video effect shared with Hindcasts. Noised Voronoi regions stop refreshing their source pixels, continue to
+      advect under optical flow, and accept content from a later frame or a second clip. This combines the visual-field
+      shape of a scintillating scotoma with acausal, non-macroblock datamosh.
     </p>
     <a href="/sgueltch/cyberscotoma/" class="tool-cta">open tool &rarr;</a>
   </div>

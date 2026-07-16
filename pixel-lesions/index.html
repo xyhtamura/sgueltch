@@ -640,6 +640,11 @@ input[type="checkbox"]:checked::after {
     <input type="file" id="imageLoader" accept="image/*">
   </div>
 
+  <div id="donorGroup" class="ctrl-group" style="display:none">
+    <span class="ctrl-label">Donor Input</span>
+    <input type="file" id="donorLoader" accept="image/*">
+  </div>
+
   <div class="ctrl-sep"></div>
 
   <div class="ctrl-group">
@@ -1266,6 +1271,341 @@ const OsmoticPressure = {
 };
 availableGrowths.push(OsmoticPressure);
 
+// ── Reaction-Diffusion (Gray-Scott Turing patterns) ──────────────────────────────
+const ReactionDiffusionGrowth = {
+    name: "Reaction-Diffusion",
+    showBiasControls: false,
+    init(startX, startY, imageData, seedColor, threshold) {
+        const W = imageData.width;
+        const H = imageData.height;
+        this.width = W;
+        this.height = H;
+        this.imageData = imageData;
+        
+        this.u = new Float32Array(W * H).fill(1.0);
+        this.v = new Float32Array(W * H);
+        
+        const seedRadius = 3;
+        for (let dy = -seedRadius; dy <= seedRadius; dy++) {
+            for (let dx = -seedRadius; dx <= seedRadius; dx++) {
+                const px = startX + dx;
+                const py = startY + dy;
+                if (px >= 0 && px < W && py >= 0 && py < H) {
+                    if (dx*dx + dy*dy <= seedRadius*seedRadius) {
+                        this.v[py * W + px] = 1.0;
+                    }
+                }
+            }
+        }
+        
+        this.infectedSet = new Set();
+        this.pendingSet = new Set();
+        this.pendingCoords = [];
+        this.bbox = {
+            minX: Math.max(0, startX - 12),
+            minY: Math.max(0, startY - 12),
+            maxX: Math.min(W - 1, startX + 12),
+            maxY: Math.min(H - 1, startY + 12)
+        };
+        
+        const recipes = [
+            { F: 0.037, k: 0.060 }, // fingerprints / labyrinth
+            { F: 0.0545, k: 0.062 }, // spots/waves
+            { F: 0.025, k: 0.053 }, // mitosis/islands
+            { F: 0.029, k: 0.057 }  // chaotic spots
+        ];
+        const recipe = recipes[Math.floor(Math.random() * recipes.length)];
+        this.F = recipe.F;
+        this.k = recipe.k;
+        this.Du = 0.16;
+        this.Dv = 0.08;
+        this.dt = 1.0;
+        this.stepsWithoutGrowth = 0;
+    },
+    step(batchSize) {
+        const newCoords = [];
+        
+        while (this.pendingCoords.length > 0 && newCoords.length < batchSize) {
+            const coord = this.pendingCoords.pop();
+            const key = `${coord.x},${coord.y}`;
+            if (!this.infectedSet.has(key)) {
+                this.infectedSet.add(key);
+                newCoords.push(coord);
+            }
+        }
+        
+        if (newCoords.length < batchSize) {
+            const W = this.width;
+            const H = this.height;
+            const iterations = 6;
+            
+            for (let iter = 0; iter < iterations; iter++) {
+                const nextU = new Float32Array(this.u);
+                const nextV = new Float32Array(this.v);
+                
+                let nextMinX = this.bbox.minX;
+                let nextMinY = this.bbox.minY;
+                let nextMaxX = this.bbox.maxX;
+                let nextMaxY = this.bbox.maxY;
+                
+                for (let y = this.bbox.minY; y <= this.bbox.maxY; y++) {
+                    for (let x = this.bbox.minX; x <= this.bbox.maxX; x++) {
+                        const idx = y * W + x;
+                        const uVal = this.u[idx];
+                        const vVal = this.v[idx];
+                        
+                        const uTop = y > 0 ? this.u[idx - W] : uVal;
+                        const uBottom = y < H - 1 ? this.u[idx + W] : uVal;
+                        const uLeft = x > 0 ? this.u[idx - 1] : uVal;
+                        const uRight = x < W - 1 ? this.u[idx + 1] : uVal;
+                        const lapU = uTop + uBottom + uLeft + uRight - 4 * uVal;
+                        
+                        const vTop = y > 0 ? this.v[idx - W] : vVal;
+                        const vBottom = y < H - 1 ? this.v[idx + W] : vVal;
+                        const vLeft = x > 0 ? this.v[idx - 1] : vVal;
+                        const vRight = x < W - 1 ? this.v[idx + 1] : vVal;
+                        const lapV = vTop + vBottom + vLeft + vRight - 4 * vVal;
+                        
+                        const uv2 = uVal * vVal * vVal;
+                        
+                        const nu = uVal + (this.Du * lapU - uv2 + this.F * (1.0 - uVal)) * this.dt;
+                        const nv = vVal + (this.Dv * lapV + uv2 - (this.F + this.k) * vVal) * this.dt;
+                        
+                        nextU[idx] = Math.max(0, Math.min(1.0, nu));
+                        nextV[idx] = Math.max(0, Math.min(1.0, nv));
+                        
+                        if (nextV[idx] > 0.1) {
+                            if (x - 2 < nextMinX) nextMinX = Math.max(0, x - 2);
+                            if (x + 2 > nextMaxX) nextMaxX = Math.min(W - 1, x + 2);
+                            if (y - 2 < nextMinY) nextMinY = Math.max(0, y - 2);
+                            if (y + 2 > nextMaxY) nextMaxY = Math.min(H - 1, y + 2);
+                        }
+                    }
+                }
+                
+                this.u = nextU;
+                this.v = nextV;
+                this.bbox = { minX: nextMinX, minY: nextMinY, maxX: nextMaxX, maxY: nextMaxY };
+            }
+            
+            let foundNew = false;
+            for (let y = this.bbox.minY; y <= this.bbox.maxY; y++) {
+                for (let x = this.bbox.minX; x <= this.bbox.maxX; x++) {
+                    const idx = y * W + x;
+                    if (this.v[idx] > 0.25) {
+                        const key = `${x},${y}`;
+                        if (!this.infectedSet.has(key) && !this.pendingSet.has(key)) {
+                            foundNew = true;
+                            this.pendingSet.add(key);
+                            this.pendingCoords.push({ x, y });
+                        }
+                    }
+                }
+            }
+            
+            if (!foundNew) {
+                this.stepsWithoutGrowth++;
+            } else {
+                this.stepsWithoutGrowth = 0;
+            }
+            
+            while (this.pendingCoords.length > 0 && newCoords.length < batchSize) {
+                const coord = this.pendingCoords.pop();
+                const key = `${coord.x},${coord.y}`;
+                if (!this.infectedSet.has(key)) {
+                    this.infectedSet.add(key);
+                    newCoords.push(coord);
+                }
+            }
+        }
+        
+        const isDone = this.pendingCoords.length === 0 && this.stepsWithoutGrowth > 25;
+        return { newCoords, isDone };
+    }
+};
+availableGrowths.push(ReactionDiffusionGrowth);
+
+// ── DLA (Fractal Frost) ─────────────────────────────────────────────────────────
+const DLAGrowth = {
+    name: "DLA (Fractal Frost)",
+    showBiasControls: false,
+    init(x, y, imageData, seedColor, threshold) {
+        this.imageData = imageData;
+        this.seedColor = seedColor;
+        this.threshold = threshold;
+        this.infected = new Set([`${x},${y}`]);
+        this.minX = x; this.maxX = x;
+        this.minY = y; this.maxY = y;
+        this.width = imageData.width;
+        this.height = imageData.height;
+    },
+    step(batchSize) {
+        const out = [];
+        const W = this.width, H = this.height;
+        const dirs = [[0,1],[0,-1],[1,0],[-1,0]];
+        
+        let attempts = 0;
+        const maxAttempts = batchSize * 15;
+        
+        while (out.length < batchSize && attempts < maxAttempts) {
+            attempts++;
+            const pad = 12;
+            const rx = Math.floor(Math.random() * (this.maxX - this.minX + pad * 2)) + this.minX - pad;
+            const ry = Math.floor(Math.random() * (this.maxY - this.minY + pad * 2)) + this.minY - pad;
+            
+            let wx = Math.max(0, Math.min(W - 1, rx));
+            let wy = Math.max(0, Math.min(H - 1, ry));
+            
+            if (this.infected.has(`${wx},${wy}`)) continue;
+            
+            for (let step = 0; step < 20; step++) {
+                const dir = dirs[Math.floor(Math.random() * dirs.length)];
+                const nx = wx + dir[0];
+                const ny = wy + dir[1];
+                
+                if (nx < 0 || ny < 0 || nx >= W || ny >= H) break;
+                
+                let touch = false;
+                for (const [dx, dy] of dirs) {
+                    if (this.infected.has(`${nx+dx},${ny+dy}`)) {
+                        touch = true;
+                        break;
+                    }
+                }
+                
+                if (touch) {
+                    const c = getPixelColor(nx, ny, this.imageData);
+                    if (colorDistance(this.seedColor, c) < this.threshold) {
+                        const key = `${nx},${ny}`;
+                        this.infected.add(key);
+                        out.push({ x: nx, y: ny });
+                        
+                        if (nx < this.minX) this.minX = nx;
+                        if (nx > this.maxX) this.maxX = nx;
+                        if (ny < this.minY) this.minY = ny;
+                        if (ny > this.maxY) this.maxY = ny;
+                        break;
+                    }
+                }
+                
+                wx = nx;
+                wy = ny;
+            }
+        }
+        
+        return { newCoords: out, isDone: out.length === 0 && attempts >= maxAttempts };
+    }
+};
+availableGrowths.push(DLAGrowth);
+
+// ── Flow Field (swirling noise-vector field) ────────────────────────────────────
+const FlowFieldGrowth = {
+    name: "Flow Field",
+    showBiasControls: false,
+    init(x, y, imageData, seedColor, threshold) {
+        this.frontier = [[x, y]];
+        this.infected = new Set([`${x},${y}`]);
+        this.imageData = imageData;
+        this.seedColor = seedColor;
+        this.threshold = threshold;
+    },
+    _vector(x, y) {
+        const angle = Math.sin(x * 0.045 + 1.2) * Math.cos(y * 0.038 + 2.4) * Math.PI * 2;
+        return [Math.cos(angle), Math.sin(angle)];
+    },
+    step(batchSize) {
+        const out = [];
+        const W = this.imageData.width, H = this.imageData.height;
+        const take = Math.min(this.frontier.length, batchSize);
+        for (let i = 0; i < take; i++) {
+            if (!this.frontier.length) break;
+            const ri = Math.floor(Math.random() * this.frontier.length);
+            const [cx, cy] = this.frontier.splice(ri, 1)[0];
+            out.push({ x: cx, y: cy });
+            const [vx, vy] = this._vector(cx, cy);
+            const dirs = [[1,0],[-1,0],[0,1],[0,-1],[1,1],[-1,1],[1,-1],[-1,-1]];
+            for (const [dx, dy] of dirs) {
+                const nx = cx+dx, ny = cy+dy, key = `${nx},${ny}`;
+                if (nx < 0 || ny < 0 || nx >= W || ny >= H || this.infected.has(key)) continue;
+                const dot = (dx * vx + dy * vy);
+                const prob = 0.35 + 0.45 * dot;
+                if (Math.random() < Math.max(0.1, prob)) {
+                    const col = getPixelColor(nx, ny, this.imageData);
+                    if (colorDistance(this.seedColor, col) < this.threshold) {
+                        this.infected.add(key);
+                        this.frontier.push([nx, ny]);
+                    }
+                }
+            }
+        }
+        return { newCoords: out, isDone: this.frontier.length === 0 };
+    }
+};
+availableGrowths.push(FlowFieldGrowth);
+
+// ── Fate Growth ─────────────────────────────────────────────────────────────────
+const FateGrowth = {
+    name: "Fate Growth",
+    showBiasControls: false,
+    init(x, y, imageData, seedColor, threshold, donorImageData) {
+        const candidates = availableGrowths.filter(g => g.name !== "Fate Growth");
+        this.chosen = candidates[Math.floor(Math.random() * candidates.length)];
+        setStatus(`fate drawn growth: ${this.chosen.name}`, 'active');
+        this.chosen.init(x, y, imageData, seedColor, threshold, donorImageData);
+    },
+    step(batchSize, opts) {
+        return this.chosen ? this.chosen.step(batchSize, opts) : { newCoords: [], isDone: true };
+    }
+};
+availableGrowths.push(FateGrowth);
+
+// ── Carrier (Donor-Steered Growth) ──────────────────────────────────────────────
+const CarrierGrowth = {
+    name: "Carrier",
+    showBiasControls: false,
+    requiresDonor: true,
+    init(x, y, imageData, seedColor, threshold, donorImageData) {
+        this.frontier = [[x, y]];
+        this.infected = new Set([`${x},${y}`]);
+        this.imageData = imageData;
+        this.seedColor = seedColor;
+        this.threshold = threshold;
+        this.donorImageData = donorImageData;
+    },
+    step(batchSize) {
+        const out = [];
+        const W = this.imageData.width, H = this.imageData.height;
+        const take = Math.min(this.frontier.length, batchSize);
+        for (let i = 0; i < take; i++) {
+            if (!this.frontier.length) break;
+            const ri = Math.floor(Math.random() * this.frontier.length);
+            const [cx, cy] = this.frontier.splice(ri, 1)[0];
+            out.push({ x: cx, y: cy });
+            for (const [dx, dy] of [[1,0],[-1,0],[0,1],[0,-1],[1,1],[-1,1],[1,-1],[-1,-1]]) {
+                const nx = cx+dx, ny = cy+dy, key = `${nx},${ny}`;
+                if (nx < 0 || ny < 0 || nx >= W || ny >= H || this.infected.has(key)) continue;
+                
+                let p = 0.5;
+                if (this.donorImageData && nx < this.donorImageData.width && ny < this.donorImageData.height) {
+                    const dc = getPixelColor(nx, ny, this.donorImageData);
+                    const b = getBrightness(dc.r, dc.g, dc.b) / 255;
+                    p = 0.15 + 0.85 * b;
+                }
+                
+                if (Math.random() < p) {
+                    const col = getPixelColor(nx, ny, this.imageData);
+                    if (colorDistance(this.seedColor, col) < this.threshold) {
+                        this.infected.add(key);
+                        this.frontier.push([nx, ny]);
+                    }
+                }
+            }
+        }
+        return { newCoords: out, isDone: this.frontier.length === 0 };
+    }
+};
+availableGrowths.push(CarrierGrowth);
+
 
 
 // =================================================================================
@@ -1600,6 +1940,271 @@ const NecroticInversion = {
 };
 availableEffects.push(NecroticInversion);
 
+// ── Lying Comparator ──────────────────────────────────────────────────────────────
+// A sort function that occasionally lies or flips comparisons.
+// Results in partial order, streaks, and imperfectly sorted bands — lawful accident.
+const LyingComparator = {
+    name: "Lying Comparator",
+    showOptions: true,
+    apply(lesionCoords, imageData, options) {
+        const { sortCriteria, isReversed } = options;
+        let pixels = lesionCoords.map(coord => {
+            const c = getPixelColor(coord.x, coord.y, imageData);
+            return { r: c.r, g: c.g, b: c.b };
+        });
+        const baseCmp = getSortFunction(sortCriteria);
+        const noisyCmp = (a, b) => {
+            const res = baseCmp(a, b);
+            return Math.random() < 0.15 ? -res : res;
+        };
+        pixels.sort(noisyCmp);
+        if (isReversed) pixels.reverse();
+        return pixels;
+    }
+};
+availableEffects.push(LyingComparator);
+
+// ── Aborted Sort ──────────────────────────────────────────────────────────────────
+// Halts the sort algorithm mid-process after a low number of transposition passes,
+// leaving partially sorted blocks and streaks — process interrupted as aesthetic.
+const AbortedSort = {
+    name: "Aborted Sort",
+    showOptions: true,
+    apply(lesionCoords, imageData, options) {
+        const { sortCriteria, isReversed } = options;
+        let pixels = lesionCoords.map(coord => {
+            const c = getPixelColor(coord.x, coord.y, imageData);
+            return { r: c.r, g: c.g, b: c.b };
+        });
+        const cmp = getSortFunction(sortCriteria);
+        const maxPasses = Math.min(12, Math.floor(Math.sqrt(pixels.length)));
+        
+        for (let pass = 0; pass < maxPasses; pass++) {
+            const start = pass % 2;
+            for (let i = start; i < pixels.length - 1; i += 2) {
+                const diff = cmp(pixels[i], pixels[i + 1]);
+                const shouldSwap = isReversed ? diff < 0 : diff > 0;
+                if (shouldSwap) {
+                    const temp = pixels[i];
+                    pixels[i] = pixels[i + 1];
+                    pixels[i + 1] = temp;
+                }
+            }
+        }
+        return pixels;
+    }
+};
+availableEffects.push(AbortedSort);
+
+// ── Transplant (Cross-Infection) ──────────────────────────────────────────────────
+// Replaces host pixels inside the lesion with pixels sampled from a second (donor)
+// image at the corresponding coordinates. Foreign skin grafted into the host.
+const Transplant = {
+    name: "Transplant",
+    showOptions: false,
+    requiresDonor: true,
+    apply(lesionCoords, imageData, options) {
+        const { donorImageData } = options;
+        return lesionCoords.map(coord => {
+            if (donorImageData && coord.x < donorImageData.width && coord.y < donorImageData.height) {
+                return getPixelColor(coord.x, coord.y, donorImageData);
+            }
+            return getPixelColor(coord.x, coord.y, imageData);
+        });
+    }
+};
+availableEffects.push(Transplant);
+
+// ── Cross-Body Sort (Cross-Infection) ─────────────────────────────────────────────
+// Merges pixels from both host and donor at the lesion coordinates into a single
+// pool, sorts the combined set by the active criteria, and redistributes them back
+// into the host lesion. Two images bleed into one unified ordering.
+const CrossBodySort = {
+    name: "Cross-Body Sort",
+    showOptions: true,
+    requiresDonor: true,
+    apply(lesionCoords, imageData, options) {
+        const { sortCriteria, isReversed, donorImageData } = options;
+        const fn = getSortFunction(sortCriteria);
+        
+        let pool = [];
+        lesionCoords.forEach(coord => {
+            pool.push(getPixelColor(coord.x, coord.y, imageData));
+            if (donorImageData && coord.x < donorImageData.width && coord.y < donorImageData.height) {
+                pool.push(getPixelColor(coord.x, coord.y, donorImageData));
+            }
+        });
+        
+        pool.sort(fn);
+        if (isReversed) pool.reverse();
+        
+        const result = [];
+        const step = pool.length / lesionCoords.length;
+        for (let i = 0; i < lesionCoords.length; i++) {
+            const idx = Math.min(pool.length - 1, Math.floor(i * step));
+            result.push(pool[idx]);
+        }
+        return result;
+    }
+};
+availableEffects.push(CrossBodySort);
+
+// ── Bleed Drip ──────────────────────────────────────────────────────────────────
+const BleedDrip = {
+    name: "Bleed Drip",
+    showOptions: false,
+    apply(lesionCoords, imageData) {
+        const coords = [];
+        const colors = [];
+        
+        lesionCoords.forEach(c => {
+            coords.push({ x: c.x, y: c.y });
+            colors.push(getPixelColor(c.x, c.y, imageData));
+            
+            if (Math.random() < 0.22) {
+                const dripLen = Math.floor(Math.random() * 12) + 4;
+                const col = getPixelColor(c.x, c.y, imageData);
+                for (let d = 1; d <= dripLen; d++) {
+                    const ny = c.y + d;
+                    if (ny < imageData.height) {
+                        coords.push({ x: c.x, y: ny });
+                        const factor = 1.0 - (d / dripLen);
+                        colors.push({
+                            r: Math.round(col.r * factor),
+                            g: Math.round(col.g * factor),
+                            b: Math.round(col.b * factor)
+                        });
+                    }
+                }
+            }
+        });
+        
+        return { coords, colors };
+    }
+};
+availableEffects.push(BleedDrip);
+
+// ── Scanline Tear ───────────────────────────────────────────────────────────────
+const ScanlineTear = {
+    name: "Scanline Tear",
+    showOptions: false,
+    apply(lesionCoords, imageData) {
+        const coords = [];
+        const colors = [];
+        
+        const rowMap = new Map();
+        lesionCoords.forEach(c => {
+            if (!rowMap.has(c.y)) {
+                rowMap.set(c.y, []);
+            }
+            rowMap.get(c.y).push(c);
+        });
+        
+        rowMap.forEach((coordsInRow, y) => {
+            let totalBright = 0;
+            coordsInRow.forEach(c => {
+                const col = getPixelColor(c.x, c.y, imageData);
+                totalBright += getBrightness(col.r, col.g, col.b);
+            });
+            const avgBright = coordsInRow.length > 0 ? (totalBright / coordsInRow.length) : 0;
+            const shift = Math.round(((avgBright / 255) - 0.5) * 50);
+            
+            coordsInRow.forEach(c => {
+                const nx = c.x + shift;
+                if (nx >= 0 && nx < imageData.width) {
+                    coords.push({ x: nx, y: c.y });
+                    colors.push(getPixelColor(c.x, c.y, imageData));
+                }
+            });
+        });
+        
+        return { coords, colors };
+    }
+};
+// ── Mutating Strain ─────────────────────────────────────────────────────────────
+// Sort criteria smoothly transitions across infection bands as lesion spreads.
+const MutatingStrain = {
+    name: "Mutating Strain",
+    showOptions: false,
+    apply(lesionCoords, imageData) {
+        if (!lesionCoords.length) return [];
+        const N = lesionCoords.length;
+        const criteriaList = ['hue', 'saturation', 'brightness', 'red', 'blue'];
+        
+        const bandSize = Math.ceil(N / 4);
+        const result = new Array(N);
+        
+        for (let b = 0; b < 4; b++) {
+            const start = b * bandSize;
+            const end = Math.min(N, (b + 1) * bandSize);
+            if (start >= N) break;
+            
+            const criteria = criteriaList[b % criteriaList.length];
+            const fn = getSortFunction(criteria);
+            
+            const subCoords = lesionCoords.slice(start, end);
+            const pixels = subCoords.map(c => getPixelColor(c.x, c.y, imageData));
+            pixels.sort(fn);
+            
+            for (let k = 0; k < pixels.length; k++) {
+                result[start + k] = pixels[k];
+            }
+        }
+        return result;
+    }
+};
+availableEffects.push(MutatingStrain);
+
+// ── Pixel Necrosis ──────────────────────────────────────────────────────────────
+// Pixels rot and age toward deep dark mold tones over infection time.
+const PixelNecrosis = {
+    name: "Pixel Necrosis",
+    showOptions: false,
+    apply(lesionCoords, imageData) {
+        if (!lesionCoords.length) return [];
+        const maxAge = lesionCoords[lesionCoords.length - 1].age || 1;
+        
+        return lesionCoords.map(c => {
+            const col = getPixelColor(c.x, c.y, imageData);
+            const ageRatio = Math.min(1, ((maxAge - (c.age || 0)) / Math.max(1, maxAge)));
+            const decay = 1.0 - 0.78 * ageRatio;
+            return {
+                r: Math.round(col.r * decay),
+                g: Math.round(col.g * decay * 0.85),
+                b: Math.round(col.b * decay * 0.72)
+            };
+        });
+    }
+};
+availableEffects.push(PixelNecrosis);
+
+// ── Pulse ───────────────────────────────────────────────────────────────────────
+// Sort brightness oscillates sinusoidally with pixel age, giving a breathing effect.
+const Pulse = {
+    name: "Pulse",
+    showOptions: true,
+    apply(lesionCoords, imageData, options) {
+        if (!lesionCoords.length) return [];
+        const { sortCriteria } = options;
+        const fn = getSortFunction(sortCriteria);
+        
+        const pixels = lesionCoords.map(c => {
+            const col = getPixelColor(c.x, c.y, imageData);
+            const wave = Math.sin((c.age || 0) * 0.22);
+            const mult = 1.0 + 0.35 * wave;
+            return {
+                r: Math.min(255, Math.max(0, Math.round(col.r * mult))),
+                g: Math.min(255, Math.max(0, Math.round(col.g * mult))),
+                b: Math.min(255, Math.max(0, Math.round(col.b * mult)))
+            };
+        });
+        
+        pixels.sort(fn);
+        return pixels;
+    }
+};
+availableEffects.push(Pulse);
+
 
 
 // =================================================================================
@@ -1732,6 +2337,8 @@ const baseCtx     = baseCanvas.getContext('2d', { willReadFrequently: true });
 
 // UI refs
 const imageLoader      = document.getElementById('imageLoader');
+const donorGroupEl     = document.getElementById('donorGroup');
+const donorLoader      = document.getElementById('donorLoader');
 const growthSelect     = document.getElementById('growthAlgorithm');
 const effectSelect     = document.getElementById('effectAlgorithm');
 const effectOptionsEl  = document.getElementById('effectOptions');
@@ -1746,6 +2353,7 @@ const statusText       = document.getElementById('statusText');
 
 let trueOriginalImageData = null;
 let workingImageData      = null;
+let donorImageData        = null;
 let isProcessing          = false;
 let animFrameId           = null;
 let lesionCoords          = [];
@@ -1756,6 +2364,11 @@ let currentEffectModule   = null;
 imageLoader.addEventListener('change', e => {
     if (e.target.files && e.target.files[0]) loadImageFile(e.target.files[0]);
 });
+if (donorLoader) {
+    donorLoader.addEventListener('change', e => {
+        if (e.target.files && e.target.files[0]) loadDonorFile(e.target.files[0]);
+    });
+}
 canvas.addEventListener('click', handleCanvasClick);
 resetButton.addEventListener('click', resetCanvas);
 saveButton.addEventListener('click', saveImage);
@@ -1794,6 +2407,9 @@ function updatePanelVisibility() {
     effectOptionsEl.style.display = (sel && sel.showOptions) ? 'flex' : 'none';
     fateDisplayEl.style.display   = (sel && sel.showFate)    ? 'flex' : 'none';
     biasControls.style.display    = (grow && grow.showBiasControls) ? 'flex' : 'none';
+    if (donorGroupEl) {
+        donorGroupEl.style.display = (sel && sel.requiresDonor) ? 'flex' : 'none';
+    }
 }
 
 // ── Image loading ─────────────────────────────────────────────────────────────────
@@ -1815,6 +2431,24 @@ function loadImageFile(file) {
             fitCanvas();
             setStatus(`specimen loaded — ${img.width}×${img.height}${webglOk ? ' — GPU active' : ''}`,
                       webglOk ? 'gpu-active' : '');
+        };
+        img.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+
+function loadDonorFile(file) {
+    const reader = new FileReader();
+    reader.onload = event => {
+        const img = new Image();
+        img.onload = () => {
+            const dCanvas = document.createElement('canvas');
+            dCanvas.width = img.width;
+            dCanvas.height = img.height;
+            const dCtx = dCanvas.getContext('2d');
+            dCtx.drawImage(img, 0, 0);
+            donorImageData = dCtx.getImageData(0, 0, img.width, img.height);
+            setStatus(`donor specimen loaded — ${img.width}×${img.height}`);
         };
         img.src = event.target.result;
     };
@@ -1860,10 +2494,13 @@ function saveImage() {
     link.click();
 }
 
+let lesionStepCount = 0;
+
 // ── Lesion seeding ────────────────────────────────────────────────────────────────
 function startLesion(e) {
     isProcessing = true;
     lesionCoords = [];
+    lesionStepCount = 0;
 
     currentGrowthModule  = availableGrowths.find(g => g.name === growthSelect.value);
     currentEffectModule  = availableEffects.find(e => e.name === effectSelect.value);
@@ -1871,15 +2508,13 @@ function startLesion(e) {
     if (currentEffectModule.onLesionStart) currentEffectModule.onLesionStart();
 
     const rect = canvas.getBoundingClientRect();
-    // Direct scale: CSS dimensions are set to exact aspect ratio by fitCanvas(),
-    // so there is no dead space — rect.width/canvas.width is uniform scale factor.
     const scaleX = canvas.width  / rect.width;
     const scaleY = canvas.height / rect.height;
     const x = Math.max(0, Math.min(canvas.width  - 1, Math.floor((e.clientX - rect.left) * scaleX)));
     const y = Math.max(0, Math.min(canvas.height - 1, Math.floor((e.clientY - rect.top)  * scaleY)));
     const seedColor = getPixelColor(x, y, workingImageData);
 
-    currentGrowthModule.init(x, y, workingImageData, seedColor, parseInt(thresholdSlider.value, 10));
+    currentGrowthModule.init(x, y, workingImageData, seedColor, parseInt(thresholdSlider.value, 10), donorImageData);
 
     canvas.classList.add('is-processing');
     setStatus(`spreading — ${currentGrowthModule.name} / ${currentEffectModule.name}`, 'active');
@@ -1892,16 +2527,27 @@ function animate() {
     const yBias = parseInt(document.getElementById('yBias').value, 10) / 100;
     const BATCH = 50;
 
+    lesionStepCount++;
     const growthResult = currentGrowthModule.step(BATCH, { xBias, yBias });
-    lesionCoords.push(...growthResult.newCoords);
+    const agedCoords = growthResult.newCoords.map(c => ({ x: c.x, y: c.y, age: lesionStepCount }));
+    lesionCoords.push(...agedCoords);
 
     const effectOpts = {
-        sortCriteria: sortCriteriaEl.value,
-        isReversed:   reverseSortEl.checked
+        sortCriteria:   sortCriteriaEl.value,
+        isReversed:     reverseSortEl.checked,
+        donorImageData: donorImageData
     };
     const processedPixels = currentEffectModule.apply(lesionCoords, workingImageData, effectOpts);
 
-    drawLesion(lesionCoords, processedPixels);
+    let drawCoords = lesionCoords;
+    let drawPixels = processedPixels;
+
+    if (processedPixels && !Array.isArray(processedPixels) && processedPixels.coords && processedPixels.colors) {
+        drawCoords = processedPixels.coords;
+        drawPixels = processedPixels.colors;
+    }
+
+    drawLesion(drawCoords, drawPixels);
 
     if (growthResult.isDone) {
         stopProcessing();

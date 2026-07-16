@@ -203,6 +203,10 @@ input[type=range].dial::-moz-range-thumb{width:18px;height:18px;border-radius:50
 .seg button{font-size:11px;font-family:"Syne Mono",monospace;color:var(--ink-soft);background:linear-gradient(180deg,rgba(255,255,250,.52),rgba(225,247,239,.25));border:1px solid rgba(255,255,255,.54);outline:1px solid rgba(50,31,76,.20);padding:7px 9px;border-radius:11px 6px 12px 7px;cursor:pointer;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
 .seg button.on{color:var(--ink);outline-color:rgba(232,91,82,.62);box-shadow:inset 0 1px 0 rgba(255,255,255,.82),0 0 0 3px rgba(232,91,82,.10)}
 .ctl.strain{background:linear-gradient(150deg,rgba(134,191,255,.18),rgba(240,221,95,.12) 54%,rgba(255,255,255,.10));padding:10px 12px;border-radius:14px 10px 16px 9px;border:1px solid rgba(121,173,234,.30);box-shadow:inset 0 1px 0 rgba(255,255,255,.38)}
+.ctl.fringe{background:linear-gradient(150deg,rgba(134,191,255,.15),rgba(232,91,82,.08) 50%,rgba(240,221,95,.10));padding:12px 14px;border-radius:18px 12px 16px 14px;border:1px solid rgba(121,173,234,.28);box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 0 20px rgba(121,173,234,.06);margin-bottom:15px}
+.ctl.fringe label .v{color:var(--optic-blue)}
+.ctl.fringe input.dial::-webkit-slider-thumb{background:radial-gradient(circle at 33% 28%,#fff,#eef6ff 36%,var(--optic-blue) 63%,#315f9a);box-shadow:0 3px 9px -3px rgba(8,5,18,.62),0 0 14px rgba(121,173,234,.42)}
+.ctl.fringe input.dial::-moz-range-thumb{background:radial-gradient(circle at 33% 28%,#fff,#eef6ff 36%,var(--optic-blue) 63%,#315f9a);box-shadow:0 3px 9px -3px rgba(8,5,18,.62),0 0 14px rgba(121,173,234,.42)}
 
 .curvehead{display:flex;justify-content:space-between;align-items:baseline;margin:4px 0 6px}
 .curvehead h3{font-family:"Averia Gruesa Libre";font-weight:400;font-size:18px;margin:0;color:var(--ink)}
@@ -211,6 +215,7 @@ input[type=range].dial::-moz-range-thumb{width:18px;height:18px;border-radius:50
 .curvebtns{display:flex;gap:8px;margin-top:8px}
 .mini{font-size:11px;font-family:"Syne Mono",monospace;color:var(--ink-soft);background:linear-gradient(180deg,rgba(255,255,250,.56),rgba(225,247,239,.30));border:1px solid rgba(255,255,255,.54);outline:1px solid rgba(50,31,76,.20);padding:5px 9px;border-radius:9px 5px 8px 6px;cursor:pointer;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
 .mini:hover{color:var(--ink);outline-color:var(--mineral-d)}
+.mini.on{color:var(--ink);outline-color:rgba(232,91,82,.62);box-shadow:inset 0 1px 0 rgba(255,255,255,.82),0 0 0 3px rgba(232,91,82,.10)}
 
 /* THE ONE GLARE EVENT — render as a frozen phosphene. static bloom halo + chromatic ring. */
 .renderbtn{width:100%;margin-top:6px;cursor:pointer;border:none;position:relative;
@@ -246,6 +251,74 @@ input[type=range].dial::-moz-range-thumb{width:18px;height:18px;border-radius:50
 .note{font-size:11.5px;color:rgba(65,55,78,.86);line-height:1.5;margin-top:18px;border-top:1px solid rgba(50,31,76,.20);padding-top:12px;text-shadow:0 1px 0 rgba(255,255,255,.26)}
 .note code{font-family:"Syne Mono",monospace;color:var(--amber);font-size:11px}
 .note b{color:var(--ink)}
+
+/* drag & drop mechanics */
+.drop-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(23, 16, 32, 0.85);
+  backdrop-filter: blur(14px) saturate(1.4);
+  -webkit-backdrop-filter: blur(14px) saturate(1.4);
+  border: 2px dashed var(--scin-c);
+  border-radius: inherit;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease, border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: inset 0 0 34px rgba(121, 173, 234, 0.35);
+}
+.drop-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+.drop-overlay.drag-hover {
+  border-color: var(--scin-g);
+  background: rgba(32, 17, 49, 0.92);
+  box-shadow: inset 0 0 45px rgba(240, 221, 95, 0.45), 0 0 25px rgba(240, 221, 95, 0.3);
+}
+.drop-overlay.donor {
+  border-color: var(--scin-m);
+  border-radius: 14px 8px 16px 9px;
+  box-shadow: inset 0 0 34px rgba(232, 91, 82, 0.35);
+}
+.drop-overlay.donor.drag-hover {
+  border-color: var(--scin-g);
+  box-shadow: inset 0 0 45px rgba(240, 221, 95, 0.45);
+}
+.drop-content {
+  text-align: center;
+  pointer-events: none;
+  padding: 6px 12px;
+}
+.drop-icon {
+  font-size: 24px;
+  line-height: 1;
+  margin-bottom: 4px;
+  color: var(--amber);
+  text-shadow: 0 0 12px rgba(240, 221, 95, 0.6);
+  animation: dropFloat 1.2s ease-in-out infinite alternate;
+}
+@keyframes dropFloat {
+  from { transform: translateY(-3px); }
+  to { transform: translateY(3px); }
+}
+.drop-title {
+  font-family: "Averia Gruesa Libre", cursive;
+  font-size: 15px;
+  color: #fff;
+  letter-spacing: 0.4px;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+}
+.drop-sub {
+  font-family: "Syne Mono", monospace;
+  font-size: 11px;
+  color: var(--blurple);
+  margin-top: 3px;
+}
 </style>
 </head>
 <body>
@@ -270,10 +343,17 @@ input[type=range].dial::-moz-range-thumb{width:18px;height:18px;border-radius:50
         <span class="donortag" id="donortag">donor: <b>self</b></span>
       </div>
 
-      <div class="stagewrap">
+      <div class="stagewrap" id="hostDropZone">
         <span class="badge" id="badge">no clip loaded</span>
         <canvas id="stage" width="320" height="180"></canvas>
         <canvas id="cellsOverlay" width="320" height="180"></canvas>
+        <div class="drop-overlay host" id="hostDropOverlay">
+          <div class="drop-content">
+            <div class="drop-icon">⤓</div>
+            <div class="drop-title">Drop Host Clip</div>
+            <div class="drop-sub">Drag video here or drop 2 clips for Host + Donor</div>
+          </div>
+        </div>
       </div>
 
       <div class="transport">
@@ -299,52 +379,186 @@ input[type=range].dial::-moz-range-thumb{width:18px;height:18px;border-radius:50
         <button class="mini" data-preset="pulse">pulses</button>
         <button class="mini" data-preset="flat0">clear</button>
       </div>
-      <div class="seg" id="strainMode">
-        <button class="on" data-strain="global">global</button>
-        <button data-strain="reaction">reaction-diffusion</button>
+      <!-- auto-placement card -->
+      <div class="ctl" style="background:rgba(255,255,250,.24); border:1px solid rgba(121,173,234,.30); border-radius:18px 12px; padding:10px 12px; margin-top:12px; margin-bottom:12px">
+        <h4 style="margin:0 0 8px; font-family:'Averia Gruesa Libre',cursive; font-weight:400; font-size:13.5px; color:var(--ink)">auto-placement (motion-aware)</h4>
+        
+        <div class="ctl" style="margin-bottom:8px">
+          <label style="font-size:11px">algorithm</label>
+          <select id="autoSelect" style="width:100%; font-family:'Syne Mono',monospace; font-size:11.5px; padding:4px 6px; border-radius:6px; border:1px solid rgba(50,31,76,.15); background:rgba(255,255,255,.90); color:var(--ink); outline:none">
+            <option value="direct">direct energy (motion peaks)</option>
+            <option value="inverted">negative space (stillness)</option>
+            <option value="lloyd">lloyd-max centroids</option>
+          </select>
+        </div>
+
+        <div class="ctl" id="autoPeaksContainer" style="display:none; margin-bottom:8px">
+          <label>peaks count <span class="v" id="autoPeaksV">3</span></label>
+          <input type="range" class="dial" id="autoPeaks" min="1" max="8" value="3">
+        </div>
+
+        <div class="ctl" style="margin-bottom:10px">
+          <label>smoothing width <span class="v" id="autoSigmaV">12 fr</span></label>
+          <input type="range" class="dial" id="autoSigma" min="3" max="30" value="12">
+        </div>
+
+        <button class="ghost alt mini" id="autoApplyBtn" style="width:100%">generate curve</button>
+      </div>
+
+      <div id="ctrl-strain-mode">
+        <div class="seg" id="strainMode">
+          <button class="on" data-strain="global">global</button>
+          <button data-strain="reaction">reaction-diffusion</button>
+        </div>
       </div>
 
       <div style="height:14px"></div>
 
-      <div class="srcrow" style="margin-bottom:14px">
+      <div class="srcrow donor-drop-zone" id="donorDropZone" style="margin-bottom:14px; position:relative">
         <button class="ghost alt" id="donorBtn">load donor clip…</button>
         <button class="mini" id="selfBtn">use self</button>
         <input type="file" id="donorFile" accept="video/*" hidden>
+        <div class="drop-overlay donor" id="donorDropOverlay">
+          <div class="drop-content">
+            <div class="drop-icon">⤓</div>
+            <div class="drop-title">Drop Donor Clip</div>
+          </div>
+        </div>
       </div>
 
-      <div class="ctl">
+      <!-- dual-input control panel -->
+      <!-- pathology select -->
+      <div class="ctl" style="background:rgba(255,255,250,.24); border:1px solid rgba(121,173,234,.30); border-radius:18px 12px; padding:10px 12px; margin-bottom:12px">
+        <label style="font-family:'Syne Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:.5px; color:var(--ink-soft); margin-bottom:6px">pathology mode</label>
+        <select id="pathologySelect" style="width:100%; font-family:'Syne Mono',monospace; font-size:12px; padding:6px 10px; border-radius:8px; border:1px solid rgba(50,31,76,.20); background:rgba(255,255,255,.80); color:var(--ink); outline:none"></select>
+      </div>
+      
+      <!-- preset select (visible if cartridge has presets) -->
+      <div class="ctl" id="presetSelectContainer" style="background:rgba(255,255,250,.24); border:1px solid rgba(121,173,234,.30); border-radius:18px 12px; padding:10px 12px; margin-bottom:15px; display:none">
+        <label style="font-family:'Syne Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:.5px; color:var(--ink-soft); margin-bottom:6px">preset profile</label>
+        <select id="presetSelect" style="width:100%; font-family:'Syne Mono',monospace; font-size:12px; padding:6px 10px; border-radius:8px; border:1px solid rgba(50,31,76,.20); background:rgba(255,255,255,.80); color:var(--ink); outline:none"></select>
+      </div>
+
+      <!-- temporal stance select -->
+      <div class="ctl" style="background:rgba(255,255,250,.24); border:1px solid rgba(121,173,234,.30); border-radius:18px 12px; padding:10px 12px; margin-bottom:12px">
+        <label style="font-family:'Syne Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:.5px; color:var(--ink-soft); margin-bottom:6px">temporal stance</label>
+        <select id="stanceSelect" style="width:100%; font-family:'Syne Mono',monospace; font-size:12px; padding:6px 10px; border-radius:8px; border:1px solid rgba(50,31,76,.20); background:rgba(255,255,255,.80); color:var(--ink); outline:none">
+          <option value="wake">wake (trailing)</option>
+          <option value="anticipation">anticipation (precursor)</option>
+          <option value="symmetric">symmetric (zero-phase)</option>
+        </select>
+      </div>
+
+      <!-- temporal balance slider (visible in symmetric mode) -->
+      <div class="ctl" id="balanceContainer" style="display:none; margin-bottom:12px">
+        <label>temporal balance <span class="v" id="balanceV">50%</span></label>
+        <input type="range" class="dial" id="balance" min="0" max="100" value="50">
+        <div class="hint">0% = pure precursor, 100% = pure trailing wake</div>
+      </div>
+
+      <!-- dual-input control panel -->
+      <div id="dualInputControls" style="display:none; margin:-6px 0 16px; padding:10px 12px; border:1px solid rgba(121,173,234,.30); border-radius:14px 10px 16px 9px; background:rgba(255,255,250,.24); box-shadow:inset 0 1px 0 rgba(255,255,255,.38); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px)">
+        <div style="display:grid; grid-template-columns:82px 1fr 1fr; gap:6px; align-items:center; margin-bottom:8px">
+          <span style="font-size:11.5px; font-family:'Syne Mono',monospace; color:var(--ink)">graft skin</span>
+          <button class="mini on" id="contentDonorBtn" style="width:100%">donor</button>
+          <button class="mini" id="contentSelfBtn" style="width:100%">self</button>
+        </div>
+        <div style="display:grid; grid-template-columns:82px 1fr 1fr; gap:6px; align-items:center">
+          <span style="font-size:11.5px; font-family:'Syne Mono',monospace; color:var(--ink)">graft flow</span>
+          <button class="mini on" id="motionSelfBtn" style="width:100%">self</button>
+          <button class="mini" id="motionDonorBtn" style="width:100%">donor</button>
+        </div>
+      </div>
+
+      <!-- Edge v Interior (Fringe) controls -->
+      <div class="ctl fringe" id="ctrl-fringe">
+        <h4 style="margin:0 0 8px; font-family:'Averia Gruesa Libre',cursive; font-weight:400; font-size:14.5px; color:var(--ink)">scintillating frontier</h4>
+        
+        <div class="ctl" style="margin-bottom:10px">
+          <label>frontier width <span class="v" id="frontierV">4 fr</span></label>
+          <input type="range" class="dial" id="frontier" min="1" max="15" value="4">
+          <div class="hint">how long cells scintillate before decaying into interior mush</div>
+        </div>
+        
+        <div class="ctl" style="margin-bottom:10px">
+          <label>chromatic seep <span class="v" id="seepV">3 px</span></label>
+          <input type="range" class="dial" id="seep" min="0" max="8" value="3">
+          <div class="hint">fringe channel splitting offset</div>
+        </div>
+
+        <div class="ctl" style="margin-bottom:10px">
+          <label>brighten boost <span class="v" id="brightenV">+25%</span></label>
+          <input type="range" class="dial" id="brighten" min="0" max="60" value="25">
+          <div class="hint">luminance boost on the advancing edge</div>
+        </div>
+
+        <div class="ctl" style="margin-bottom:0">
+          <label>interior decay (mush) <span class="v" id="mushV">40%</span></label>
+          <input type="range" class="dial" id="mush" min="0" max="100" value="40">
+          <div class="hint">liquid feedback blur inside older regions</div>
+        </div>
+      </div>
+
+      <!-- Metamorphopsia (Distortion) controls -->
+      <div class="ctl fringe" id="ctrl-distortion" style="display:none">
+        <h4 style="margin:0 0 8px; font-family:'Averia Gruesa Libre',cursive; font-weight:400; font-size:14.5px; color:var(--ink)">macular distortion</h4>
+        
+        <div class="ctl" style="margin-bottom:10px">
+          <label>distortion wave <span class="v" id="distortAmpV">16 px</span></label>
+          <input type="range" class="dial" id="distortAmp" min="0" max="30" value="16">
+          <div class="hint">displacement amplitude in pixels</div>
+        </div>
+        
+        <div class="ctl" style="margin-bottom:10px">
+          <label>wave density <span class="v" id="distortFreqV">10</span></label>
+          <input type="range" class="dial" id="distortFreq" min="1" max="25" value="10">
+          <div class="hint">wave frequency (density of ripples)</div>
+        </div>
+
+        <div class="ctl" style="margin-bottom:0">
+          <label>wave oscillation <span class="v" id="distortSpeedV">5</span></label>
+          <input type="range" class="dial" id="distortSpeed" min="0" max="15" value="5">
+          <div class="hint">temporal animation speed of the distortion waves</div>
+        </div>
+      </div>
+
+      <div class="ctl" id="ctrl-cells">
         <label>cells <span class="v" id="cellsV">26</span></label>
         <input type="range" class="dial" id="cells" min="6" max="80" value="26">
         <div class="hint">how many Voronoi regions carve the frame</div>
       </div>
-      <div class="ctl">
+      <div class="ctl" id="ctrl-edge">
         <label>edge noise <span class="v" id="edgeV">18</span></label>
         <input type="range" class="dial" id="edge" min="0" max="48" value="18">
         <div class="hint">warps cell boundaries off-grid — membranes, not tiles</div>
       </div>
-      <div class="ctl">
+      <div class="ctl" id="ctrl-drag">
         <label>motion drag <span class="v" id="dragV">1.6</span></label>
         <input type="range" class="dial" id="drag" min="0" max="40" value="16">
         <div class="hint">how hard held content smears along the flow</div>
       </div>
-      <div class="ctl acausal">
+      <div class="ctl acausal" id="ctrl-donor">
         <label><span>donor offset <span class="tagword">acausal</span></span><span class="v" id="donorV">+8 fr</span></label>
         <input type="range" class="dial" id="donor" min="-30" max="30" value="8">
         <div class="hint">where the skin is seeded from at bloom onset. <b style="color:var(--flesh)">positive = future bleeds backward.</b></div>
       </div>
-      <div class="ctl strain">
-        <label>seed x <span class="v" id="seedXV">52%</span></label>
-        <input type="range" class="dial" id="seedX" min="0" max="100" value="52">
-        <div class="hint">front nucleation point for reaction-diffusion</div>
-      </div>
-      <div class="ctl strain">
-        <label>seed y <span class="v" id="seedYV">45%</span></label>
-        <input type="range" class="dial" id="seedY" min="0" max="100" value="45">
-      </div>
-      <div class="ctl strain">
-        <label>front strain <span class="v" id="strainV">62</span></label>
-        <input type="range" class="dial" id="strain" min="0" max="100" value="62">
-        <div class="hint">reaction texture bends the CSD wavefront</div>
+
+      <!-- CSD front strain controls -->
+      <div id="ctrl-strain">
+        <div class="ctl strain">
+          <label>seed x <span class="v" id="seedXV">52%</span></label>
+          <input type="range" class="dial" id="seedX" min="0" max="100" value="52">
+          <div class="hint">front nucleation point for reaction-diffusion</div>
+        </div>
+        <div class="ctl strain">
+          <label>seed y <span class="v" id="seedYV">45%</span></label>
+          <input type="range" class="dial" id="seedY" min="0" max="100" value="45">
+        </div>
+        <div class="ctl strain">
+          <label>front strain <span class="v" id="strainV">62</span></label>
+          <input type="range" class="dial" id="strain" min="0" max="100" value="62">
+          <div class="hint">reaction texture bends the CSD wavefront</div>
+        </div>
       </div>
 
       <div class="toggles">
@@ -375,9 +589,91 @@ function buildGraph(p){return{nodes:[
   {id:"out",type:"output",in:"scotoma"}
 ]};}
 
-const S={W:320,H:180,N:0,src:[],donor:[],out:[],field:[],fw:0,fh:0,DM:4,
+const availableCartridges = [
+  {
+    id: "scotoma",
+    name: "Scotoma (Migraine Aura)",
+    showControls: ["cells", "edge", "drag", "donor", "fringe", "strain-mode", "strain-params"],
+    presets: [
+      { name: "Scintillating Aura", values: { seep: 3, brighten: 25, mush: 40, frontier: 4 } },
+      { name: "Classic Smear", values: { seep: 0, brighten: 0, mush: 0, frontier: 4 } },
+      { name: "Heavy Liquefaction", values: { seep: 5, brighten: 10, mush: 85, frontier: 6 } }
+    ],
+    applyPixel(x, y, o, age, onset, Cadv, donor, srcT, params) {
+      const { frontier, seep, brightenBoost, mushFactor, W, H } = params;
+      if (age <= frontier) {
+        const decay = 1 - (age - 1) / frontier;
+        const currentBoost = 1 + (brightenBoost - 1) * decay;
+        const rx = x - seep, bx = x + seep;
+        const sourceArr = onset ? donor : Cadv;
+        const r = getChannel(sourceArr, W, H, rx, y, 0) * currentBoost;
+        const g = getChannel(sourceArr, W, H, x, y, 1) * currentBoost;
+        const b = getChannel(sourceArr, W, H, bx, y, 2) * currentBoost;
+        return [
+          Math.min(255, r),
+          Math.min(255, g),
+          Math.min(255, b)
+        ];
+      } else {
+        if (mushFactor > 0) {
+          const left = x > 0 ? o - 4 : o;
+          const right = x < W - 1 ? o + 4 : o;
+          const up = y > 0 ? o - W * 4 : o;
+          const down = y < H - 1 ? o + W * 4 : o;
+          const blurR = (Cadv[o] * 2 + Cadv[left] + Cadv[right] + Cadv[up] + Cadv[down]) / 6;
+          const blurG = (Cadv[o+1] * 2 + Cadv[left+1] + Cadv[right+1] + Cadv[up+1] + Cadv[down+1]) / 6;
+          const blurB = (Cadv[o+2] * 2 + Cadv[left+2] + Cadv[right+2] + Cadv[up+2] + Cadv[down+2]) / 6;
+          return [
+            Cadv[o] * (1 - mushFactor) + blurR * mushFactor,
+            Cadv[o+1] * (1 - mushFactor) + blurG * mushFactor,
+            Cadv[o+2] * (1 - mushFactor) + blurB * mushFactor
+          ];
+        } else {
+          return [Cadv[o], Cadv[o+1], Cadv[o+2]];
+        }
+      }
+    }
+  },
+  {
+    id: "metamorphopsia",
+    name: "Metamorphopsia (Macular Distortion)",
+    showControls: ["cells", "edge", "drag", "donor", "distortion"],
+    presets: [
+      { name: "Macular Warp", values: { distortAmp: 16, distortFreq: 10, distortSpeed: 5 } },
+      { name: "Mild Ripple", values: { distortAmp: 6, distortFreq: 6, distortSpeed: 3 } },
+      { name: "Liquid Storm", values: { distortAmp: 25, distortFreq: 18, distortSpeed: 8 } }
+    ],
+    applyPixel(x, y, o, age, onset, Cadv, donor, srcT, params) {
+      const { distortAmp, distortFreq, distortSpeed, W, H, t } = params;
+      const freq = distortFreq / 100;
+      const speed = distortSpeed / 10;
+      const timeOffset = t * speed;
+      const dx = Math.sin(y * freq + timeOffset) * distortAmp;
+      const dy = Math.cos(x * freq + timeOffset) * distortAmp;
+      
+      const frontierScale = Math.min(1.0, age / 6);
+      const sx = Math.max(0, Math.min(W - 1, Math.round(x + dx * frontierScale)));
+      const sy = Math.max(0, Math.min(H - 1, Math.round(y + dy * frontierScale)));
+      
+      const sourceArr = onset ? donor : Cadv;
+      const srcO = (sy * W + sx) * 4;
+      return [
+        sourceArr[srcO],
+        sourceArr[srcO + 1],
+        sourceArr[srcO + 2]
+      ];
+    }
+  }
+];
+
+const S={W:320,H:180,N:0,src:[],donor:[],donorField:[],out:[],field:[],fw:0,fh:0,DM:4,
   bloom:null,cellIndex:null,cellThresh:null,cellBaseThresh:null,cellCenter:null,strainField:null,
-  strainMode:"global",rendered:false,playing:false};
+  strainMode:"global",graftContent:"donor",graftMotion:"self",
+  frontier:4,seep:3,brighten:25,mush:40,
+  distortAmp:16,distortFreq:10,distortSpeed:5,
+  activeCartridge:availableCartridges[0],activePreset:availableCartridges[0].presets[0].name,
+  stance:"wake",balance:50,
+  rendered:false,playing:false};
 const $=id=>document.getElementById(id);
 const stage=$("stage"),sctx=stage.getContext("2d");
 const overlay=$("cellsOverlay"),octx=overlay.getContext("2d");
@@ -395,7 +691,7 @@ function setDims(w,h){const tw=320,s=Math.min(1,tw/w);
   stage.width=S.W;stage.height=S.H;overlay.width=S.W;overlay.height=S.H;
   S.fw=Math.max(2,Math.floor(S.W/S.DM));S.fh=Math.max(2,Math.floor(S.H/S.DM));}
 
-async function generateDemo(){resetOutput();S.donor=[];setDonorTag();setDims(320,180);S.N=90;S.src=[];
+async function generateDemo(){resetOutput();resetDonor();setDims(320,180);S.N=90;S.src=[];
   const W=S.W,H=S.H;
   const balls=[{x:.28,y:.4,r:.20,dx:.006,dy:.004,col:[55,185,162]},
     {x:.7,y:.62,r:.24,dx:-.005,dy:-.006,col:[232,161,60]},
@@ -424,7 +720,7 @@ async function decodeInto(fileURL,into,cap){
     status(`decoding… <b>${i+1}/${n}</b>`);}
   URL.revokeObjectURL(fileURL);return frames;}
 
-async function loadHost(fileURL){resetOutput();S.donor=[];setDonorTag();
+async function loadHost(fileURL){resetOutput();resetDonor();
   const v=document.createElement("video");v.muted=true;v.src=fileURL;
   await new Promise((res,rej)=>{v.onloadedmetadata=res;v.onerror=()=>rej(new Error("could not read that file"));});
   setDims(v.videoWidth||320,v.videoHeight||180);
@@ -437,11 +733,28 @@ async function loadDonor(fileURL){
   if(!S.N){status("load a host clip first.");return;}
   status("decoding donor…");
   S.donor=await decodeInto(fileURL,[],120);
+  status("estimating donor motion…");
+  S.donorField=await estimateMotionFor(S.donor, "estimating donor motion");
+  S.graftContent="donor";
+  S.graftMotion="self";
+  updateDualInputUI();
   setDonorTag();resetOutput();$("export").disabled=true;
   status(`donor loaded (<b>${S.donor.length} fr</b>) — <b>re-render to graft</b>`);}
 
 function seekTo(v,t){return new Promise(res=>{const on=()=>{v.removeEventListener("seeked",on);res();};v.addEventListener("seeked",on);v.currentTime=Math.min(t,(v.duration||t)-0.001);});}
 function setDonorTag(){$("donortag").innerHTML="donor: <b>"+(S.donor.length?("clip · "+S.donor.length+" fr"):"self")+"</b>";}
+function resetDonor(){S.donor=[];S.donorField=[];S.graftContent="donor";S.graftMotion="self";updateDualInputUI();setDonorTag();}
+function updateDualInputUI(){
+  if(S.donor && S.donor.length>0){
+    $("dualInputControls").style.display="block";
+    $("contentDonorBtn").classList.toggle("on", S.graftContent==="donor");
+    $("contentSelfBtn").classList.toggle("on", S.graftContent==="self");
+    $("motionSelfBtn").classList.toggle("on", S.graftMotion==="self");
+    $("motionDonorBtn").classList.toggle("on", S.graftMotion==="donor");
+  } else {
+    $("dualInputControls").style.display="none";
+  }
+}
 
 async function afterLoad(msg){ensureBloom("bell");status("estimating motion…");
   await estimateMotion();buildCells();drawCurve();showFrame(0,true);
@@ -454,18 +767,32 @@ function lumaDown(rgba){const W=S.W,H=S.H,DM=S.DM,lw=Math.floor(W/DM),lh=Math.fl
     for(let j=0;j<DM;j++)for(let k=0;k<DM;k++){const i=(((ly*DM+j)*W)+(lx*DM+k))*4;s+=0.299*rgba[i]+0.587*rgba[i+1]+0.114*rgba[i+2];}
     L[ly*lw+lx]=s/(DM*DM);}
   return{L,lw,lh};}
-async function estimateMotion(){const bs=4,R=6;let prev=lumaDown(S.src[0]);const lw=prev.lw,lh=prev.lh;
-  const fw=Math.max(1,Math.ceil(lw/bs)),fh=Math.max(1,Math.ceil(lh/bs));S.fw=fw;S.fh=fh;
-  S.field=[new Float32Array(fw*fh*2)];
-  for(let t=1;t<S.N;t++){const cur=lumaDown(S.src[t]);const F=new Float32Array(fw*fh*2);
-    for(let by=0;by<fh;by++)for(let bx=0;bx<fw;bx++){const ox=bx*bs,oy=by*bs;let best=1e18,bdx=0,bdy=0;
-      for(let dy=-R;dy<=R;dy++)for(let dx=-R;dx<=R;dx++){let sad=0;
-        for(let j=0;j<bs;j++)for(let k=0;k<bs;k++){const x=ox+k,y=oy+j;if(x>=lw||y>=lh)continue;
+
+async function estimateMotionFor(frames, prefix){
+  if(!frames || frames.length<2) return [new Float32Array(S.fw*S.fh*2)];
+  const bs=4,R=6;
+  let prev=lumaDown(frames[0]);const lw=prev.lw,lh=prev.lh;
+  const fw=Math.max(1,Math.ceil(lw/bs)),fh=Math.max(1,Math.ceil(lh/bs));
+  const field=[new Float32Array(fw*fh*2)];
+  for(let t=1;t<frames.length;t++){
+    const cur=lumaDown(frames[t]);const F=new Float32Array(fw*fh*2);
+    for(let by=0;by<fh;by++)for(let bx=0;bx<fw;bx++){
+      const ox=bx*bs,oy=by*bs;let best=1e18,bdx=0,bdy=0;
+      for(let dy=-R;dy<=R;dy++)for(let dx=-R;dx<=R;dx++){
+        let sad=0;
+        for(let j=0;j<bs;j++)for(let k=0;k<bs;k++){
+          const x=ox+k,y=oy+j;if(x>=lw||y>=lh)continue;
           const sx=x+dx,sy=y+dy,cv=cur.L[y*lw+x],pv=(sx<0||sy<0||sx>=lw||sy>=lh)?cv:prev.L[sy*lw+sx];sad+=Math.abs(cv-pv);}
         sad+=(Math.abs(dx)+Math.abs(dy))*0.6;if(sad<best){best=sad;bdx=dx;bdy=dy;}}
       F[(by*fw+bx)*2]=bdx;F[(by*fw+bx)*2+1]=bdy;}
-    S.field.push(F);prev=cur;
-    if(t%12===0){status(`estimating motion… <b>${t}/${S.N-1}</b>`);await yield_();}}}
+    field.push(F);prev=cur;
+    if(t%12===0){status(`${prefix}… <b>${t}/${frames.length-1}</b>`);await yield_();}}
+  return field;}
+
+async function estimateMotion(){
+  S.field = await estimateMotionFor(S.src, "estimating host motion");
+  const lw = Math.floor(S.W/S.DM);const bs = 4;
+  S.fw = Math.max(1,Math.ceil(lw/bs));S.fh = Math.max(1,Math.ceil(Math.floor(S.H/S.DM)/bs));}
 function sampleField(F,x,y){const fx=(x/S.W)*S.fw-0.5,fy=(y/S.H)*S.fh-0.5;
   let x0=Math.floor(fx),y0=Math.floor(fy);const tx=fx-x0,ty=fy-y0;
   const cl=(v,m)=>v<0?0:(v>=m?m-1:v);const x1=cl(x0+1,S.fw),y1=cl(y0+1,S.fh);x0=cl(x0,S.fw);y0=cl(y0,S.fh);
@@ -566,28 +893,161 @@ function advect(C,F,drag){const W=S.W,H=S.H,out=new Uint8ClampedArray(W*H*4);
       out[o+c]=(a*(1-tx)+b*tx)*(1-ty)+(cc*(1-tx)+dd*tx)*ty;}}
   return out;}
 
+function getChannel(arr, W, H, x, y, c) {
+  const cx = x < 0 ? 0 : (x >= W ? W - 1 : x);
+  const cy = y < 0 ? 0 : (y >= H ? H - 1 : y);
+  return arr[(cy * W + cx) * 4 + c];
+}
+
+function negateField(field) {
+  const negated = new Float32Array(field.length);
+  for (let i = 0; i < field.length; i++) {
+    negated[i] = -field[i];
+  }
+  return negated;
+}
+
+async function runRenderPass(dir, onProgress) {
+  const W=S.W,H=S.H,N=S.N,drag=(+$("drag").value)/10,donorOff=+$("donor").value,latch=$("latch").checked;
+  const useDonorContent=(S.graftContent==="donor" && S.donor.length>0);
+  const useDonorMotion=(S.graftMotion==="donor" && S.donorField && S.donorField.length>0);
+  const donorArr=useDonorContent?S.donor:S.src,dLen=donorArr.length;
+  const nCells=S.cellThresh.length,cellActive=new Uint8Array(nCells);
+  const cellAge=new Uint16Array(nCells);
+  const frames=new Array(N);
+
+  const startT = dir > 0 ? 0 : N - 1;
+  let C = (dir > 0 ? S.src[0] : S.src[N-1]).slice();
+  frames[startT] = C;
+
+  const frontier=S.frontier;
+  const seep=S.seep;
+  const brightenBoost=1+S.brighten/100;
+  const mushFactor=S.mush/100;
+  const distortAmp=S.distortAmp;
+  const distortFreq=S.distortFreq;
+  const distortSpeed=S.distortSpeed;
+  const params={ frontier, seep, brightenBoost, mushFactor, distortAmp, distortFreq, distortSpeed, W, H };
+  const cartridge=S.activeCartridge;
+
+  const stepsCount = N - 1;
+  const step = dir > 0 ? 1 : -1;
+
+  for(let stepIdx=0; stepIdx<stepsCount; stepIdx++){
+    const t = dir > 0 ? stepIdx + 1 : (N - 2 - stepIdx);
+    params.t = t;
+    const prevT = t - step;
+    const bloom=S.bloom[t];
+    const onset=new Uint8Array(nCells),active=new Uint8Array(nCells);
+    for(let c=0;c<nCells;c++){
+      const sh=bloom>S.cellThresh[c]?1:0;
+      const act=latch?(cellActive[c]||sh):sh;
+      active[c]=act;
+      onset[c]=(act&&!cellActive[c])?1:0;
+      if(act){
+        cellAge[c]=cellActive[c]?cellAge[c]+1:1;
+      } else {
+        cellAge[c]=0;
+      }
+    }
+    let motionField=S.field[t];
+    if(useDonorMotion){
+      const donorMotionT=Math.max(0,Math.min(S.donorField.length-1,t));
+      motionField=S.donorField[donorMotionT];
+    }
+    const effectiveField = dir > 0 ? motionField : negateField(motionField);
+    const Cadv=advect(C,effectiveField,drag);
+    const donorT=Math.max(0,Math.min(dLen-1,t+donorOff)),donor=donorArr[donorT],srcT=S.src[t];
+    const newC=new Uint8ClampedArray(W*H*4);
+    let p=0;
+    for(let y=0;y<H;y++){
+      for(let x=0;x<W;x++,p++){
+        const c=S.cellIndex[p],o=p*4;
+        if(!active[c]){newC[o]=srcT[o];newC[o+1]=srcT[o+1];newC[o+2]=srcT[o+2];newC[o+3]=255;}
+        else{
+          const age=cellAge[c];
+          const rgb=cartridge.applyPixel(x, y, o, age, onset[c], Cadv, donor, srcT, params);
+          newC[o]=rgb[0];
+          newC[o+1]=rgb[1];
+          newC[o+2]=rgb[2];
+          newC[o+3]=255;
+        }
+      }
+    }
+    for(let c=0;c<nCells;c++)cellActive[c]=active[c];
+    C=newC;
+    frames[t]=C;
+    if(onProgress) {
+      await onProgress(stepIdx, stepsCount);
+    }
+  }
+  return frames;
+}
+
 async function render(){if(!S.N)return;
   $("render").disabled=true;$("export").disabled=true;$("prog").classList.add("on");S.playing=false;$("play").textContent="▶";
   buildCells();
-  const W=S.W,H=S.H,N=S.N,drag=(+$("drag").value)/10,donorOff=+$("donor").value,latch=$("latch").checked;
-  const donorArr=S.donor.length?S.donor:S.src,dLen=donorArr.length;
-  const graph=buildGraph({drag,donorOff,latch,donor:S.donor.length?"clip":"self",strain:S.strainMode}); // stub, for future rack
-  const nCells=S.cellThresh.length,cellActive=new Uint8Array(nCells);
-  S.out=new Array(N);let C=S.src[0].slice();
-  S.out[0]=new ImageData(new Uint8ClampedArray(C),W,H);
-  for(let t=1;t<N;t++){const bloom=S.bloom[t];
-    const onset=new Uint8Array(nCells),active=new Uint8Array(nCells);
-    for(let c=0;c<nCells;c++){const sh=bloom>S.cellThresh[c]?1:0;const act=latch?(cellActive[c]||sh):sh;active[c]=act;onset[c]=(act&&!cellActive[c])?1:0;}
-    const Cadv=advect(C,S.field[t],drag);
-    const donorT=Math.max(0,Math.min(dLen-1,t+donorOff)),donor=donorArr[donorT],srcT=S.src[t];
-    const newC=new Uint8ClampedArray(W*H*4);
-    for(let p=0;p<W*H;p++){const c=S.cellIndex[p],o=p*4;
-      if(!active[c]){newC[o]=srcT[o];newC[o+1]=srcT[o+1];newC[o+2]=srcT[o+2];newC[o+3]=255;}
-      else if(onset[c]){newC[o]=donor[o];newC[o+1]=donor[o+1];newC[o+2]=donor[o+2];newC[o+3]=255;}
-      else{newC[o]=Cadv[o];newC[o+1]=Cadv[o+1];newC[o+2]=Cadv[o+2];newC[o+3]=255;}}
-    for(let c=0;c<nCells;c++)cellActive[c]=active[c];
-    C=newC;S.out[t]=new ImageData(new Uint8ClampedArray(C),W,H);
-    if(t%4===0){$("prog").firstElementChild.style.width=Math.round(t/(N-1)*100)+"%";status(`rendering… <b>${t}/${N-1}</b>`);await yield_();}}
+  const W=S.W,H=S.H,N=S.N;
+  S.out=new Array(N);
+
+  const stance=S.stance;
+  const balance=S.balance;
+
+  if (stance === "wake") {
+    const fwdFrames = await runRenderPass(+1, async (stepIdx, total) => {
+      if (stepIdx % 4 === 0) {
+        $("prog").firstElementChild.style.width=Math.round(stepIdx/total*100)+"%";
+        status(`rendering wake… <b>${stepIdx}/${total}</b>`);
+        await yield_();
+      }
+    });
+    for(let i=0;i<N;i++) S.out[i] = new ImageData(fwdFrames[i], W, H);
+  } else if (stance === "anticipation") {
+    const bwdFrames = await runRenderPass(-1, async (stepIdx, total) => {
+      if (stepIdx % 4 === 0) {
+        $("prog").firstElementChild.style.width=Math.round(stepIdx/total*100)+"%";
+        status(`rendering anticipation… <b>${stepIdx}/${total}</b>`);
+        await yield_();
+      }
+    });
+    for(let i=0;i<N;i++) S.out[i] = new ImageData(bwdFrames[i], W, H);
+  } else {
+    // symmetric
+    status("rendering pass 1/2 (wake)...");
+    const fwdFrames = await runRenderPass(+1, async (stepIdx, total) => {
+      if (stepIdx % 8 === 0) {
+        $("prog").firstElementChild.style.width=Math.round(stepIdx/total*50)+"%";
+        status(`rendering wake pass… <b>${stepIdx}/${total}</b>`);
+        await yield_();
+      }
+    });
+    
+    status("rendering pass 2/2 (anticipation)...");
+    const bwdFrames = await runRenderPass(-1, async (stepIdx, total) => {
+      if (stepIdx % 8 === 0) {
+        $("prog").firstElementChild.style.width=Math.round(50 + stepIdx/total*50)+"%";
+        status(`rendering anticipation pass… <b>${stepIdx}/${total}</b>`);
+        await yield_();
+      }
+    });
+
+    status("blending passes...");
+    const wakeW = balance / 100;
+    const antW = 1 - wakeW;
+    for (let t = 0; t < N; t++) {
+      const fwd = fwdFrames[t];
+      const bwd = bwdFrames[t];
+      const blended = new Uint8ClampedArray(W * H * 4);
+      for (let o = 0; o < W * H * 4; o += 4) {
+        blended[o] = fwd[o] * wakeW + bwd[o] * antW;
+        blended[o+1] = fwd[o+1] * wakeW + bwd[o+1] * antW;
+        blended[o+2] = fwd[o+2] * wakeW + bwd[o+2] * antW;
+        blended[o+3] = 255;
+      }
+      S.out[t] = new ImageData(blended, W, H);
+    }
+  }
+
   $("prog").firstElementChild.style.width="100%";S.rendered=true;
   $("render").disabled=false;$("export").disabled=false;
   status("<b>rendered.</b> scrub, play, or export.");
@@ -638,7 +1098,11 @@ $("file").addEventListener("change",async e=>{const f=e.target.files[0];if(!f)re
 $("donorBtn").addEventListener("click",()=>$("donorFile").click());
 $("donorFile").addEventListener("change",async e=>{const f=e.target.files[0];if(!f)return;
   try{await loadDonor(URL.createObjectURL(f));}catch(err){status("error: "+err.message);}});
-$("selfBtn").addEventListener("click",()=>{if(!S.N)return;S.donor=[];setDonorTag();resetOutput();status("donor set to <b>self</b> — re-render");});
+$("selfBtn").addEventListener("click",()=>{if(!S.N)return;resetDonor();resetOutput();status("donor set to <b>self</b> — re-render");});
+$("contentDonorBtn").addEventListener("click",()=>{if(!S.N)return;S.graftContent="donor";updateDualInputUI();dirtyRender("graft skin changed - re-render");});
+$("contentSelfBtn").addEventListener("click",()=>{if(!S.N)return;S.graftContent="self";updateDualInputUI();dirtyRender("graft skin changed - re-render");});
+$("motionSelfBtn").addEventListener("click",()=>{if(!S.N)return;S.graftMotion="self";updateDualInputUI();dirtyRender("graft flow changed - re-render");});
+$("motionDonorBtn").addEventListener("click",()=>{if(!S.N)return;if(!S.donorField||!S.donorField.length)return;S.graftMotion="donor";updateDualInputUI();dirtyRender("graft flow changed - re-render");});
 $("render").addEventListener("click",render);
 $("export").addEventListener("click",exportWebM);
 
@@ -649,11 +1113,17 @@ function setStrainMode(mode){S.strainMode=mode;
 document.querySelectorAll("[data-strain]").forEach(b=>b.addEventListener("click",()=>setStrainMode(b.dataset.strain)));
 
 const labelMap={cells:["cellsV",v=>v],edge:["edgeV",v=>v],drag:["dragV",v=>(v/10).toFixed(1)],donor:["donorV",v=>(v>0?"+":"")+v+" fr"],
-  seedX:["seedXV",v=>v+"%"],seedY:["seedYV",v=>v+"%"],strain:["strainV",v=>v]};
+  seedX:["seedXV",v=>v+"%"],seedY:["seedYV",v=>v+"%"],strain:["strainV",v=>v],
+  frontier:["frontierV",v=>v+" fr"],seep:["seepV",v=>v+" px"],brighten:["brightenV",v=>"+"+v+"%"],mush:["mushV",v=>v+"%"],
+  balance:["balanceV",v=>v+"%"],
+  distortAmp:["distortAmpV",v=>v+" px"],distortFreq:["distortFreqV",v=>v],distortSpeed:["distortSpeedV",v=>v]};
 const rebuildControls={cells:1,edge:1,seedX:1,seedY:1,strain:1};
+const dirtyControls={frontier:1,seep:1,brighten:1,mush:1,balance:1,distortAmp:1,distortFreq:1,distortSpeed:1};
 for(const id in labelMap){const lab=labelMap[id][0],fmt=labelMap[id][1];
   $(id).addEventListener("input",e=>{$(lab).textContent=fmt(+e.target.value);
-    if(rebuildControls[id]&&S.N){buildCells();dirtyRender("front field changed - <b>re-render</b>");}});}
+    S[id]=+e.target.value;
+    if(rebuildControls[id]&&S.N){buildCells();dirtyRender("front field changed - <b>re-render</b>");}
+    else if(dirtyControls[id]&&S.N){dirtyRender("fringe parameters changed - <b>re-render</b>");}});}
 stage.addEventListener("click",e=>{if(S.strainMode!=="reaction"||!S.N)return;
   const r=stage.getBoundingClientRect(),x=clamp01((e.clientX-r.left)/r.width),y=clamp01((e.clientY-r.top)/r.height);
   $("seedX").value=Math.round(x*100);$("seedY").value=Math.round(y*100);
@@ -662,6 +1132,341 @@ stage.addEventListener("click",e=>{if(S.strainMode!=="reaction"||!S.N)return;
 document.querySelectorAll(".mini[data-preset]").forEach(b=>b.addEventListener("click",()=>{if(S.N)applyPreset(b.dataset.preset);}));
 $("showCells").addEventListener("change",e=>overlay.classList.toggle("on",e.target.checked));
 
+function initCartridges() {
+  const pathSel = $("pathologySelect");
+  pathSel.innerHTML = "";
+  availableCartridges.forEach(c => {
+    const opt = document.createElement("option");
+    opt.value = c.id;
+    opt.textContent = c.name;
+    pathSel.appendChild(opt);
+  });
+  
+  pathSel.addEventListener("change", () => {
+    const cId = pathSel.value;
+    const cartridge = availableCartridges.find(c => c.id === cId);
+    if (!cartridge) return;
+    
+    S.activeCartridge = cartridge;
+    updateCartridgeUI();
+    dirtyRender("pathology mode changed - re-render");
+  });
+  
+  $("presetSelect").addEventListener("change", () => {
+    const pName = $("presetSelect").value;
+    const cartridge = S.activeCartridge;
+    if (!cartridge || !cartridge.presets) return;
+    const preset = cartridge.presets.find(p => p.name === pName);
+    if (!preset) return;
+    
+    S.activePreset = pName;
+    applyPresetValues(preset.values);
+  });
+  
+  updateCartridgeUI();
+}
+
+function updateCartridgeUI() {
+  const cartridge = S.activeCartridge;
+  if (!cartridge) return;
+  
+  const allControls = ["cells", "edge", "drag", "donor", "fringe", "strain-mode", "strain-params", "distortion"];
+  allControls.forEach(ctrlId => {
+    const el = $("ctrl-" + ctrlId) || $(ctrlId);
+    if (el) {
+      const show = cartridge.showControls.includes(ctrlId);
+      el.style.display = show ? "block" : "none";
+    }
+  });
+  
+  const presetContainer = $("presetSelectContainer");
+  const presetSel = $("presetSelect");
+  if (cartridge.presets && cartridge.presets.length > 0) {
+    presetContainer.style.display = "block";
+    presetSel.innerHTML = "";
+    cartridge.presets.forEach(p => {
+      const opt = document.createElement("option");
+      opt.value = p.name;
+      opt.textContent = p.name;
+      presetSel.appendChild(opt);
+    });
+    let activeP = cartridge.presets.find(p => p.name === S.activePreset);
+    if (!activeP) activeP = cartridge.presets[0];
+    presetSel.value = activeP.name;
+    S.activePreset = activeP.name;
+    applyPresetValues(activeP.values);
+  } else {
+    presetContainer.style.display = "none";
+  }
+}
+
+function applyPresetValues(values) {
+  for (const id in values) {
+    const el = $(id);
+    if (el) {
+      el.value = values[id];
+      el.dispatchEvent(new Event("input"));
+    }
+  }
+}
+
+$("stanceSelect").addEventListener("change", e => {
+  S.stance = e.target.value;
+  $("balanceContainer").style.display = S.stance === "symmetric" ? "block" : "none";
+  dirtyRender("temporal stance changed - re-render");
+});
+$("stanceSelect").value = S.stance;
+$("balanceContainer").style.display = S.stance === "symmetric" ? "block" : "none";
+// --- AUTO-PLACEMENT (MOTION-AWARE) ---
+
+$("autoSelect").addEventListener("change", () => {
+  const mode = $("autoSelect").value;
+  $("autoPeaksContainer").style.display = mode === "lloyd" ? "block" : "none";
+});
+
+$("autoPeaks").addEventListener("input", e => {
+  $("autoPeaksV").textContent = e.target.value;
+});
+
+$("autoSigma").addEventListener("input", e => {
+  $("autoSigmaV").textContent = e.target.value + " fr";
+});
+
+$("autoApplyBtn").addEventListener("click", () => {
+  if (!S.N) { status("load or generate a clip first."); return; }
+  applyAutoPlacement();
+});
+
+function computeMotionEnergy() {
+  const N = S.N;
+  const energy = new Float32Array(N);
+  energy[0] = 0;
+  for (let t = 1; t < N; t++) {
+    const F = S.field[t];
+    if (!F) { energy[t] = 0; continue; }
+    let sum = 0;
+    const len = S.fw * S.fh;
+    for (let i = 0; i < len; i++) {
+      const dx = F[i * 2];
+      const dy = F[i * 2 + 1];
+      sum += Math.sqrt(dx * dx + dy * dy);
+    }
+    energy[t] = sum / Math.max(1, len);
+  }
+  return energy;
+}
+
+function smoothCurve(curve, sigma) {
+  const N = curve.length;
+  const smoothed = new Float32Array(N);
+  for (let i = 0; i < N; i++) {
+    let sum = 0, weightSum = 0;
+    const r = Math.ceil(sigma * 2.5);
+    for (let d = -r; d <= r; d++) {
+      const idx = i + d;
+      if (idx >= 0 && idx < N) {
+        const w = Math.exp(-(d * d) / (2 * sigma * sigma));
+        sum += curve[idx] * w;
+        weightSum += w;
+      }
+    }
+    smoothed[i] = sum / Math.max(1e-5, weightSum);
+  }
+  return smoothed;
+}
+
+function computeLloydMaxCentroids(energy, K) {
+  const N = energy.length;
+  let centroids = new Float32Array(K);
+  for (let i = 0; i < K; i++) {
+    centroids[i] = ((i + 0.5) / K) * N;
+  }
+  for (let iter = 0; iter < 15; iter++) {
+    const sumsT = new Float32Array(K);
+    const sumsE = new Float32Array(K);
+    for (let t = 0; t < N; t++) {
+      const e = energy[t];
+      if (e <= 0) continue;
+      let minD = 1e18, bestJ = 0;
+      for (let j = 0; j < K; j++) {
+        const d = Math.abs(t - centroids[j]);
+        if (d < minD) { minD = d; bestJ = j; }
+      }
+      sumsT[bestJ] += t * e;
+      sumsE[bestJ] += e;
+    }
+    for (let j = 0; j < K; j++) {
+      if (sumsE[j] > 0) {
+        centroids[j] = sumsT[j] / sumsE[j];
+      }
+    }
+  }
+  centroids.sort();
+  return centroids;
+}
+
+function applyAutoPlacement() {
+  const N = S.N;
+  const alg = $("autoSelect").value;
+  const sigma = +$("autoSigma").value;
+  const K = +$("autoPeaks").value;
+
+  let energy = computeMotionEnergy();
+
+  // Normalize energy to 0..1
+  let maxE = 0;
+  for (let t = 0; t < N; t++) {
+    if (energy[t] > maxE) maxE = energy[t];
+  }
+  if (maxE > 0) {
+    for (let t = 0; t < N; t++) energy[t] /= maxE;
+  }
+
+  // Generate target curve
+  const target = new Float32Array(N);
+  if (alg === "direct") {
+    const smoothed = smoothCurve(energy, sigma);
+    for (let t = 0; t < N; t++) target[t] = smoothed[t];
+  } else if (alg === "inverted") {
+    const inverted = new Float32Array(N);
+    for (let t = 0; t < N; t++) inverted[t] = 1 - energy[t];
+    const smoothed = smoothCurve(inverted, sigma);
+    for (let t = 0; t < N; t++) target[t] = smoothed[t];
+  } else if (alg === "lloyd") {
+    const centroids = computeLloydMaxCentroids(energy, K);
+    for (let t = 0; t < N; t++) {
+      let maxVal = 0;
+      for (let j = 0; j < K; j++) {
+        const diff = t - centroids[j];
+        const val = Math.exp(-(diff * diff) / (2 * sigma * sigma));
+        if (val > maxVal) maxVal = val;
+      }
+      target[t] = maxVal;
+    }
+  }
+
+  S.bloom = target;
+  drawCurve();
+  dirtyRender("bloom curve auto-placed - re-render");
+  status("bloom curve auto-placed using <b>" + alg + "</b>.");
+}
+
+// --- DRAG & DROP MECHANICS ---
+let dragCounter = 0;
+
+async function handleDroppedFiles(files, isDonorTarget = false, shiftOrAlt = false) {
+  const videoFiles = Array.from(files).filter(f => f.type.startsWith("video/") || /\.(mp4|webm|mov|avi|mkv|m4v|ogv)$/i.test(f.name));
+  if (!videoFiles.length) {
+    status("error: dropped item is not a recognized video file.");
+    return;
+  }
+
+  status("processing dropped file(s)…");
+  $("render").disabled = true;
+
+  try {
+    if (videoFiles.length >= 2) {
+      status("loading host clip from drop (1/2)…");
+      await loadHost(URL.createObjectURL(videoFiles[0]));
+      status("loading donor clip from drop (2/2)…");
+      await loadDonor(URL.createObjectURL(videoFiles[1]));
+      status("host & donor clips loaded via dual drop — <b>ready to render</b>");
+    } else if (isDonorTarget || shiftOrAlt) {
+      if (!S.N) {
+        status("loading host clip first from drop…");
+        await loadHost(URL.createObjectURL(videoFiles[0]));
+      } else {
+        await loadDonor(URL.createObjectURL(videoFiles[0]));
+      }
+    } else {
+      await loadHost(URL.createObjectURL(videoFiles[0]));
+    }
+  } catch (err) {
+    status("drop error: " + err.message);
+  }
+}
+
+const hostOverlay = $("hostDropOverlay");
+const donorOverlay = $("donorDropOverlay");
+const hostZone = $("hostDropZone");
+const donorZone = $("donorDropZone");
+
+["dragenter", "dragover", "dragleave", "drop"].forEach(evtName => {
+  window.addEventListener(evtName, e => e.preventDefault());
+});
+
+window.addEventListener("dragenter", e => {
+  dragCounter++;
+  if (dragCounter === 1) {
+    hostOverlay.classList.add("active");
+    donorOverlay.classList.add("active");
+  }
+});
+
+window.addEventListener("dragover", e => {
+  if (e.dataTransfer) {
+    e.dataTransfer.dropEffect = "copy";
+  }
+});
+
+window.addEventListener("dragleave", e => {
+  dragCounter--;
+  if (dragCounter <= 0) {
+    dragCounter = 0;
+    hostOverlay.classList.remove("active", "drag-hover");
+    donorOverlay.classList.remove("active", "drag-hover");
+  }
+});
+
+hostZone.addEventListener("dragover", e => {
+  hostOverlay.classList.add("drag-hover");
+  donorOverlay.classList.remove("drag-hover");
+});
+
+hostZone.addEventListener("dragleave", () => {
+  hostOverlay.classList.remove("drag-hover");
+});
+
+hostZone.addEventListener("drop", async e => {
+  dragCounter = 0;
+  hostOverlay.classList.remove("active", "drag-hover");
+  donorOverlay.classList.remove("active", "drag-hover");
+  if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
+    await handleDroppedFiles(e.dataTransfer.files, false, e.shiftKey || e.altKey);
+  }
+});
+
+donorZone.addEventListener("dragover", e => {
+  donorOverlay.classList.add("drag-hover");
+  hostOverlay.classList.remove("drag-hover");
+});
+
+donorZone.addEventListener("dragleave", () => {
+  donorOverlay.classList.remove("drag-hover");
+});
+
+donorZone.addEventListener("drop", async e => {
+  dragCounter = 0;
+  hostOverlay.classList.remove("active", "drag-hover");
+  donorOverlay.classList.remove("active", "drag-hover");
+  if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
+    await handleDroppedFiles(e.dataTransfer.files, true, e.shiftKey || e.altKey);
+  }
+});
+
+window.addEventListener("drop", async e => {
+  if (dragCounter > 0) {
+    dragCounter = 0;
+    hostOverlay.classList.remove("active", "drag-hover");
+    donorOverlay.classList.remove("active", "drag-hover");
+    if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
+      const isDonor = donorZone.contains(e.target);
+      await handleDroppedFiles(e.dataTransfer.files, isDonor, e.shiftKey || e.altKey);
+    }
+  }
+});
+
+initCartridges();
 setStrainMode("global");
 drawCurve();status("load or generate a clip to begin.");
 </script>

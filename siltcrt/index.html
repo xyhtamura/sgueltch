@@ -18,7 +18,7 @@
 
             <h1 class="title"><span class="b-silt">Silt</span><span class="b-crt">CRT</span></h1>
             <p class="subtitle">soft granular signal emulator</p>
-            <p class="crossref"><span class="reticle">◦</span> <a href="/siltcrt/block/">block version</a></p>
+            <p class="crossref"><span class="reticle">◦</span> <a href="/siltcrt/block/">block archive</a></p>
         </header>
 
         <div id="canvas-container">
@@ -43,6 +43,21 @@
 
             <div id="controls-grid">
 
+                <div class="control-group mode-control-group">
+                    <h3>phosphor substrate <span class="h3-note">signal geometry</span></h3>
+                    <div class="mode-switch substrate-switch" role="radiogroup" aria-label="Phosphor substrate">
+                        <input type="radio" id="mode-silt" name="substrate-mode" value="silt" checked>
+                        <label for="mode-silt"><strong>silt</strong><span>probabilistic cells</span></label>
+                        <input type="radio" id="mode-ooid" name="substrate-mode" value="ooid">
+                        <label for="mode-ooid"><strong>ooid</strong><span>soft bodies</span></label>
+                        <input type="radio" id="mode-scute" name="substrate-mode" value="scute">
+                        <label for="mode-scute"><strong>scute</strong><span>pressured territories</span></label>
+                        <input type="radio" id="mode-block" name="substrate-mode" value="block">
+                        <label for="mode-block"><strong>block</strong><span>original square lattice</span></label>
+                    </div>
+                    <p class="group-note mode-note" id="mode-note" aria-live="polite">aperiodic phosphor cells chosen by probabilistic weight. each substrate remembers its own control settings.</p>
+                </div>
+
                 <div class="control-group">
                     <h3>warping</h3>
                     <div class="slider-group">
@@ -60,7 +75,7 @@
                 <div class="control-group">
                     <h3>phosphor &amp; analog</h3>
                     <div class="slider-group">
-                        <label for="phosphorSize">voronoi cells</label>
+                        <label for="phosphorSize" id="phosphor-size-label">voronoi cells</label>
                         <input type="range" id="phosphorSize" min="5.0" max="8000.0" value="7500.0" step="1">
                         <input type="number" id="phosphorSize-num" min="5.0" max="8000.0" value="7500.0" step="1">
                     </div>
@@ -69,8 +84,8 @@
                         <input type="range" id="chromaticBleed" min="0.0" max="0.02" value="0.001" step="0.0001">
                         <input type="number" id="chromaticBleed-num" min="0.0" max="0.02" value="0.001" step="0.0001">
                     </div>
-                    <div class="slider-group">
-                        <label for="voronoiSoftness">voronoi softness</label>
+                    <div class="slider-group organic-only">
+                        <label for="voronoiSoftness" id="cell-softness-label">voronoi softness</label>
                         <input type="range" id="voronoiSoftness" min="0.0" max="1.0" value="0.5" step="0.01">
                         <input type="number" id="voronoiSoftness-num" min="0.0" max="1.0" value="0.5" step="0.01">
                     </div>
@@ -114,14 +129,32 @@
                     </div>
                 </div>
 
-                <div class="control-group">
-                    <h3>persistence <span class="h3-note">phosphor decay</span></h3>
-                    <div class="slider-group">
+                <div class="control-group memory-control-group">
+                    <h3>signal memory <span class="h3-note">phosphor decay</span></h3>
+                    <div class="mode-switch memory-switch" role="radiogroup" aria-label="Signal memory">
+                        <input type="radio" id="memory-dry" name="memory-mode" value="dry">
+                        <label for="memory-dry"><strong>dry</strong><span>no retention</span></label>
+                        <input type="radio" id="memory-remanence" name="memory-mode" value="remanence" checked>
+                        <label for="memory-remanence"><strong>remanence</strong><span>max-decay trail</span></label>
+                        <input type="radio" id="memory-seep" name="memory-mode" value="seep">
+                        <label for="memory-seep"><strong>seep</strong><span>wet feedback</span></label>
+                    </div>
+                    <div class="slider-group memory-retention-control">
                         <label for="persistence">trail / smear</label>
                         <input type="range" id="persistence" min="0.0" max="0.98" value="0.6" step="0.01">
                         <input type="number" id="persistence-num" min="0.0" max="0.98" value="0.6" step="0.01">
                     </div>
-                    <p class="group-note">brightness lingers across frames and rots away — the image breathes instead of holding still.</p>
+                    <div class="slider-group seep-only">
+                        <label for="seepViscosity">viscosity</label>
+                        <input type="range" id="seepViscosity" min="0.0" max="1.0" value="0.65" step="0.01">
+                        <input type="number" id="seepViscosity-num" min="0.0" max="1.0" value="0.65" step="0.01">
+                    </div>
+                    <div class="slider-group seep-only">
+                        <label for="seepDiffusion">diffusion</label>
+                        <input type="range" id="seepDiffusion" min="0.0" max="1.0" value="0.35" step="0.01">
+                        <input type="number" id="seepDiffusion-num" min="0.0" max="1.0" value="0.35" step="0.01">
+                    </div>
+                    <p class="group-note" id="memory-note" aria-live="polite">brightness lingers across frames and rots toward black.</p>
                 </div>
 
                 <div class="control-group">

@@ -107,6 +107,64 @@ CyberScotoma can trivially become a **unidirectional, causal, realtime** effect:
 
 ---
 
+## future corruptions — beyond the scotoma
+
+The scotoma is the first pathology, not the whole clinic. The engine already factorizes into four orthogonal axes, and every planned `graft` node in the rack is a tuple across them:
+
+| axis | question | current options |
+|---|---|---|
+| **region** | *where* does the corruption live | Voronoi + drawn bloom; CSD reaction-diffusion front |
+| **tissue** | *what* fills the held region | self-donor graft; cross-clip graft |
+| **motion** | *how* does held content move | self motion field × drag |
+| **time** | *when* does it sample from | `donorOffset` (acausal seed) |
+
+A "new corruption" is rarely a new effect — it's a new option on one axis, composable with everything on the others. That's what keeps this a substrate and not a filter pack. Candidates below, grouped by lineage; each names its axis and its ethos claim.
+
+### visual-field pathologies (the scotoma's siblings)
+
+Neuro-ophthalmology is a whole taxonomy of non-grid corruption already named and clinically described. The aura was only the first borrowing.
+
+1. **metamorphopsia** *(tissue/motion)* — macular distortion: straight lines go wavy. Implement as a continuous low-frequency displacement field that intensifies inside the lesion, zero at the noised boundary. The clinical test for it is the **Amsler grid** — a literal grid whose failure to stay a grid is the diagnosis. The thesis in one image: the corruption *is* the grid refusing to hold. Cheap (one warp pass), high leverage.
+2. **palinopsia** *(time)* — pathological afterimage: content persists or *recurs* after its stimulus is gone. Causal half is trailing/echo (kin to Remanence, keep thin). The acausal half is the unseen build: hallucinatory palinopsia run backward — a formed image recurring *before* its first appearance. Whole-clip detection of a salient event, then grafting its ghost into earlier frames. Pure Hindcasts superpower #1 inside a Sgueltch lesion.
+3. **oscillopsia** *(motion)* — failed gaze stabilization: the world wobbles because the compensator is broken. We already estimate the motion field; oscillopsia is that estimate turned against the frame — apply ego-motion compensation *wrongly* (lagged, overshooting, ringing) inside the region. The stabilizer, a hygiene tool, exhibited as vestibular illness.
+4. **akinetopsia** *(time)* — motion blindness: the world arrives as stills. This is **temporal quantization exhibited as pathology** — the antagonist's own gesture (snap time to a grid of frames) shown as lesion, not neutrality. Held region drops to a stuttering, *aperiodic* refresh (Poisson-timed, never metronomic) while the surround flows. The one candidate that points *at* quantization instead of away from it; frame it as the codec confessing as symptom.
+5. **visual snow** *(tissue, minor)* — persistent aperiodic grain, no lattice noise pattern. Small; likely a texture modifier on other tissues rather than its own strain.
+
+### fungal / rot (Pixel Lesions pushing in)
+
+6. **necrotic interior** *(tissue)* — the roadmap's edge-vs-interior split, completed on the decay side: interior tissue rots through the Pixel Lesions **Rot Palette / Necrotic Inversion** gradient (bruise-purple → bile-green → fevered off-white) while reaction-diffusion mush eats structure. Scintillating frontier + necrotic core = the full lesion life cycle.
+7. **spore metastasis** *(region)* — scotomata that colonize: a mature lesion seeds satellite regions at *motion-statistically similar* sites elsewhere in the clip (Spore Cloud's jump logic, targeted by superpower #2, global statistics). The lesion stops being a place and becomes a colony.
+8. **hyphal motion** *(motion)* — replace the scene's motion field inside the region with a *grown* one: mycelial-tendril / reaction-diffusion flow that ignores what the camera saw. Tissue crawls with biological purpose instead of borrowed optics. (Mycelial Rot's momentum-tendril logic, run as a vector field.)
+
+### pixel-sort descended (the sort without the row)
+
+Classic pixel sort is grid-complicit — it sorts along the raster's own rows/columns. The non-grid sort takes its path from *dynamics*:
+
+9. **streamline sort** *(tissue)* — sort pixels by luminance along the **integral curves of the motion field** — the sort path is the flow itself, not the lattice. Spatial, per-frame, reuses the field we already compute. The direct answer to "pixel sort, but Sgueltch."
+10. **trajectory sort** *(time)* — the acausal one: track each pixel's worldline through the whole clip, then sort the samples *along its own trajectory* — each point in space keeps its path but scrambles its history. Time becomes sortable material. Needs whole-clip reads (superpower #5, whole-signal); impossible live, natural offline.
+
+### pure-digital / dynamical (belief-layer claims)
+
+No biology required — the axis is aperiodic/emergent vs. snapped, and math sits on the mess side:
+
+11. **motion possession** *(motion)* — the inverse of cross-clip graft: content stays **self**, motion comes from the **donor**. The frame is puppeted by another clip's kinetics. Nearly free to build (both fields exist), conceptually crisp, and completes the control/source matrix: {self, donor} content × {self, donor} motion.
+12. **three-body advection** *(motion)* — motion field driven by a chaotic gravitational sim (or double pendulum, or Lorenz flow). The belief-layer claim made in video: nothing stops us from advecting frames with celestial mechanics but habit.
+13. **time membrane** *(region/time — possibly its own tool)* — slit-scan is the canonical time-space swap, but its slit is a straight line: a grid instrument. Generalize: treat the clip as an (x, y, t) volume and resample along an **undulating, drifting curved sheet** — a membrane through the video cube. Non-grid by construction, acausal by construction (needs the whole volume). Big enough that it may be a sibling tool rather than a strain; park the name here.
+
+### selection pressure (which first)
+
+Rank by (leverage ÷ build cost), honoring the existing roadmap order:
+
+- **motion possession** (11) — days, not weeks; completes the dual-input matrix already shipped.
+- **metamorphopsia** (2 → item 1) — one warp pass; strongest single thesis-image.
+- **streamline sort** (9) — reuses the motion field; the pixel-sort answer.
+- **necrotic interior** (6) — rides the already-planned edge-vs-interior work.
+- Everything acausal-heavy (palinopsia-backward, trajectory sort, time membrane) waits for the rack, since each wants to be a node, not a mode.
+
+Rule kept from the parents: every candidate must name its **non-grid substrate move** (what lattice it refuses) and its **axis** (so it composes in the rack). A corruption that's just a filter on top of the frame — however gorgeous — is not a strain.
+
+---
+
 ## adjacencies (don't re-derive)
 
 - **Pythia** — the flagship; the control/source dual input is the shared interface for the whole suite. Cross-clip graft *is* that interface, which is why it was the highest-value next feature.
@@ -126,14 +184,18 @@ CyberScotoma can trivially become a **unidirectional, causal, realtime** effect:
 - Controls: cells, edge noise, motion drag, donor offset (acausal), show-cells overlay.
 - **propagating front (CSD reaction-diffusion strain)** — selectable global vs reaction-diffusion bloom strain, seed X/Y sliders, click-to-seed on the stage, front strain control, and per-cell activation thresholds derived from the reaction field.
 - **cross-clip graft (dual-input donor).**
+- **motion possession (dual-input kinetics)** — completes the `{self, donor} content` x `{self, donor} motion` matrix.
+- **edge-vs-interior differentiation (scintillating frontier / blind trailing interior mush)** — frame-age cell tracking, horizontal chromatic channel-splitting, edge brightening boost, and accumulated feedback neighbor cross-blur.
 - **WebM export.**
+- **Cartridge Architecture & Presets** — modular visual pathology cartridges with dynamic UI panel hiding and configuration presets (Classic Smear, Scintillating Aura, Heavy Liquefaction).
+- **anticipatory motion (backward flow) + prolepsis stances** — bidirectional rendering passes (wake fwd, anticipation bwd), negated temporal flow vector maps, and linear blend composing.
+- **whole-clip auto-placement** — kinetics-based automatic bloom curve generation via Direct Motion Peaks, Inverted Stillness (Negative-Space), or 1D Lloyd-Max optimal peak centroids.
+- **Metamorphopsia visual cartridge** — continuous low-frequency coordinate displacement ripple warp inside the scotoma that fades to zero at fresh boundaries based on cell age.
+- **file dropping mechanics** — dual host & donor drag-and-drop targets with visual glass overlays, shift/alt modifier shortcuts, and multi-clip dropped file routing.
 - Light / photophobic CyberScotoma reskin; `buildGraph()` DAG stub.
 
 **Next (ordered by leverage):**
-1. edge-vs-interior differentiation — scintillating frontier / blind interior.
-2. anticipatory motion (backward flow) + prolepsis stances.
-3. whole-clip auto-placement (motion extrema / negative-space, optimal-vs-inverted).
-4. rack (multiple scotomata as a DAG).
+1. rack (multiple scotomata as a DAG).
 
 ---
 

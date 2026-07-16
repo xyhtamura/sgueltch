@@ -6,28 +6,29 @@
 ## 1. Executive Summary & Epistemic Core
 
 ### The Core Thesis
-**Sgueltch** (a hybrid neologism emerging between *squelch* and *glitch*) is an organic glitch software suite and artistic research project. The architectural spine of the suite operates against a single technical gesture: **quantization**. Modern digital media systems discretize continuous spaces into rigid, standardized grids or allowed positions—often born from legacy computational scarcity—and propagate them by institutional path-dependence (lock-in). 
+**Sgueltch** (a neologism combining *squelch* and *glitch*) is an organic glitch software suite and media research project. The architectural spine of the suite targets a specific technical limitation: **quantization and format lock-in**. Modern digital media standards discretize spatial, temporal, and spectral domains into rigid grids. When corrupted, these formats fail exclusively along their engineered fault lines—a process analogous to clinical pathology, where biological tissue under stress executes a fixed repertoire of stereotyped responses (swelling, fibrosis, necrosis) dictated by its cellular mechanics. An injured organism inflames; it cannot sprout unrelated structures. Standard glitch operations produce rectangular macroblocks, raster tears, and grid confetti because the underlying substrate prescribes those exact failure modes.
 
-Sgueltch operates in the **interstitial spaces** disallowed by these standards. It shifts digital error away from traditional glitch art’s rigid, square, block-based, pixelated fractures (which are merely the codecs congealing and confessing their quantized regimes on schedule) and moves toward continuous, fluid, dynamically unfolding, and biologically inspired substrates: ooze, tissue, silt, weather, viscosity, lesion, flocking, breath, and growth.
+Sgueltch shifts digital error from breaking standardized codecs to constructing alternative computational substrates. By replacing discrete lattices with continuous fields, aperiodic Voronoi cells, and viscous filaments, signal degradation moves as organic seepage rather than raster breakdown. Ooze, tissue, silt, viscosity, lesions, and growth function here as alternative data architectures rather than surface stylizations.
 
 ### Technical Stratification
 The suite models computational commitments as a three-tier stack:
-1. **Substrate Layer:** The commitment is baked deeply into the format or codec itself (e.g., JPEG's 8×8 Discrete Cosine Transform block or Unicode's discrete codepoints). Escaping the grid requires building completely alternate substrates.
-2. **Tooling / UX Layer:** The commitment exists within software defaults (e.g., the 12-Tone Equal Temperament (12-TET) grid in Digital Audio Workstations or the metrical midi clock). These are structural constraints that can be dynamically subverted or bypassed through specialized counter-tooling.
-3. **Belief / Habit Layer:** The constraints are purely imaginary or cultural, dictated by custom (e.g., failing to drive digital synthesis through chaotic mathematical simulations like three-body problems or prime sequences).
+1. **Substrate Layer:** The commitment is engineered directly into the format or codec (e.g., JPEG 8×8 Discrete Cosine Transform blocks or Unicode codepoints). Escaping the grid requires constructing alternate substrates.
+2. **Tooling Layer:** The commitment exists within software defaults (e.g., 12-Tone Equal Temperament tuning or metrical MIDI clocks). These constraints can be bypassed or overridden through custom tooling.
+3. **Habit / Epistemic Layer:** The constraints persist through cultural custom (e.g., assuming digital synthesis must follow rectilinear coordinate bounds).
 
 ---
 
 ## 2. Theoretical Framework & Lineage
 
-The Sgueltch suite is not a naive biophilic pursuit or a romantic celebration of "nature" over the machine. It is a rigorous implementation of **format theory**, **decolonial Science and Technology Studies (STS)**, and **media archaeology**. Its conceptual substrate relies on the following key pillars:
+Sgueltch relies on **format theory**, **infrastructure studies**, **media archaeology**, and **anthropology of science**:
 
-* **Format Theory & Perceptual Coding (Jonathan Sterne):** Formats are treated as historical, cultural, and political decisions regarding what data to discard. Traditional glitch breaks a codec but honors its underlying format rules; Sgueltch modifies the substrate to change the nature of the data discard itself.
-* **Purity Regimes & The Anthropology of Dirt (Mary Douglas):** Dirt is defined as *"matter out of place."* Quantized grids function as purity regimes designed to enforce computational and epistemic hygiene. Sgueltch intentionally introduces "matter out of place" to destabilize these boundary membranes.
-* **Cosmotechnics & Concretization (Yuk Hui & Gilbert Simondon):** Hui's cosmotechnics is scaled down to the micro-level of the **8×8 DCT block, the codepoint, and the semitone**. It shows that file formats embed highly specific, contingent worldviews that congeal into a false sense of absolute necessity via Simondonian *concretization*.
-* **Agential Realism & The Apparatus (Karen Barad):** Standards are treated as physical-conceptual apparatuses that execute an *agential cut*, dynamically dictating what is rendered legible or illegible (e.g., Unicode deciding which pre-colonial scripts or marks are digitally "real").
-* **Path Dependence & Lock-in (Paul David):** Explains how sub-optimal technical choices (like the Cartesian grid or the QWERTY keyboard) congeal during a format's technological infancy and persist indefinitely via socio-economic inertia.
-* **Critical Glitch Dialogues (Rosa Menkman & Legacy Russell):** Sgueltch expands Menkman’s glitch momentum and Russell’s glitch feminism by moving beyond diagnostic critique into structural alternative engineering.
+* **Stereotyped Pathological Responses & Substrate Failure:** Systems under stress do not escape their architecture; they execute hardwired failure modes. Canonical glitch theory analyzes error as a diagnostic gesture—*Rosa Menkman* (interruption exposing system mechanics), *Michael Betancourt* (critical error disrupting operational logic), and *Legacy Russell* (glitch as refusal of normative exclusion). Sgueltch retains this critical positioning but observes its aesthetic limits: diagnostic error on a standard codec merely reproduces the codec's grid.
+* **Format Theory & Data Discard (Jonathan Sterne):** Formats are historical and political decisions regarding which data to preserve and which to discard. Standard glitch breaks a codec while preserving its format rules; Sgueltch alters the substrate to reconfigure the nature of the discard.
+* **Infrastructure & Backgrounded Habit (Susan Leigh Star):** Technical choices normalize into backgrounded infrastructure, shaping visual and auditory habits without active user awareness.
+* **Epistemic Purity Regimes & Dirt (Mary Douglas):** Codecs enforce a schematic purity regime designed to maintain computational hygiene. Dirt—defined as matter out of place—takes on a rectangular geometry when displaced from a rectangular order. Replacing the grid changes the geometry of displacement.
+* **Cosmotechnics & Concretization (Yuk Hui & Gilbert Simondon):** Standards embed specific cultural worldviews (cosmotechnics) that congeal into apparent technical necessity through Simondonian concretization at the level of the block, codepoint, and semitone.
+* **Agential Realism & The Apparatus (Karen Barad):** Formats act as physical-conceptual apparatuses executing an agential cut, determining what signals are legible within digital systems.
+* **Path Dependence & Lock-in (Paul David):** Sub-optimal technical choices (such as the Cartesian grid) persist through economic and infrastructural inertia.
 
 ---
 
@@ -56,11 +57,13 @@ The suite is comprised of specialized tools spanning image processing, typograph
 
 ### B. SiltCRT (Soft Granular Signal Emulator)
 * **Classification:** WebGL Screen Shader / Analog Phosphor Emulator
-* **Core Substrate:** Reimagines the physical interface of an analog screen by ditching standard linear rows of RGB triads. It emulates phosphor screen decay using an aperiodic **Voronoi tessellated phosphor cell structure**.
+* **Documentation:** [`siltcrt/siltcrt.md`](siltcrt/siltcrt.md)
+* **Core Substrate:** Reimagines the physical interface of an analog screen by ditching standard linear rows of RGB triads. Its phosphor substrate is selectable: aperiodic probabilistic **Silt** cells, overlapping Gaussian **Ooid** bodies, breathing weighted-Voronoi **Scute** territories, or the archival square **Block** lattice retained as a historical control.
 * **Technical Mechanics:**
+    * *Phosphor Substrates:* Geometry and signal memory are independent, allowing each spatial substrate to be combined with dry, remanent, or wet-feedback behaviour.
     * *Turbulence & Flow Speed:* Simulates live current flow and signal fluid turbulence drifting across the display interface.
     * *Dual Bleed System:* Combines a positive bright-matter *Kawase Bloom* with a subtractive dark-matter *Umbra* (the mathematical inverse of CRT bloom).
-    * *Persistence Feedback:* Models lingering phosphor decay and chemical trails directly across independent rendering frames, enabling images to "breathe" and rot instead of locking into place.
+    * *Signal Memory:* **Dry** replaces every frame, **Remanence** models lingering max-decay phosphor trails, and **Seep** advects and diffuses the previous frame through a viscous field before decay.
     * *Tube presentation:* Applies simulated curvature, vignette, and deep organic screen grain (silt grain).
 
 ### C. Gurgulator (Wet Granular Resynthesizer)
@@ -116,20 +119,56 @@ The suite is comprised of specialized tools spanning image processing, typograph
 * **Address:** `hindcasts/remanence/` · full spec in `hindcasts/remanence/remanence.md`
 * **Core Substrate:** A wound reel imprints itself — loud moments print onto neighbouring wraps as **pre-echo** (the ghost that arrives before the sound). Remanence turns magnetic print-through into an effect that has read the tape before it plays; the same reel engine runs on audio (multi-tap delay with negative taps) and on video (frame composite, print's spatial LF bias as ghost-blur).
 * **Why it is kin, not core:** By the **suite placement rule**, a corruption-forward app with a *specially organic* substrate (ooze / tissue / lesion / mycelium / marbling / Voronoi) is Sgueltch; an app whose main idea is whole-file analysis, with glitch a side effect or *not specially organic* (Prolepsis), is Hindcasts. Remanence's damage is **analog-magnetic / nostalgic**, not biological-organic, and its spine is whole-file acausality (print-through needs the future) — so it lives in Hindcasts and is kept here as **kin**, the mirror of how CyberScotoma lives in Sgueltch and is kept as kin in Hindcasts. Same hinge status, opposite primary homes.
-* **Contact point with Sgueltch:** it degrades rather than restores, and VHS is where audio and video share one substrate — the tape-decay aesthetic and the a/v collapse are Sgueltch-adjacent even though the engine is a Hindcasts acausal analysis.
+* **Contact point with Sgueltch:** it degrades rather than restores, and VHS is where audio and video share one substrate — the tape-decay aesthetic and the a/v collapse are Sgueltch-adjacent even though the engine is a Hindcasts acausal analysis. Its MELT preset marks the crossover door; the Sgueltch-home continuation is **Tape as Tissue** (§5.1).
 
 ---
 
-## 4. The Conceptual Frontier (Unbuilt & Future Works)
+## 4. The Reply Map: Canon and Response
 
-The unbuilt frameworks within the Sgueltch project are intentional technical failures, where the boundary wall of existing computer architecture functions directly as the medium:
+The suite divides into two species of work. **Replies** are mutations of canonical glitch-art processes: an existing, recognized glitch gesture is taken up and transplanted onto an organic substrate, so the piece speaks *back* to a tradition. **Original instruments** apply glitch-like processes where no glitch canon exists — media territories nobody had thought to corrupt this way. Both are Sgueltch; the distinction is dialogic position, not membership.
+
+| Tool | Species | Replies to (canon) | The mutation |
+|---|---|---|---|
+| **Pixel Lesions** | reply — *core glitch statement* | Pixel sorting (the Asendorf `ASDFPixelSort` lineage of row/column luminance sorts) | Sorting confined inside expanding biological frontiers (lichen, mycelium, dendrite) instead of raster rows — the sort loses its axis |
+| **goopCodecs** | reply — *core glitch statement* | Databending: hex editing, text-editor injection, WordPad-bending of raw bytes | The substrate itself is replaced, so identical byte damage yields blobs, cell-territory shifts, and thread-bleeds instead of raster tearing and block confetti |
+| **CyberScotoma** | reply | Datamosh (I-frame removal / P-frame bloom, the Murata–Paper Rad lineage) and lag/buffer-hold artifacts | Hold regions are noised Voronoi scotomata with grafted motion fields, refusing the macroblock grid the canon depends on |
+| **SiltCRT** | half-reply | The CRT-filter / scanline-shader genre (retro display emulation) | The genre lovingly reproduces the RGB-triad row grid; SiltCRT replaces it with aperiodic Voronoi phosphor and lets persistence rot across frames |
+| **TypeBojangler** | half-reply | Zalgo / Unicode-abuse text glitch and kinetic typography | Where zalgo stacks combining marks *within* Unicode's rules, TypeBojangler abandons the metric tables entirely — continuous per-glyph drift off the typesetting grid |
+| **Gurgulator** | original instrument | — (granular replies to glitch *music* live outside the suite, in `tabota/binlod` and `hindcasts/pythia`; cf. BT's Stutter Edit / BreakTweaker) | Granular resynthesis as fermentation rather than as edit-grid stutter |
+| **Bakezuri** | original instrument | — (no glitch canon for print processes) | Mechanical replication misregistration as a live wet performance |
+| **Remanence** | reply — *Hindcasts-home, Sgueltch-kin* | VHS / analog tape-decay aesthetic; generation-loss nostalgia | Print-through as acausal instrument; its organic push beyond the MELT preset belongs to Sgueltch (see §5.1, "Tape as Tissue") |
+
+---
+
+## 5. The Conceptual Frontier (Unbuilt & Future Works)
+
+### 5.1 Replies Owed — canonical processes not yet answered
+
+Ranked by thesis-fit. Each pairs a canonical glitch(-adjacent) process with its organic-substrate mutation.
+
+**Recently realized:** Wet Feedback now lives inside SiltCRT as the **Seep** signal-memory mode. It advects and diffuses the previous frame through a viscous flow field before returning it to the decay buffer, independently combinable with every phosphor substrate.
+
+1.  **Tape as Tissue (the Remanence push).** Remanence (`hindcasts/remanence/`) already models print-through, wear, wow/flutter, and head-switch, and its MELT preset is explicitly flagged as "the Sgueltch crossover — a future zone, not a new home": louder print-through stays analog-nostalgic; real melt requires the substrate to go organic. The Sgueltch-home piece takes that step. Its material is the *body* of the tape rather than its memory: **sticky-shed syndrome** (binder hydrolysis — the polyurethane binder absorbs moisture and the tape literally turns to goo, squealing and shedding until it is baked back to playability), **fungal colonization** of stored reels (tape mold is a real archival pathology), and **oxide shed as silt**. Where Remanence asks what the reel *remembers*, this asks what the reel is *made of*. Division of labor per the suite placement rule: acausal whole-file analysis stays Hindcasts; corruption-forward goo/mold/silt substrate is Sgueltch.
+2.  **Organic Dither (error diffusion).** Floyd–Steinberg error diffusion is the most intimate quantization ritual in the canon: a serpentine raster scan pushing quantization error through a fixed four-neighbor kernel. It is quantization confessing per-pixel. The reply lets the error *seep* — diffusion across Voronoi neighborhoods or a reaction–diffusion substrate, error as osmotic pressure pooling in basins instead of marching down scanlines. Ties backward to the halftone/print lineage and therefore to Bakezuri.
+3.  **Fermented Generation Loss.** The canon: VHS dub chains, "I copied this video 1000 times," and the ur-text, Lucier's *I Am Sitting in a Room* (whose room resonance is a physical impulse response — direct kin to Gurgulator's gooey IR). The reply is cheap to build: iterative re-encoding through the existing `.ooid` / `.scute` / `.vermis` codecs, so each generation *ferments* instead of blockifying.
+4.  **The Mis-Healing Player (CD-skip error correction).** Yasunao Tone's Scotch-taped CDs and Oval's prepared discs are the founding playback-error works — distinct from granular territory, so no overlap with binlod/pythia. The Reed–Solomon interpolate-or-mute strategy is the codec's hygiene response to damage. The reply: a player that mis-heals — interpolation as tissue graft, filling error bursts with wrong flesh instead of silence. The audio sibling of CyberScotoma's graft logic.
+5.  **Mycelial Slit-Scan.** Slit-scan and rolling-shutter work (Trumbull; Levin's slit-scan catalog; CMOS jello) marches a straight one-dimensional aperture at constant rate — a 1D grid in time. The reply: the scan aperture as a wandering filament with peristaltic rate. *Placement caution:* a time-displacement spine may pull this Hindcasts-ward under the suite rule; the deciding question is whether the organic aperture or the temporal smear dominates.
+6.  **Mesh Rot.** The newer canon of photogrammetry failure and corrupted 3D scans. The reply: non-manifold growth and vertex drift driven by strain fields — Pixel Lesions in three dimensions. *Not to be confused with Mesh Mutator* (penciled outside the suite, see root `mesh-mutator.md`): Mutator is a constructive geometry-dequantization utility (jitter, polyps, asymmetry as a making tool), Rot is the corruption-forward glitch reply. Same likely substrate, opposite intent — the placement rule draws the line at growth vs. rot.
+7.  **Reaction–Diffusion Halftone.** The CMYK rosette and its screen angles are a grid-on-grid interference pattern (moiré as the grid confessing twice). The reply: Turing-pattern halftoning. Belongs in the Bakezuri print family.
+8.  **Felt (glitch textiles).** Weaving is the ultimate lattice — the Jacquard loom is computing's origin myth, and glitch-textile work (weave-draft corruption) stays inside the warp/weft grid. The reply is one word: **felt** — a non-woven fabric with no grid to corrupt. Likely a conceptual piece rather than software.
+
+Deliberately skipped: chromatic aberration (already inside Pixel Lesions as Chromatic Seep), scanline emulation (SiltCRT's territory), zalgo (Pain/Scream is the deeper answer to Unicode), circuit bending (hardware-bound, weak browser fit).
+
+### 5.2 Intentional Failures — where the wall is the medium
+
+The unbuilt frameworks below are intentional technical failures, where the boundary wall of existing computer architecture functions directly as the medium:
 
 1.  **Pain / Scream:** A typographic installation where the required glyphs and semantic markings reside explicitly in the mathematical void *between* standardized Unicode codepoints. Because the Unicode Consortium has no available allocation slots for these characters, the piece cannot physically exist as software; the installation is the documented, violent collision with the codepoint wall.
 2.  **Cloud Conference:** A piece built around the limits of algorithmic computing, requiring authentic external environmental entropy. It acts as an open critique of machine-enclosed pseudo-randomness by demanding live oceanic or atmospheric forces to generate its unpredictable, mutating vectors.
 
 ---
 
-## 5. Architectural Synthesis: The Pivot to Frutiger Aero & The Pacific
+## 6. Architectural Synthesis: The Pivot to Frutiger Aero & The Pacific
 
 The ultimate evolution of the Sgueltch framework serves as the structural underpinnings of a deeper aesthetic and political inquiry: the **Frutiger Aero / Pacific Pivot**.
 

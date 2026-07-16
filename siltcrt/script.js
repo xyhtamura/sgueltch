@@ -12,6 +12,18 @@ const noiseFunction = `
         return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123);
     }
 `;
+const smoothNoiseFunction = `
+    float smoothNoise(vec2 p) {
+        vec2 i = floor(p);
+        vec2 f = fract(p);
+        f = f * f * (3.0 - 2.0 * f);
+        float a = noise(i);
+        float b = noise(i + vec2(1.0, 0.0));
+        float c = noise(i + vec2(0.0, 1.0));
+        float d = noise(i + vec2(1.0, 1.0));
+        return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+    }
+`;
 const voronoiHash = `
     vec2 hash22(vec2 p) {
         p = vec2(dot(p, vec2(127.1, 311.7)),
@@ -53,6 +65,7 @@ const crtUniforms = {
     u_chromaticBleed:{ value: 0.001 },
     u_phosphorSize:  { value: 7500.0 },
     u_softness:      { value: 0.5 },
+    u_substrateMode: { value: 0.0 },
     u_bloomIntensity:{ value: 0.8 },
     u_bloomThreshold:{ value: 0.7 },
     u_bloomRadius:   { value: 2.0 },
@@ -63,9 +76,15 @@ const crtUniforms = {
     u_tintAmount:    { value: 0.4 }
 };
 const feedbackUniforms = {
-    u_current:     { value: null },
-    u_prev:        { value: null },
-    u_persistence: { value: 0.6 }
+    u_current:       { value: null },
+    u_prev:          { value: null },
+    u_persistence:   { value: 0.6 },
+    u_memoryMode:    { value: 1.0 },
+    u_seepViscosity: { value: 0.65 },
+    u_seepDiffusion: { value: 0.35 },
+    u_texel:         { value: new THREE.Vector2(1 / 600, 1 / 600) },
+    u_aspect:        { value: 1.0 },
+    u_time:          { value: 0.0 }
 };
 const presentUniforms = {
     u_texture:   { value: null },
@@ -84,7 +103,7 @@ const crtMaterial = new THREE.ShaderMaterial({
         varying vec2 vUv;
         uniform sampler2D u_texture;
         uniform float u_time, u_aspect, u_turbulence, u_flowSpeed, u_chromaticBleed;
-        uniform float u_phosphorSize, u_softness;
+        uniform float u_phosphorSize, u_softness, u_substrateMode;
         uniform float u_bloomIntensity, u_bloomThreshold, u_bloomRadius;
         uniform float u_umbraIntensity, u_umbraThreshold, u_umbraRadius;
         uniform vec2  u_texel;
@@ -155,42 +174,75 @@ const crtMaterial = new THREE.ShaderMaterial({
             );
             vec2 distortedUv = vUv + flow * u_turbulence * 0.1;
 
-            // --- PROBABILISTIC VORONOI PHOSPHOR CELLS ---
-            vec2 uv = distortedUv;
-            uv.x *= u_aspect;
-            uv *= u_phosphorSize / 20.0;
-            vec2 i_uv = floor(uv);
+            vec2 phosphorUv;
+            if (u_substrateMode > 0.5 && u_substrateMode < 1.5) {
+                // BLOCK: the original 2024 hard, axis-aligned sample lattice.
+                phosphorUv = floor(distortedUv * u_phosphorSize) / u_phosphorSize;
+            } else {
+                // Organic substrates share an aperiodic seed neighbourhood.
+                vec2 uv = distortedUv;
+                uv.x *= u_aspect;
+                uv *= u_phosphorSize / 20.0;
+                vec2 i_uv = floor(uv);
 
-            vec2 points[9];
-            float dists[9];
-            int index = 0;
-            for (int i = -1; i <= 1; i++) {
-                for (int j = -1; j <= 1; j++) {
-                    vec2 neighbor = vec2(float(i), float(j));
-                    vec2 seed_point = i_uv + neighbor + hash22(i_uv + neighbor) * 0.5 + 0.5;
-                    points[index] = seed_point;
-                    dists[index] = length(seed_point - uv);
-                    index++;
+                vec2 points[9];
+                float dists[9];
+                int index = 0;
+                for (int i = -1; i <= 1; i++) {
+                    for (int j = -1; j <= 1; j++) {
+                        vec2 neighbor = vec2(float(i), float(j));
+                        vec2 seed_point = i_uv + neighbor + hash22(i_uv + neighbor) * 0.5 + 0.5;
+                        points[index] = seed_point;
+                        dists[index] = length(seed_point - uv);
+                        index++;
+                    }
                 }
-            }
 
-            float total_weight = 0.0;
-            float weights[9];
-            for (int k = 0; k < 9; k++) {
-                float power = mix(16.0, 2.0, u_softness);
-                float weight = 1.0 / (pow(dists[k], power) + 0.0001);
-                weights[k] = weight;
-                total_weight += weight;
+                vec2 final_point_pos = points[0];
+                if (u_substrateMode < 0.5) {
+                    // SILT: choose a seed probabilistically by inverse distance.
+                    float total_weight = 0.0;
+                    float weights[9];
+                    for (int k = 0; k < 9; k++) {
+                        float power = mix(16.0, 2.0, u_softness);
+                        float weight = 1.0 / (pow(dists[k], power) + 0.0001);
+                        weights[k] = weight;
+                        total_weight += weight;
+                    }
+                    float roll = noise(vUv * 5.0 + u_time) * total_weight;
+                    float cumulative_weight = 0.0;
+                    for (int k = 0; k < 9; k++) {
+                        cumulative_weight += weights[k];
+                        if (roll < cumulative_weight) { final_point_pos = points[k]; break; }
+                    }
+                } else if (u_substrateMode < 2.5) {
+                    // OOID: nearby bodies overlap as a soft Gaussian field.
+                    float total_weight = 0.0;
+                    vec2 body_sum = vec2(0.0);
+                    float falloff = mix(18.0, 2.0, u_softness);
+                    for (int k = 0; k < 9; k++) {
+                        float weight = exp(-dists[k] * dists[k] * falloff) + 0.00001;
+                        body_sum += points[k] * weight;
+                        total_weight += weight;
+                    }
+                    final_point_pos = body_sum / total_weight;
+                } else {
+                    // SCUTE: weighted territories breathe against their neighbours.
+                    float best_score = 1000.0;
+                    for (int k = 0; k < 9; k++) {
+                        float phase = noise(points[k] * 0.37) * 6.2831853;
+                        float pressure = (0.5 + 0.5 * sin(u_time * 0.35 + phase))
+                                       * mix(0.02, 0.32, u_softness);
+                        float score = dists[k] * dists[k] - pressure;
+                        if (score < best_score) {
+                            best_score = score;
+                            final_point_pos = points[k];
+                        }
+                    }
+                }
+                phosphorUv = final_point_pos / (u_phosphorSize / 20.0);
+                phosphorUv.x /= u_aspect;
             }
-            vec2 final_point_pos = points[0];
-            float roll = noise(vUv * 5.0 + u_time) * total_weight;
-            float cumulative_weight = 0.0;
-            for (int k = 0; k < 9; k++) {
-                cumulative_weight += weights[k];
-                if (roll < cumulative_weight) { final_point_pos = points[k]; break; }
-            }
-            vec2 phosphorUv = final_point_pos / (u_phosphorSize / 20.0);
-            phosphorUv.x /= u_aspect;
 
             // --- CHROMATIC PHOSPHOR ASSEMBLY ---
             float r = texture2D(u_texture, phosphorUv - u_chromaticBleed).r;
@@ -224,10 +276,41 @@ const feedbackMaterial = new THREE.ShaderMaterial({
         varying vec2 vUv;
         uniform sampler2D u_current;
         uniform sampler2D u_prev;
-        uniform float u_persistence;
+        uniform float u_persistence, u_memoryMode, u_seepViscosity, u_seepDiffusion;
+        uniform float u_aspect, u_time;
+        uniform vec2 u_texel;
+        ${noiseFunction}
+        ${smoothNoiseFunction}
         void main() {
-            vec3 cur  = texture2D(u_current, vUv).rgb;
-            vec3 prev = texture2D(u_prev, vUv).rgb;
+            vec3 cur = texture2D(u_current, vUv).rgb;
+            if (u_memoryMode < 0.5) {
+                gl_FragColor = vec4(cur, 1.0);
+                return;
+            }
+
+            vec3 prev;
+            if (u_memoryMode > 1.5) {
+                vec2 p = vUv - 0.5;
+                p.x *= u_aspect;
+                float speed = mix(0.11, 0.025, u_seepViscosity);
+                vec2 flow = vec2(
+                    smoothNoise(p * 3.1 + vec2(u_time * speed, 11.7)),
+                    smoothNoise(p * 3.1 - vec2(7.3, u_time * speed))
+                ) * 2.0 - 1.0;
+                float drift = mix(0.014, 0.0015, u_seepViscosity);
+                vec2 memoryUv = clamp(vUv - flow * drift, vec2(0.0), vec2(1.0));
+
+                vec2 spread = u_texel * mix(0.5, 3.5, u_seepDiffusion);
+                vec3 centre = texture2D(u_prev, memoryUv).rgb;
+                vec3 neighbours = texture2D(u_prev, memoryUv + vec2(spread.x, 0.0)).rgb
+                                + texture2D(u_prev, memoryUv - vec2(spread.x, 0.0)).rgb
+                                + texture2D(u_prev, memoryUv + vec2(0.0, spread.y)).rgb
+                                + texture2D(u_prev, memoryUv - vec2(0.0, spread.y)).rgb;
+                vec3 diffuse = (centre * 4.0 + neighbours) / 8.0;
+                prev = mix(centre, diffuse, u_seepDiffusion);
+            } else {
+                prev = texture2D(u_prev, vUv).rgb;
+            }
             vec3 trail = prev * u_persistence;
             gl_FragColor = vec4(max(cur, trail), 1.0);
         }
@@ -290,6 +373,17 @@ function recreateTargets(w, h) {
     renderer.setClearColor(old, 1);
 }
 
+function clearFeedbackTargets() {
+    if (!rtPrevA || !rtPrevB) return;
+    const oldTarget = renderer.getRenderTarget();
+    const oldColor = renderer.getClearColor(new THREE.Color());
+    const oldAlpha = renderer.getClearAlpha();
+    renderer.setClearColor(0x000000, 1);
+    [rtPrevA, rtPrevB].forEach(rt => { renderer.setRenderTarget(rt); renderer.clear(); });
+    renderer.setRenderTarget(oldTarget);
+    renderer.setClearColor(oldColor, oldAlpha);
+}
+
 // === SOURCE HANDLING (image OR video) ================================
 const MAX_SIZE = 600;
 let sourceType = null;
@@ -311,6 +405,8 @@ function applyAspect(w, h) {
     crtUniforms.u_aspect.value = aspect;
     presentUniforms.u_aspect.value = aspect;
     crtUniforms.u_texel.value.set(1 / newWidth, 1 / newHeight);
+    feedbackUniforms.u_aspect.value = aspect;
+    feedbackUniforms.u_texel.value.set(1 / newWidth, 1 / newHeight);
 }
 
 function clearVideo() {
@@ -411,6 +507,7 @@ function animate() {
     if (!crtUniforms.u_texture.value || !rtScene) return;
     crtUniforms.u_time.value += 0.01;
     presentUniforms.u_time.value = crtUniforms.u_time.value;
+    feedbackUniforms.u_time.value = crtUniforms.u_time.value;
     renderFrame();
 }
 animate();
@@ -444,6 +541,8 @@ setupSliderSync('umbraIntensity', 'umbraIntensity-num', crtUniforms, 'u_umbraInt
 setupSliderSync('umbraThreshold', 'umbraThreshold-num', crtUniforms, 'u_umbraThreshold');
 setupSliderSync('umbraRadius',    'umbraRadius-num',    crtUniforms, 'u_umbraRadius');
 setupSliderSync('persistence',    'persistence-num',    feedbackUniforms, 'u_persistence');
+setupSliderSync('seepViscosity',  'seepViscosity-num',  feedbackUniforms, 'u_seepViscosity');
+setupSliderSync('seepDiffusion',  'seepDiffusion-num',  feedbackUniforms, 'u_seepDiffusion');
 setupSliderSync('curvature',      'curvature-num',      presentUniforms, 'u_curvature');
 setupSliderSync('vignette',       'vignette-num',       presentUniforms, 'u_vignette');
 setupSliderSync('grain',          'grain-num',          presentUniforms, 'u_grain');
@@ -454,6 +553,153 @@ setupSliderSync('fps',            'fps-num',            null, null);
 const tintInput = document.getElementById('phosphorTint');
 tintInput.addEventListener('input', () => crtUniforms.u_phosphorTint.value.set(tintInput.value));
 crtUniforms.u_phosphorTint.value.set(tintInput.value);
+
+// === PHOSPHOR SUBSTRATES =============================================
+// Each geometry gets a useful first culture and then retains its own settings.
+const SUBSTRATE_CONTROL_IDS = [
+    'turbulence', 'flowSpeed', 'phosphorSize', 'chromaticBleed', 'voronoiSoftness',
+    'bloomIntensity', 'bloomThreshold', 'bloomRadius',
+    'umbraIntensity', 'umbraThreshold', 'umbraRadius',
+    'curvature', 'vignette', 'grain', 'tintAmount'
+];
+const SUBSTRATE_PRESETS = {
+    silt: {
+        turbulence: 0.25, flowSpeed: 0.46, phosphorSize: 7500, chromaticBleed: 0.001,
+        voronoiSoftness: 0.5, bloomIntensity: 0.8, bloomThreshold: 0.7, bloomRadius: 2,
+        umbraIntensity: 0, umbraThreshold: 0.3, umbraRadius: 2,
+        curvature: 0.08, vignette: 0.35, grain: 0.06, tintAmount: 0.4,
+        phosphorTint: '#c6f53a'
+    },
+    ooid: {
+        turbulence: 0.34, flowSpeed: 0.38, phosphorSize: 900, chromaticBleed: 0.0015,
+        voronoiSoftness: 0.72, bloomIntensity: 0.62, bloomThreshold: 0.68, bloomRadius: 2.8,
+        umbraIntensity: 0.12, umbraThreshold: 0.24, umbraRadius: 2.4,
+        curvature: 0.05, vignette: 0.28, grain: 0.035, tintAmount: 0.24,
+        phosphorTint: '#d6e374'
+    },
+    scute: {
+        turbulence: 0.28, flowSpeed: 0.42, phosphorSize: 1800, chromaticBleed: 0.001,
+        voronoiSoftness: 0.68, bloomIntensity: 0.7, bloomThreshold: 0.72, bloomRadius: 2.2,
+        umbraIntensity: 0.18, umbraThreshold: 0.28, umbraRadius: 2.7,
+        curvature: 0.06, vignette: 0.32, grain: 0.045, tintAmount: 0.3,
+        phosphorTint: '#aabf68'
+    },
+    block: {
+        // 0.7937 cubed reproduces the old shader's direct turbulence value of 0.5.
+        turbulence: 0.7937, flowSpeed: 0.46, phosphorSize: 600, chromaticBleed: 0.001,
+        voronoiSoftness: 0.5, bloomIntensity: 0, bloomThreshold: 0.7, bloomRadius: 2,
+        umbraIntensity: 0, umbraThreshold: 0.3, umbraRadius: 2,
+        curvature: 0, vignette: 0, grain: 0, tintAmount: 0,
+        phosphorTint: '#c6f53a'
+    }
+};
+const SUBSTRATE_VALUES = { silt: 0, block: 1, ooid: 2, scute: 3 };
+const SUBSTRATE_COPY = {
+    silt: ['voronoi cells', 'voronoi softness', 'aperiodic phosphor cells chosen by probabilistic weight.'],
+    ooid: ['ooid bodies', 'ooid overlap', 'soft Gaussian bodies overlap and swell without explicit cell edges.'],
+    scute: ['scute territories', 'territory pressure', 'weighted territories breathe, compress, and displace their neighbours.'],
+    block: ['block samples', 'cell softness — inactive', 'the original square-sample signal: the quantized historical baseline.']
+};
+const substrateStates = { silt: null, ooid: null, scute: null, block: null };
+let substrateMode = 'silt';
+
+function captureSubstrateState() {
+    const state = {};
+    SUBSTRATE_CONTROL_IDS.forEach(id => {
+        const control = document.getElementById(id);
+        if (control) state[id] = parseFloat(control.value);
+    });
+    state.phosphorTint = tintInput.value;
+    return state;
+}
+
+function applySubstrateState(state) {
+    SUBSTRATE_CONTROL_IDS.forEach(id => {
+        if (!(id in state)) return;
+        const slider = document.getElementById(id);
+        const numberInput = document.getElementById(`${id}-num`);
+        if (!slider) return;
+        slider.value = state[id];
+        if (numberInput) numberInput.value = state[id];
+        slider.dispatchEvent(new Event('input'));
+    });
+    tintInput.value = state.phosphorTint;
+    tintInput.dispatchEvent(new Event('input'));
+}
+
+function activateSubstrate(nextMode) {
+    if (!(nextMode in SUBSTRATE_PRESETS) || nextMode === substrateMode) return;
+    substrateStates[substrateMode] = captureSubstrateState();
+    substrateMode = nextMode;
+    crtUniforms.u_substrateMode.value = SUBSTRATE_VALUES[substrateMode];
+    document.body.dataset.substrateMode = substrateMode;
+    applySubstrateState(substrateStates[substrateMode] || SUBSTRATE_PRESETS[substrateMode]);
+    clearFeedbackTargets();
+
+    const copy = SUBSTRATE_COPY[substrateMode];
+    document.getElementById('phosphor-size-label').textContent = copy[0];
+    document.getElementById('cell-softness-label').textContent = copy[1];
+    document.getElementById('mode-note').textContent = `${copy[2]} each substrate remembers its own settings.`;
+}
+
+document.body.dataset.substrateMode = substrateMode;
+substrateStates.silt = captureSubstrateState();
+document.querySelectorAll('input[name="substrate-mode"]').forEach(input => {
+    input.addEventListener('change', () => {
+        if (input.checked) activateSubstrate(input.value);
+    });
+});
+
+// === SIGNAL MEMORY ===================================================
+const MEMORY_VALUES = { dry: 0, remanence: 1, seep: 2 };
+const MEMORY_PRESETS = {
+    dry: { persistence: 0, seepViscosity: 0.65, seepDiffusion: 0.35 },
+    remanence: { persistence: 0.6, seepViscosity: 0.65, seepDiffusion: 0.35 },
+    seep: { persistence: 0.9, seepViscosity: 0.65, seepDiffusion: 0.35 }
+};
+const MEMORY_COPY = {
+    dry: 'the current signal replaces the last frame completely.',
+    remanence: 'brightness lingers across frames and rots toward black.',
+    seep: 'the previous signal is advected through a viscous field before it decays.'
+};
+const MEMORY_CONTROL_IDS = ['persistence', 'seepViscosity', 'seepDiffusion'];
+const memoryStates = { dry: null, remanence: null, seep: null };
+let memoryMode = 'remanence';
+
+function captureMemoryState() {
+    const state = {};
+    MEMORY_CONTROL_IDS.forEach(id => { state[id] = parseFloat(document.getElementById(id).value); });
+    return state;
+}
+
+function applyMemoryState(state) {
+    MEMORY_CONTROL_IDS.forEach(id => {
+        const slider = document.getElementById(id);
+        const numberInput = document.getElementById(`${id}-num`);
+        slider.value = state[id];
+        numberInput.value = state[id];
+        slider.dispatchEvent(new Event('input'));
+    });
+}
+
+function activateMemory(nextMode) {
+    if (!(nextMode in MEMORY_VALUES) || nextMode === memoryMode) return;
+    memoryStates[memoryMode] = captureMemoryState();
+    memoryMode = nextMode;
+    feedbackUniforms.u_memoryMode.value = MEMORY_VALUES[memoryMode];
+    document.body.dataset.memoryMode = memoryMode;
+    applyMemoryState(memoryStates[memoryMode] || MEMORY_PRESETS[memoryMode]);
+    document.getElementById('memory-note').textContent = MEMORY_COPY[memoryMode];
+    clearFeedbackTargets();
+}
+
+document.body.dataset.memoryMode = memoryMode;
+memoryStates.remanence = captureMemoryState();
+document.querySelectorAll('input[name="memory-mode"]').forEach(input => {
+    input.addEventListener('change', () => {
+        if (input.checked) activateMemory(input.value);
+    });
+});
 
 // === FILE / DRAG-DROP ================================================
 const body = document.body;
@@ -499,9 +745,13 @@ document.getElementById('randomize-btn').addEventListener('click', () => {
         s.value = val; n.value = val;
         s.dispatchEvent(new Event('input'));
     };
+    const sizeRanges = {
+        silt: [40, 4000], ooid: [120, 1800], scute: [150, 3000], block: [50, 600]
+    };
+    const sizeRange = sizeRanges[substrateMode];
     set('turbulence', rnd(0.1, 0.7));
     set('flowSpeed', rnd(0.2, 0.7));
-    set('phosphorSize', Math.round(rnd(40, 4000)), 0);
+    set('phosphorSize', Math.round(rnd(sizeRange[0], sizeRange[1])), 0);
     set('chromaticBleed', rnd(0, 0.008), 4);
     set('voronoiSoftness', rnd(0.2, 0.9));
     set('bloomIntensity', rnd(0.4, 1.4));
@@ -512,6 +762,10 @@ document.getElementById('randomize-btn').addEventListener('click', () => {
     set('vignette', rnd(0.2, 0.7));
     set('grain', rnd(0.02, 0.18), 3);
     set('tintAmount', rnd(0.2, 0.7));
+    if (memoryMode === 'seep') {
+        set('seepViscosity', rnd(0.25, 0.9));
+        set('seepDiffusion', rnd(0.1, 0.8));
+    }
 });
 
 // === VIDEO EXPORT (canvas → MediaRecorder → .webm) ===================
