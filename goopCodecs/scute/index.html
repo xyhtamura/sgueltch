@@ -454,8 +454,14 @@
         <label>detail bias</label>
         <input id="bias" type="range" min="0" max="100" value="60">
         <span class="val" id="bias_v">60</span></div>
-      <div class="row" data-tip="Domain-warps the cell borders with turbulent noise. 0 = crystalline hard Voronoi, clean carapace seams. High = borders ooze, interlock and marble — the cells go wet and organic. It's a render-time lens over the same seeds, so corruption stays live; the amount is stored in the header and travels with the .scute.">
-        <label>warp</label>
+      <div class="row" data-tip="How the borders form. WARPED = hard nearest-seed Voronoi with a turbulent-noise lens bending the seams — a render-time distortion over hard cells. GROWN = the blog's true organic Voronoi: every cell grows outward from a single-pixel seed, fronts advancing stochastically until they collide, so the borders are genuinely grown and fractal. Stored in the header, travels with the .scute.">
+        <label>border</label>
+        <div class="viewtog" id="bordermode" style="flex:1;margin:0">
+          <button data-bm="0" aria-pressed="true" data-tip="Hard Voronoi + noise warp. Fast, deterministic — what scute shipped with.">warped</button>
+          <button data-bm="1" data-tip="Eden growth from single-pixel seeds. Real grown borders; heavier to render.">grown</button>
+        </div></div>
+      <div class="row" data-tip="WARPED mode: domain-warps the borders with turbulent noise — 0 = crystalline hard Voronoi, high = borders ooze and marble. GROWN mode: how ragged the growth fronts are — 0 = fast smooth fill, high = jagged, slowly-advancing Eden clusters. Stored in the header and travels with the .scute.">
+        <label id="warplabel">warp</label>
         <input id="warp" type="range" min="0" max="100" value="35">
         <span class="val" id="warp_v">35</span></div>
       <div class="btns">
@@ -551,6 +557,7 @@
         <dt>magic</dt><dd><b>SCUT</b> · 16-byte header</dd>
         <dt>record</dt><dd><b>8 B</b> · x y r g b</dd>
         <dt>partition</dt><dd>nearest-seed · <b>order is not meaning</b></dd>
+        <dt>border</dt><dd id="spec_border"><b>warped</b> · noise-lens over hard cells</dd>
       </dl>
       <div class="hex" id="hex"></div>
     </section>
@@ -608,7 +615,7 @@ function decode(buf){
   const seeds=new Array(n);let o=HEADER;
   for(let i=0;i<n;i++){seeds[i]={nx:dv.getUint16(o,true)/65535,ny:dv.getUint16(o+2,true)/65535,
     r:u8[o+4],g:u8[o+5],b:u8[o+6]};o+=REC;}
-  return {seeds,W,H,bg,warp:u8[15]/255};
+  return {seeds,W,H,bg,warp:u8[15]/255,mode:u8[10]};
 }
 
 const VHEADER=16;
@@ -718,7 +725,9 @@ gl.disable(gl.BLEND);
 function renderVoronoi(seeds,W,H,bg,scale,warp01){
   scale=scale||1;warp01=warp01||0;const rw=Math.round(W*scale),rh=Math.round(H*scale);
   if(cv.width!==rw||cv.height!==rh){cv.width=rw;cv.height=rh;}
+  gl.bindFramebuffer(gl.FRAMEBUFFER,null);                  // growth may have left an FBO bound
   gl.viewport(0,0,rw,rh);gl.useProgram(prog);
+  gl.bindBuffer(gl.ARRAY_BUFFER,quadBuf);gl.enableVertexAttribArray(aPos);gl.vertexAttribPointer(aPos,2,gl.FLOAT,false,0,0);
   gl.uniform2f(uRes,rw,rh);gl.uniform3f(uBg,bg[0]/255,bg[1]/255,bg[2]/255);
   const n=seeds.length;
   const cellR=Math.sqrt((rw*rh)/Math.max(1,n));            // mean cell radius (px)
@@ -733,6 +742,158 @@ function renderVoronoi(seeds,W,H,bg,scale,warp01){
   gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA32F,n,2,0,gl.RGBA,gl.FLOAT,data);
   gl.uniform1i(uSeeds,0);gl.uniform1i(uCount,n);
   gl.drawArrays(gl.TRIANGLES,0,6);
+}
+
+/* ---- WebGL2 grown renderer (Eden multi-source stochastic flood) ----------- *
+   the blog's *actual* organic voronoi: cells grow from single-pixel seeds,
+   fronts advancing stochastically until they collide. borders are grown and
+   fractal, not a noise lens over hard voronoi. an empty pixel adopts a random
+   already-grown neighbour, gated by a per-pixel hash of (coord, pass) — so the
+   growth is deterministic from the seed pixels: corrupt a seed's position and
+   its territory regrows differently, keeping databending live.                */
+let growReady=false, growSupported=true, growWarned=false;
+let gTexA,gTexB,gFboA,gFboB,gW=0,gH=0,seedPosBuf;
+let plantProg,plantPos,plantIdx;
+let growProg,gPos,uG_src,uG_pass,uG_thresh,uG_size;
+let colorProg,cPos,uC_idx,uC_seeds,uC_bg,uC_size;
+function initGrowth(){
+  if(growReady||!gl)return;
+  if(!gl.getExtension('EXT_color_buffer_float')){growSupported=false;growReady=true;return;}
+  const PLANT_VS=`#version 300 es
+  in vec2 a_pos;in float a_idx;out float v_idx;
+  void main(){v_idx=a_idx;gl_PointSize=1.0;gl_Position=vec4(a_pos*2.0-1.0,0.0,1.0);}`;
+  const PLANT_FS=`#version 300 es
+  precision highp float;in float v_idx;out float frag;void main(){frag=v_idx;}`;
+  const QUAD_VS=`#version 300 es
+  in vec2 a_pos;void main(){gl_Position=vec4(a_pos,0.0,1.0);}`;
+  const GROW_FS=`#version 300 es
+  precision highp float;precision highp int;
+  uniform sampler2D u_src;uniform int u_pass;uniform float u_thresh;uniform ivec2 u_size;
+  out float frag;
+  uint uhash(uint x){x^=x>>16;x*=0x7feb352du;x^=x>>15;x*=0x846ca68bu;x^=x>>16;return x;}
+  float fhash(ivec2 c,int p){uint h=uhash(uint(c.x)*73856093u ^ uint(c.y)*19349663u ^ uint(p)*83492791u);return float(h)/4294967295.0;}
+  void main(){
+    ivec2 c=ivec2(gl_FragCoord.xy);
+    float cur=texelFetch(u_src,c,0).r;
+    if(cur>=0.0){frag=cur;return;}                       // already grown, keep
+    float cand[8];int nc=0;
+    for(int dy=-1;dy<=1;dy++)for(int dx=-1;dx<=1;dx++){
+      if(dx==0&&dy==0)continue;
+      ivec2 nb=c+ivec2(dx,dy);
+      if(nb.x<0||nb.y<0||nb.x>=u_size.x||nb.y>=u_size.y)continue;
+      float v=texelFetch(u_src,nb,0).r;
+      if(v>=0.0){cand[nc]=v;nc++;}
+    }
+    if(nc==0){frag=-1.0;return;}                         // no front adjacent, stay empty
+    if(fhash(c,u_pass)>u_thresh){frag=-1.0;return;}      // stochastic: not this pass -> rough front
+    int pick=int(fhash(c,u_pass+9137)*float(nc));if(pick>=nc)pick=nc-1;
+    frag=cand[pick];
+  }`;
+  const COLOR_FS=`#version 300 es
+  precision highp float;precision highp int;
+  uniform sampler2D u_idx;uniform sampler2D u_seeds;uniform vec3 u_bg;uniform ivec2 u_size;
+  out vec4 frag;
+  void main(){
+    ivec2 c=ivec2(int(gl_FragCoord.x),u_size.y-1-int(gl_FragCoord.y));  // present y-down like source
+    float fi=texelFetch(u_idx,c,0).r;
+    if(fi<0.0){frag=vec4(u_bg,1.0);return;}
+    int i=int(fi+0.5);
+    frag=vec4(texelFetch(u_seeds,ivec2(i,1),0).rgb,1.0);
+  }`;
+  const mk=(vs,fs)=>{const p=gl.createProgram();gl.attachShader(p,sh(gl.VERTEX_SHADER,vs));
+    gl.attachShader(p,sh(gl.FRAGMENT_SHADER,fs));gl.linkProgram(p);
+    if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw gl.getProgramInfoLog(p);return p;};
+  plantProg=mk(PLANT_VS,PLANT_FS);
+  plantPos=gl.getAttribLocation(plantProg,'a_pos');plantIdx=gl.getAttribLocation(plantProg,'a_idx');
+  growProg=mk(QUAD_VS,GROW_FS);
+  gPos=gl.getAttribLocation(growProg,'a_pos');
+  uG_src=gl.getUniformLocation(growProg,'u_src');uG_pass=gl.getUniformLocation(growProg,'u_pass');
+  uG_thresh=gl.getUniformLocation(growProg,'u_thresh');uG_size=gl.getUniformLocation(growProg,'u_size');
+  colorProg=mk(QUAD_VS,COLOR_FS);
+  cPos=gl.getAttribLocation(colorProg,'a_pos');
+  uC_idx=gl.getUniformLocation(colorProg,'u_idx');uC_seeds=gl.getUniformLocation(colorProg,'u_seeds');
+  uC_bg=gl.getUniformLocation(colorProg,'u_bg');uC_size=gl.getUniformLocation(colorProg,'u_size');
+  seedPosBuf=gl.createBuffer();
+  growReady=true;
+}
+function ensureGrowFbo(rw,rh){
+  if(gW===rw&&gH===rh&&gFboA)return;
+  gW=rw;gH=rh;
+  const mktex=()=>{const t=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,t);
+    gl.texImage2D(gl.TEXTURE_2D,0,gl.R32F,rw,rh,0,gl.RED,gl.FLOAT,null);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);return t;};
+  const mkfbo=t=>{const f=gl.createFramebuffer();gl.bindFramebuffer(gl.FRAMEBUFFER,f);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,t,0);return f;};
+  if(gTexA)gl.deleteTexture(gTexA);if(gTexB)gl.deleteTexture(gTexB);
+  if(gFboA)gl.deleteFramebuffer(gFboA);if(gFboB)gl.deleteFramebuffer(gFboB);
+  gTexA=mktex();gFboA=mkfbo(gTexA);gTexB=mktex();gFboB=mkfbo(gTexB);
+  gl.bindFramebuffer(gl.FRAMEBUFFER,null);
+}
+function uploadSeedTex(seeds,rw,rh){
+  const n=seeds.length;if(n===0)return 0;
+  const data=new Float32Array(n*2*4);
+  for(let i=0;i<n;i++){const s=seeds[i];
+    data[i*4]=s.nx*rw;data[i*4+1]=s.ny*rh;
+    const j=(n+i)*4;data[j]=s.r/255;data[j+1]=s.g/255;data[j+2]=s.b/255;}
+  gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,seedTex);
+  gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA32F,n,2,0,gl.RGBA,gl.FLOAT,data);
+  return n;
+}
+function renderGrown(seeds,W,H,bg,scale,rough01){
+  initGrowth();
+  if(!growSupported){                                      // no float FBOs -> fall back to warped
+    if(!growWarned){growWarned=true;alert('Grown borders need float render targets, which this browser lacks. Falling back to warped.');}
+    renderVoronoi(seeds,W,H,bg,scale,rough01);return;
+  }
+  scale=scale||1;rough01=rough01||0;
+  const rw=Math.round(W*scale),rh=Math.round(H*scale);
+  if(cv.width!==rw||cv.height!==rh){cv.width=rw;cv.height=rh;}
+  ensureGrowFbo(rw,rh);
+  const n=uploadSeedTex(seeds,rw,rh);
+  if(n===0){gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,rw,rh);
+    gl.clearColor(bg[0]/255,bg[1]/255,bg[2]/255,1);gl.clear(gl.COLOR_BUFFER_BIT);return;}
+  gl.disable(gl.BLEND);
+  // plant single-pixel seeds into gTexA (empty = -1)
+  gl.bindFramebuffer(gl.FRAMEBUFFER,gFboA);gl.viewport(0,0,rw,rh);
+  gl.clearBufferfv(gl.COLOR,0,new Float32Array([-1,-1,-1,-1]));
+  gl.useProgram(plantProg);
+  const pd=new Float32Array(n*3);
+  for(let i=0;i<n;i++){pd[i*3]=seeds[i].nx;pd[i*3+1]=seeds[i].ny;pd[i*3+2]=i;}
+  gl.bindBuffer(gl.ARRAY_BUFFER,seedPosBuf);gl.bufferData(gl.ARRAY_BUFFER,pd,gl.STREAM_DRAW);
+  gl.enableVertexAttribArray(plantPos);gl.vertexAttribPointer(plantPos,2,gl.FLOAT,false,12,0);
+  gl.enableVertexAttribArray(plantIdx);gl.vertexAttribPointer(plantIdx,1,gl.FLOAT,false,12,8);
+  gl.drawArrays(gl.POINTS,0,n);
+  gl.disableVertexAttribArray(plantIdx);
+  // grow: ping-pong, adopt probability falls as roughness rises (jaggier fronts)
+  const cellR=Math.sqrt((rw*rh)/Math.max(1,n));
+  const thresh=Math.max(0.15,1.0-rough01*0.82);
+  const mainPasses=Math.max(20,Math.min(200,Math.round(cellR/thresh*2.4)));
+  const total=mainPasses+16;                               // last 16 passes seal any gaps (thresh=1)
+  let srcTex=gTexA,srcFbo=gFboA,dstTex=gTexB,dstFbo=gFboB;
+  gl.useProgram(growProg);gl.uniform2i(uG_size,rw,rh);
+  gl.bindBuffer(gl.ARRAY_BUFFER,quadBuf);gl.enableVertexAttribArray(gPos);gl.vertexAttribPointer(gPos,2,gl.FLOAT,false,0,0);
+  for(let p=0;p<total;p++){
+    gl.bindFramebuffer(gl.FRAMEBUFFER,dstFbo);gl.viewport(0,0,rw,rh);
+    gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,srcTex);
+    gl.uniform1i(uG_src,1);gl.uniform1i(uG_pass,p);gl.uniform1f(uG_thresh,p<mainPasses?thresh:1.0);
+    gl.drawArrays(gl.TRIANGLES,0,6);
+    let t=srcTex;srcTex=dstTex;dstTex=t;let f=srcFbo;srcFbo=dstFbo;dstFbo=f;
+  }
+  // colorize final index texture to the canvas
+  gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,rw,rh);
+  gl.useProgram(colorProg);
+  gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,srcTex);gl.uniform1i(uC_idx,1);
+  gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,seedTex);gl.uniform1i(uC_seeds,0);
+  gl.uniform3f(uC_bg,bg[0]/255,bg[1]/255,bg[2]/255);gl.uniform2i(uC_size,rw,rh);
+  gl.bindBuffer(gl.ARRAY_BUFFER,quadBuf);gl.enableVertexAttribArray(cPos);gl.vertexAttribPointer(cPos,2,gl.FLOAT,false,0,0);
+  gl.drawArrays(gl.TRIANGLES,0,6);
+}
+function render(seeds,W,H,bg,scale,param,mode){
+  if(mode===1)renderGrown(seeds,W,H,bg,scale,param);
+  else renderVoronoi(seeds,W,H,bg,scale,param);
 }
 
 /* ====================================================================== noise */
@@ -795,7 +956,7 @@ function fitImageSeeds(T,N,bias){
 }
 
 /* ====================================================================== state */
-let cleanBuf=null, curImg=null, curW=880, curH=629, curBg=[7,15,20], warpV=35;
+let cleanBuf=null, curImg=null, curW=880, curH=629, curBg=[7,15,20], warpV=35, borderMode=0;
 const D={drift:0,recolor:0,corrupt:0,band:0,trunc:100};
 const dims=(iw,ih)=>{const s=Math.min(1,RENDER_MAX/Math.max(iw,ih));
   return [Math.max(2,Math.round(iw*s)),Math.max(2,Math.round(ih*s))];};
@@ -808,7 +969,7 @@ function buildSample(){
   if(editing)exitEdit(false);clearVideo();
   curImg=null;curW=880;curH=Math.round(880*0.715);curBg=[7,15,20];
   const seeds=sampleSeeds(+$('cells').value);
-  cleanBuf=encode(seeds,curW,curH,curBg,0,warpV/100);
+  cleanBuf=encode(seeds,curW,curH,curBg,borderMode,warpV/100);
   $('src_v').textContent='sample field';apply();
 }
 function fit(){
@@ -818,7 +979,7 @@ function fit(){
   [curW,curH]=dims(curImg.naturalWidth||curImg.width,curImg.naturalHeight||curImg.height);
   curBg=[Math.round(T.mean[0]*255*0.5),Math.round(T.mean[1]*255*0.5),Math.round(T.mean[2]*255*0.5)];
   const seeds=fitImageSeeds(T,N,bias);
-  cleanBuf=encode(seeds,curW,curH,curBg,0,warpV/100);
+  cleanBuf=encode(seeds,curW,curH,curBg,borderMode,warpV/100);
   $('src_v').textContent=seeds.length+' cells';apply();
 }
 
@@ -840,8 +1001,8 @@ function currentBuf(){return editing?editBuffer():damage(cleanBuf,D);}
 
 function apply(){
   if(!cleanBuf)return;
-  const buf=currentBuf(),{seeds,W,H,bg,warp}=decode(buf);
-  renderVoronoi(seeds,W,H,bg,1,warp);
+  const buf=currentBuf(),{seeds,W,H,bg,warp,mode}=decode(buf);
+  render(seeds,W,H,bg,1,warp,mode);
   $('ro_n').textContent=seeds.length;$('ro_b').textContent=buf.byteLength.toLocaleString();
   let state,col;
   if(editing){state='edited';col='var(--orchid)';}
@@ -877,6 +1038,7 @@ function ingestFile(file){
       if(!(u8[0]===0x53&&u8[1]===0x43&&u8[2]===0x55&&u8[3]===0x54)){alert('Not a scute file.');return;}
       const dv=new DataView(buf);curW=dv.getUint16(4,true);curH=dv.getUint16(6,true);
       warpV=Math.round(u8[15]/255*100);$('warp').value=warpV;$('warp_v').textContent=warpV;
+      setBorderMode(u8[10]||0,true);
       clearVideo();cleanBuf=buf;curImg=null;$('drop').classList.add('hidden');$('src_v').textContent='reopened';
       resetDamage(false);apply();};
     fr.readAsArrayBuffer(file);return;
@@ -901,6 +1063,7 @@ function openContainer(buf){
   vidFrames=dec.frames;vidFps=dec.fps||12;vidOutW=dec.W;vidOutH=dec.H;vidIndex=0;
   const first=new Uint8Array(dec.frames[0]);
   warpV=Math.round((first[15]||0)/255*100);$('warp').value=warpV;$('warp_v').textContent=warpV;
+  setBorderMode(first[10]||0,true);
   $('m_video').hidden=false;$('vidproc').disabled=true;$('vidtransport').hidden=false;$('vidscrub').max=dec.frames.length-1;
   $('vid_v').textContent=dec.frames.length+' frames'+(dec.fps?(' · '+dec.fps+'fps'):'');
   $('src_v').textContent='reopened video';$('drop').classList.add('hidden');resetDamage(false);showVideoFrame(0);
@@ -929,7 +1092,7 @@ function encodeVideoFrame(sourceCanvas){
   const N=+$('cells').value,bias=$('bias').value/100,T=buildTarget(sourceCanvas,FIT);
   const seeds=fitImageSeeds(T,N,bias);
   const bg=[Math.round(T.mean[0]*255*0.5),Math.round(T.mean[1]*255*0.5),Math.round(T.mean[2]*255*0.5)];
-  return encode(seeds,vidOutW,vidOutH,bg,0,warpV/100);
+  return encode(seeds,vidOutW,vidOutH,bg,borderMode,warpV/100);
 }
 async function processVideo(){
   if(!vid||vidBusy)return;
@@ -949,7 +1112,7 @@ async function processVideo(){
     $('vid_v').textContent='frame '+(f+1)+'/'+total;
     const buf=encodeVideoFrame(fc);
     vidFrames.push(buf);cleanBuf=buf;
-    const dec=decode(buf);renderVoronoi(dec.seeds,dec.W,dec.H,dec.bg,1,dec.warp);
+    const dec=decode(buf);render(dec.seeds,dec.W,dec.H,dec.bg,1,dec.warp,dec.mode);
     $('ro_n').textContent=dec.seeds.length;$('ro_b').textContent=buf.byteLength.toLocaleString();
     $('prog_i').style.width=(((f+1)/total)*100).toFixed(1)+'%';
     await sleep(0);
@@ -994,7 +1157,7 @@ async function recordVideo(){
   for(let f=0;f<vidFrames.length&&!vidAbort;f++){
     const t0=performance.now();
     const buf=damage(vidFrames[f],D),dec=decode(buf);
-    renderVoronoi(dec.seeds,dec.W,dec.H,dec.bg,1,dec.warp);gl.flush();
+    render(dec.seeds,dec.W,dec.H,dec.bg,1,dec.warp,dec.mode);gl.flush();
     $('vid_v').textContent='rec '+(f+1)+'/'+vidFrames.length;
     $('prog_i').style.width=(((f+1)/vidFrames.length)*100).toFixed(1)+'%';
     await nextPaint();
@@ -1020,6 +1183,19 @@ $('warp').addEventListener('input',()=>{warpV=+$('warp').value;$('warp_v').textC
   if(vidFrames.length)for(const frame of vidFrames)new Uint8Array(frame)[15]=b;
   if(editing&&editHeader)editHeader[15]=b;
   apply();});
+function setBorderMode(m,fromFile){                          // border style lives in header byte 10
+  borderMode=(m===1)?1:0;
+  [...$('bordermode').children].forEach(b=>b.setAttribute('aria-pressed',(+b.dataset.bm)===borderMode));
+  $('warplabel').textContent=borderMode?'rough':'warp';
+  $('spec_border').innerHTML=borderMode?'<b>grown</b> · Eden flood, fronts collide':'<b>warped</b> · noise-lens over hard cells';
+  if(!fromFile){
+    if(cleanBuf)new Uint8Array(cleanBuf)[10]=borderMode;
+    if(vidFrames.length)for(const frame of vidFrames)new Uint8Array(frame)[10]=borderMode;
+    if(editing&&editHeader)editHeader[10]=borderMode;
+    apply();
+  }
+}
+$('bordermode').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;setBorderMode(+b.dataset.bm,false);});
 $('browse').addEventListener('click',()=>$('file').click());
 $('reseed').addEventListener('click',fit);
 $('file').addEventListener('change',e=>{if(e.target.files[0])ingestFile(e.target.files[0]);});
@@ -1054,9 +1230,9 @@ stage.addEventListener('drop',e=>{const f=e.dataTransfer.files[0];if(f)ingestFil
 // export
 function dl(blob,name){const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),1500);}
 $('png').addEventListener('click',()=>{
-  if(!cleanBuf)return;const buf=currentBuf(),{seeds,W,H,bg,warp}=decode(buf);
-  renderVoronoi(seeds,W,H,bg,4,warp);                              // Changed from 2 to 4 for ultra-high-res output
-  cv.toBlob(b=>{dl(b,'scute-render.png');renderVoronoi(seeds,W,H,bg,1,warp);});
+  if(!cleanBuf)return;const buf=currentBuf(),{seeds,W,H,bg,warp,mode}=decode(buf);
+  render(seeds,W,H,bg,4,warp,mode);                                // 4× for ultra-high-res output
+  cv.toBlob(b=>{dl(b,'scute-render.png');render(seeds,W,H,bg,1,warp,mode);});
 });
 $('scute').addEventListener('click',()=>{
   if(vidFrames.length){
@@ -1064,7 +1240,8 @@ $('scute').addEventListener('click',()=>{
     const manifest=`\n\n--- SCUV v1 - scute video container ------------------------------
 header 16B: "SCUV"[4] W:u16 H:u16 frames:u16 fps:u8 ver:u8 rsv[4]
 then per frame: len:u32 + that many bytes of a complete "SCUT" v1 still
-each frame is an independent .scute partition; trailing text ignored
+each frame is an independent .scute partition (its own mode byte: warped or
+grown) ; trailing text ignored
 ------------------------------------------------------------------\n`;
     const txt=new TextEncoder().encode(manifest);
     const out=new Uint8Array(buf.byteLength+txt.length);
@@ -1073,12 +1250,19 @@ each frame is an independent .scute partition; trailing text ignored
   }
   if(!cleanBuf)return;const buf=currentBuf();
   const manifest=`\n\n--- SCUT v1 · voronoi-cell codec ---------------------------------
-header 16B: "SCUT"[4] W:u16 H:u16 N:u16 mode:u8 ver:u8 bg[3] rsv
+header 16B: "SCUT"[4] W:u16 H:u16 N:u16 mode:u8 ver:u8 bg[3] border:u8
 record  8B: x:u16 y:u16 r:u8 g:u8 b:u8 rsv
 position normalised 0..65535 across W/H · colour flat per cell
-partition is nearest-seed (hard borders) · record ORDER is not meaning:
-every pixel takes its single nearest seed. corrupt a seed's position and the
-partition itself deforms — borders buckle, cells annex their neighbours.
+mode byte (10): 0 = warped (hard nearest-seed voronoi, borders bent by a
+  render-time turbulent-noise lens), 1 = grown (each cell floods outward from
+  its single-pixel seed, fronts advancing stochastically until they collide —
+  borders are genuinely grown, not noise over hard cells).
+border byte (15): 0..255 = warp amount (warped) or growth roughness (grown).
+record ORDER is not meaning: every pixel takes its single nearest seed (warped)
+or its grown owner (grown). corrupt a seed's position and the partition itself
+deforms — warped borders buckle; grown territory regrows and re-annexes.
+growth is deterministic from the seed pixels (hash of coord+pass, no stored RNG)
+so corruption stays live and reproducible.
 a length-changing edit shifts every downstream cell (8B records) and scrambles
 the whole partition · decoder reads min(declared, records present) · text ignored
 ------------------------------------------------------------------\n`;
