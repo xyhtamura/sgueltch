@@ -91,6 +91,16 @@ Small, well-scoped core changes; each opens a family.
   ecological models below and for:
   - [ ] **Pixel Necrosis** — pixels age and decay toward black, punching hollow rot-holes.
   - [ ] **Pulse** — effect intensity oscillates with age; the lesion breathes.
+  - [ ] **Extrusion** — read age as a third axis and render the lesion as a volume.
+    The pixel-true rule is what makes this a real option rather than a tempting one:
+    an arbitrary 3D field would fabricate matter that was never in the source and
+    collapse the position stated above. Age does not. The column standing above a
+    pixel is that pixel's own history, so the third dimension is time and every
+    voxel still holds a pixel that existed. This needs the state buffer and nothing
+    else, so it costs one render path rather than an engine change.
+    Volumetric substrate work is being developed separately in root-level `schaum/`
+    (`../../schaum/schaum.md`); its irregular-cell substrates are the version of
+    this where the volume is not a stack of square columns.
 - [ ] **Multi-seed / persistent lesions** — refactor the single global `lesionCoords` into a
   lesion array so concurrent infections (different strains) coexist and collide.
 

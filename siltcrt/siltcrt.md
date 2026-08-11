@@ -359,6 +359,28 @@ Promising next memory modes include:
 - **Scar** — decay slows around high-luminance or high-contrast deposits;
 - **Slough** — accumulated signal detaches in patches instead of fading uniformly;
 - **Osmotic** — signal diffuses according to differences between neighbouring cells.
+- **Culture** — the previous frame's luminous matter lives or dies by a
+  neighbour rule, on whichever substrate is active.
+
+Culture is worth a note here because it is easy to file in the wrong axis. A
+life rule looks like a substrate and is not one: it does not change how luminous
+space is divided, it changes what survives from the previous frame, which is
+this axis's question. Filed correctly it composes with all four substrates for
+free — literal Conway on Block, and on Silt, Ooid, and Scute something that has
+no standard name.
+
+One thing has to be resolved before it can be implemented. B3/S23 is defined on
+a fixed valence of eight. Silt, Ooid, and Scute cells have variable valence, so
+integer birth and survival counts stop meaning the same thing from cell to cell;
+the rule has to be restated on the *fraction* of live neighbours. Scute is the
+interesting case and the hard one, because its territories already move under
+pressure, so the automaton would run on a tessellation that is itself deforming.
+
+The three-dimensional form of this is a separate root-level project, `schaum/`
+(`../../schaum/schaum.md`), which works the same problem volumetrically. Whoever
+builds Culture should read that file first — the normalised-rule argument, the
+substrate-as-realizer object model, and the citations to check are worked out
+there and apply here unchanged.
 
 ---
 
