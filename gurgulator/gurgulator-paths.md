@@ -1,5 +1,10 @@
 # Gurgulator — future paths
 
+> **See also [gurgulator-carryover.md](gurgulator-carryover.md)** (2026-07-31):
+> four measured defects in `fermentWriteBack`, the decoupling change that makes
+> Path D cheap, and why the unconditional bandpass is the reason this has one
+> sound. Written from building a fork of this engine for the Desiderata album.
+
 *Working notes, 2026-07. Problem: Gurgulator is a granular player with a wet
 costume. The buffer never changes; "fermentation" is vocabulary, not mechanism.
 Every sibling in the suite earns its substrate claim (Pixel Lesions grows
